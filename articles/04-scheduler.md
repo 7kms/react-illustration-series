@@ -1,56 +1,11 @@
 # 调度机制
 
-从[第一次render](./02-render-process.md#执行调度)的分析中知道,ReactFiber工作循环入口函数是`scheduleUpdateOnFiber`.`scheduleUpdateOnFiber`接受渲染器的输入信号, 通过调度机制, 最后再把结果输出给渲染器.
+从[第一次render](./02-render-process.md#执行调度)的分析中知道,ReactFiber工作循环入口函数是`scheduleUpdateOnFiber`.`scheduleUpdateOnFiber`接受渲染器的输入信号, 通过调度机制, 最后再把结果通过渲染器进行输出.
 
 所以分析scheduler机制, 也会从`scheduleUpdateOnFiber`作为入口.
 
-在正式分析之前, 沿用[第一次render](./02-render-process.md)中定义的`<App/>`组件的结构如下:
-```js
-class App extends React.Component{
-  componentDidMount(){
-    console.log('App componentDidMount')
-  }
-  render(){
-    return (
-      <div class="wrap">
-        <Box/>
-        <span>list组件</span>
-    </div>
-    );
-  }
-}
-class Box extends React.Component{
-  state = {
-    count: 0
-  }
-  handleClick = ()=>{
-    this.setState(state=>{
-      return {
-        count: ++state.count
-      }
-    })
-  }
-  componentDidMount(){
-    console.log('Box componentDidMount')
-  }
-  render(){
-    return <button onClick={this.handleClick}>点击次数({this.state.count})</button>
-  }
-}
-```
-`<Box/>`组件中, `button`上绑定一个`onClick`事件, 点击按钮之后执行`handleClick`函数, 并且调用`setState`触发更新.
-
-
-## 环境准备
-
-从[合成事件](./05-syntheticEvent.md#事件触发)中, 对事件触发的分析得知, `onClick`事件对应的`listener`是`dispatchDiscreteEvent`. 
-且在执行`handleClick`回调之前, `ReactFiberWorkLoop`中的执行上下文和`Scheduler`中的当前优先级都已经设置完毕.
-
-1. `ReactFiberWorkLoop`: `excutionContext |= DiscreteEventContext`
-2. `Scheduler`: `currentPriorityLevel = UserBlockingPriority`
-
 ## 调度更新
-
+假设在`react`组件逻辑中调用了`setState`来触发更新, 以`setState`为起点进行分析.
 跟踪`setState`, 最后会调用`React.Component`实例的`updater.enqueueSetState`
 ```js
 enqueueSetState(inst, payload, callback) {
@@ -70,6 +25,7 @@ enqueueSetState(inst, payload, callback) {
 ```
 
 在[应用初始化](./02-render-process.md#应用初始化)中有分析, 以`ReactDOM.render()`方式进行引导的`react`应用, 所有节点`fiber.mode = NoMode`. 所以在执行`computeExpirationForFiber`总是会返回`Sync`. 这也决定传入`scheduleUpdateOnFiber(fiber: Fiber, expirationTime: ExpirationTime,)`中的`ExpirationTime=Sync`(这里是为了说明`ExpirationTime=Sync`, 对于`Scheduler`机制的讨论不会受到`ExpirationTime=xxx`的限制)
+
 ```js
 export function computeExpirationForFiber(
   currentTime: ExpirationTime,
@@ -95,9 +51,6 @@ export function scheduleUpdateOnFiber(
   fiber: Fiber,
   expirationTime: ExpirationTime,
 ) {
-  //1. 设置从当前Fiber开始一直向上直到RootFiber节点的过期时间(expirationTime, childExpirationTime)
-  // 更新FiberRoot对象, 等待中任务(pending)的时间区间(firstPendingTime, lastPendingTime)
-  // 更新FiberRoot对象, 挂起任务(suspended)的时间区间(firstSuspendedTime, lastSuspendedTime)
   const root = markUpdateTimeFromFiberToRoot(fiber, expirationTime);
   // onClick事件: currentPriorityLevel = UserBlockingPriority
   const priorityLevel = getCurrentPriorityLevel();
@@ -109,22 +62,11 @@ export function scheduleUpdateOnFiber(
       // Check if we're not already rendering
       (executionContext & (RenderContext | CommitContext)) === NoContext
     ) {
-      // Register pending interactions on the root to avoid losing traced interaction data.
-      schedulePendingInteractions(root, expirationTime);
-
-      // This is a legacy edge case. The initial mount of a ReactDOM.render-ed
-      // root inside of batchedUpdates should be synchronous, but layout updates
-      // should be deferred until the end of the batch.
-      performSyncWorkOnRoot(root);
+     // ... 第一次render
     } else {
       ensureRootIsScheduled(root);
       schedulePendingInteractions(root, expirationTime);
       if (executionContext === NoContext) {
-        // Flush the synchronous work now, unless we're already working or inside
-        // a batch. This is intentionally inside scheduleUpdateOnFiber instead of
-        // scheduleCallbackForFiber to preserve the ability to schedule a callback
-        // without immediately flushing it. We only do this for user-initiated
-        // updates, to preserve historical behavior of legacy mode.
         flushSyncCallbackQueue();
       }
     }
@@ -157,7 +99,7 @@ export function scheduleUpdateOnFiber(
   }
 }
 ```
-[第一次render](./02-render-process.md#执行调度)会进入`performSyncWorkOnRoot`, 其余情况都会执行`ensureRootIsScheduled`.
+[第一次render](./02-render-process.md#执行调度)会进入`performSyncWorkOnRoot`分支, 其余情况无论进入哪一个分支, 核心逻辑都是执行`ensureRootIsScheduled`.
 
 ## 执行调度
 `ensureRootIsScheduled`
@@ -247,10 +189,9 @@ function ensureRootIsScheduled(root: FiberRoot) {
   root.callbackNode = callbackNode;
 }
 ```
-核心步骤:
-在`Scheduler`中注册task
->  目的是为了调用`scheduleSyncCallback`并将返回值设置到`FiberRoot.callbackNode`
-1. 有过期任务, 把`FiberRoot.callbackNode`设置成同步回调
+英文注释介绍的比较清楚, 核心步骤:
+
+1. 有过期任务, 把`fiberRoot.callbackNode`设置成同步回调
   
   ```js
     root.callbackExpirationTime = Sync;
@@ -261,11 +202,11 @@ function ensureRootIsScheduled(root: FiberRoot) {
   ```
 2. 没有新的任务, 退出调度
 
-3. 有历史任务(`FiberRoot.callbackNode !== null`)
+3. 有历史任务(`fiberRoot.callbackNode !== null`)
     - 新旧任务的过期时间相等, 且旧任务的优先级 `>=` 新任务优先级, 则退出调度.(新任务会在旧任务执行完成之后的同步刷新钩子中执行)
     - 新旧任务的过期时间不同, 或者且旧任务的优先级 `<` 新任务优先级, 会取消旧任务. 
 
-4. 根据`expirationTime`设置`FiberRoot.callbackNode`
+4. 根据`expirationTime`调用不同的`scheduleCallback`, 最后将返回值设置到`fiberRoot.callbackNode`
 
 ```js
     if (expirationTime === Sync) {
@@ -286,8 +227,7 @@ function ensureRootIsScheduled(root: FiberRoot) {
       );
     }
 ```
-
-`scheduleSyncCallback`
+跟踪`scheduleSyncCallback`和`scheduleCallback`
 ```js
 export function scheduleSyncCallback(callback: SchedulerCallback) {
   // Push this callback into an internal queue. We'll flush these either in
@@ -306,9 +246,7 @@ export function scheduleSyncCallback(callback: SchedulerCallback) {
   }
   return fakeCallbackNode;
 }
-```
-`scheduleCallback`
-```js
+
 
 export function scheduleCallback(
   reactPriorityLevel: ReactPriorityLevel,
@@ -319,20 +257,17 @@ export function scheduleCallback(
   return Scheduler_scheduleCallback(priorityLevel, callback, options);
 }
 ```
-核心步骤:
+两个函数最终都调用了`Scheduler_scheduleCallback`
+1. scheduleSyncCallback:
+    - 把`callback`添加到`syncQueue`中
+    - 如果还未发起调度, 会以`Scheduler_ImmediatePriority`执行调度`Scheduler_scheduleCallback`
 
-scheduleSyncCallback:
+2. scheduleCallback:
+    - 推断当前调度的优先级(legacymode下都是`ImmediatePriority`)
+    - 执行调度`Scheduler_scheduleCallback`
 
-1. 把`callback`添加到`syncQueue`中
-  - 如果第一次创建`syncQueue`, 会以`Scheduler_ImmediatePriority`执行调度`Scheduler_scheduleCallback`
-
-scheduleCallback:
-
-以推断出来的优先级(legacymode下都是`ImmediatePriority`)执行调度`Scheduler_scheduleCallback`
-
-
+往下跟踪`Scheduler_scheduleCallback`来到
 `unstable_scheduleCallback`:
-
 ```js
 /**
  * 1. 创建新的task
@@ -412,3 +347,201 @@ function unstable_scheduleCallback(priorityLevel, callback, options) {
   return newTask;
 }
 ```
+核心步骤: 
+
+1. 新建`task`对象(基本属性如下图)
+    - 将回调函数挂载到`task.callback`之上
+
+![](../snapshots/scheduler/task.png)
+
+2. 把`task`对象加入到一个队列中(注意: 这里的2个队列都是小顶堆数组, 保证优先级最高的任务排在最前面)
+    - 如果是及时任务加入到`taskQueue`
+    - 如果是延时任务加入到`timerQueue`
+    - 只有`taskQueue`中的任务才会被调度执行
+    - 通过`advanceTimers`函数可以把`timerQueue`中优先级足够的任务添加到`taskQueue`
+
+![](../snapshots/scheduler/queue.png)
+
+3. 请求调度
+    - 及时任务直接调用`requestHostCallback(flushWork)`
+    - 定时器任务调用`requestHostTimeout`, 当定时器触发之后也会间接调用`requestHostCallback(flushWork)`
+    - `requestHostCallback`通过`MessageChanel`的api添加一个宏任务,使得最终的回调`performWorkUntilDeadline`在下一个事件循环才会执行
+
+在`schedulerHostConfig.default.js`有如下定义
+```js
+ // 在超过deadline时执行任务
+  const performWorkUntilDeadline = () => {
+    if (scheduledHostCallback !== null) {
+      const currentTime = getCurrentTime();
+      const hasTimeRemaining = true;
+      try {
+        // 执行回调, 返回是否还有更多的任务
+        const hasMoreWork = scheduledHostCallback(
+          hasTimeRemaining,
+          currentTime,
+        );
+        if (!hasMoreWork) {
+          // 没有更多任务, 重置消息循环状态, 清空回调函数
+          isMessageLoopRunning = false;
+          scheduledHostCallback = null;
+        } else {
+          // 有多余的任务, 分离到下一次事件循环中再次调用performWorkUntilDeadline, 进行处理
+          // If there's more work, schedule the next message event at the end
+          // of the preceding one.
+          port.postMessage(null);
+        }
+      } catch (error) {
+        // If a scheduler task throws, exit the current browser task so the
+        // error can be observed.
+        port.postMessage(null);
+        throw error;
+      }
+    } else {
+      isMessageLoopRunning = false;
+    }
+    // Yielding to the browser will give it a chance to paint, so we can
+    // reset this.
+    needsPaint = false;
+  };
+
+  const channel = new MessageChannel();
+  const port = channel.port2;
+  channel.port1.onmessage = performWorkUntilDeadline;
+
+  // 请求主线程回调, 最快也要下一次事件循环才会调用callback, 所以必然是异步执行
+  requestHostCallback = function(callback) {
+    scheduledHostCallback = callback;
+    if (!isMessageLoopRunning) {
+      isMessageLoopRunning = true;
+      port.postMessage(null);
+    }
+  };
+```
+调度循环的逻辑可以表示如下:
+
+![](../snapshots/scheduler/requesthostcallback.png)
+
+当执行完`scheduledHostCallback`之后, 会返回一个`boolean`值表示是否还有新的任务, 如果有新任务, 会再次执行`port.postMessage(null)`, 在下一次事件循环中继续执行回调(`flushWork`)
+
+`scheduledHostCallback`即`flushWork`, `flushWork`核心调用`workLoop`
+
+`flushWork`->`workLoop`
+```js
+/**
+ * 工作循环
+ * @param {boolean} hasTimeRemaining 
+ * @param {*} initialTime = currentTime
+ */
+function workLoop(hasTimeRemaining, initialTime) {
+  let currentTime = initialTime;
+  advanceTimers(currentTime);
+  currentTask = peek(taskQueue);
+  // 逐一执行taskQueue中的任务, 直到任务被暂停或全部清空
+  while (
+    currentTask !== null &&
+    !(enableSchedulerDebugging && isSchedulerPaused)// 调度暂停判断
+  ) {
+    if (
+      currentTask.expirationTime > currentTime &&
+      (!hasTimeRemaining || shouldYieldToHost())// 让出控制权判断
+    ) {
+      // 当前任务还未过期, 但是已经超过时间限制, 会退出执行
+      // This currentTask hasn't expired, and we've reached the deadline.
+      break;
+    }
+    const callback = currentTask.callback;
+    if (callback !== null) {
+      currentTask.callback = null;
+      currentPriorityLevel = currentTask.priorityLevel;
+      const didUserCallbackTimeout = currentTask.expirationTime <= currentTime;
+      markTaskRun(currentTask, currentTime);
+      // 执行callback
+      const continuationCallback = callback(didUserCallbackTimeout);
+      currentTime = getCurrentTime();
+      if (typeof continuationCallback === 'function') {
+        currentTask.callback = continuationCallback;
+        markTaskYield(currentTask, currentTime);
+      } else {
+        if (enableProfiling) {
+          markTaskCompleted(currentTask, currentTime);
+          currentTask.isQueued = false;
+        }
+        if (currentTask === peek(taskQueue)) {
+          pop(taskQueue);
+        }
+      }
+      advanceTimers(currentTime);
+    } else {
+      pop(taskQueue);
+    }
+    currentTask = peek(taskQueue);
+  }
+  // Return whether there's additional work
+  if (currentTask !== null) {
+    return true;
+  } else {
+    const firstTimer = peek(timerQueue);
+    if (firstTimer !== null) {
+      requestHostTimeout(handleTimeout, firstTimer.startTime - currentTime);
+    }
+    return false;
+  }
+}
+```
+整个`scheduledHostCallback`回调的逻辑如下:
+
+![](../snapshots/scheduler/scheduledhostcallback.png)
+
+最后如果返回`false`退出调度, 如返回`true`,则回到`performWorkUntilDeadline`中准备下一次回调
+
+注意: 其中用红色字体标记的逻辑判断`调度暂停(isSchedulerPaused)`和`让出控制权(shouldYieldToHost())`在`legacyMode`下都是不会成立的
+
+
+## 总结
+
+1. 调用`ensureRootIsScheduled`作为开启调度的入口
+2. 根据规则准备执行调度
+    1. 有过期任务, 执行同步调度(`scheduleSyncCallback`). 把返回值设置到`fiberRoot.callbackNode`
+    2. 没有新的任务, 退出调度
+    3. 有历史任务(`FiberRoot.callbackNode !== null`)
+        - 新旧任务的过期时间相等, 且旧任务的优先级 `>=` 新任务优先级, 则退出调度.(新任务会在旧任务执行完成之后的同步刷新钩子中执行)
+        - 新旧任务的过期时间不同, 或者且旧任务的优先级 `<` 新任务优先级, 会取消旧任务. 
+    4. 根据`expirationTime`执行不同的调度(`scheduleSyncCallback`或`scheduleCallback`), 最后将返回值设置到`fiberRoot.callbackNode`
+
+3. 设置调度优先级和回调函数
+    1. scheduleSyncCallback:
+        - 把`performConcurrentWorkOnRoot`添加到`syncQueue`中
+        - 如果还未发起调度, 设置当前调度的优先级`Scheduler_ImmediatePriority`
+        - 发起调度`Scheduler_scheduleCallback`, 设置回调为`flushSyncCallbackQueueImpl`
+
+    2. scheduleCallback:
+        - 推断当前调度的优先级(legacymode下都是`ImmediatePriority`)
+        - 发起调度`Scheduler_scheduleCallback`, 设置回调为`performConcurrentWorkOnRoot`
+4. 发起调度
+    1. 新建`task`, 将3中的回调函数挂载到`task.callback`之上
+        - 及时任务: 把`task`加入到`taskQueue`中
+        - 延时任务: 把`task`加入到`timerQueue`中
+    2. 请求调度
+        1. 设置回调
+            - 及时任务: 直接调用`requestHostCallback(flushWork)`, 设置回调为`flushWork`
+            - 延时任务
+                - 调用`requestHostTimeout(handleTimeout)`设置定时器回调
+                - 定时器触发之后调用`requestHostCallback(flushWork)`, 设置回调为`flushWork`
+            - `requestHostCallback`函数把`flushWork`设置为`scheduledHostCallback`
+        2. 添加宏任务
+            - `requestHostCallback`通过`MessageChanel`的api添加一个宏任务,使得最终的回调`performWorkUntilDeadline`在下一个事件循环才会执行
+
+5. 执行调度
+    1. 循环执行任务队列`taskQueue`中的任务
+    2. 检测调度环境
+        - 是否需要暂停
+        - 是否需要把控制权让出给浏览器
+    3. 退出循环
+        - 检测当前任务是否已经执行完成(可能有暂停的任务)
+        - 检测定时器队列`timerQueue`中是否有新的任务
+        - 如后续还有任务, 返回`true`, 反之返回`false`
+
+6. 结束调度
+    - 判断`scheduledHostCallback`的返回值
+    - 如为`true`. 会再次执行`port.postMessage`, 在下一次事件循环中继续执行回调(`flushWork`)
+    - 如为`false`. 结束调度.

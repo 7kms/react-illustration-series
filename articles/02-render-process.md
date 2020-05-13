@@ -1,106 +1,15 @@
 # 首次render
-> 首次`render`执行逻辑
 
-### 程序入口
-用`creat-react-app`初始化一个最基本的工程, 入口文件的代码如下.
+在[React 应用初始化](./06-bootstrap.md)中介绍了`react`应用启动的3种模式.并且知道更新的入口就是`updateContainer`函数.
+为了简便, 这里在`legacy`模式为前提之下进行讨论. 对于`concurrent`和`blocking`的讨论, 放在`任务分片`中详细展开.
 
-![](../snapshots/code/01.png)
+初始化完成之后, 调用`updateContainer`之前, 先回顾一下此时主要对象的引用关系.
 
-在`render`之前, `div#root`节点和`reactElement(<App/>)`还没有联系. 可用下图表示
+![](../snapshots/bootstrap/process-legacy.png)
 
-![](../snapshots/process-01.png)
+## 更新入口
 
-跟踪`ReactDOM.render`函数, 可以得到`ReactDOM.render`函数的调用栈.
-
-在调用栈中, 非常关键的一个函数`legacyRenderSubtreeIntoContainer`, 串联了`react-dom`和`react-reconciliation`. 
-
-```js
-// ... 函数中省略了与首次render无关代码, 先关心主流程
-function legacyRenderSubtreeIntoContainer(
-  parentComponent: ?React$Component<any, any>,
-  children: ReactNodeList,
-  container: Container,
-  forceHydrate: boolean,
-  callback: ?Function,
-) {
-  let root: RootType = (container._reactRootContainer: any);
-  let fiberRoot;
-  if (!root) { // 第一次render的时候, root还未初始化, 必然会进入if分支
-    //1. 创建container, 引导react应用初始化
-    root = container._reactRootContainer = legacyCreateRootFromDOMContainer(
-      container,
-      forceHydrate,
-    );
-    fiberRoot = root._internalRoot;
-    //2. 设置工作空间的`executionContext`为`LegacyUnbatchedContext`. 
-     unbatchedUpdates(() => {
-      //3. 更新container, 开始react应用的首次更新
-      updateContainer(children, fiberRoot, parentComponent, callback);
-    });
-  }
-  return getPublicRootInstance(fiberRoot);
-}
-```
-该函数有3个重点:
-1. 执行`legacyCreateRootFromDOMContainer`, 初始化`react`应用.
-2. 设置工作空间的`executionContext`为`LegacyUnbatchedContext`. 
-3. 执行`updateContainer`, 开始`react`应用的首次更新
-
-### 应用初始化
-
-跟踪`legacyCreateRootFromDOMContainer`的函数调用关系(图片当中的黄色背景部分, 涉及到`react-dom`和`react-reconciler`两个包): 
-
-![](../snapshots/function-call-createcontainer.png)
-
-这里是`react`启动的第一个重点, 初始化3个全局对象, 这3个对象是react体系得以运行的基本保障, 一经创建大多数场景是不会再销毁(如要销毁, 必须unmount根节点, 卸载整个应用).
-
-1. `ReactDOMBlockingRoot`
-    - 创建`ReactDOMBlockingRoot`时传入的`tag=LegacyRoot`, 这个值会决定整个应用的调度模式.
-2. `FiberRoot`, 主要用于`react`应用在运行时的任务调度, 时间管理, render等环节的一些公共变量.
-3. `HostRootFiber`, 是一个`Fiber`对象, `tag=HostRoot`表示它是一个根节点.
-    - 由于`ReactDOMBlockingRoot.tag=LegacyRoot`, 创建`HostRootFiber`时会通过tag类型设置mode属性, 导致`HostRootFiber.mode=NoMode`, 以后创建的所有的Fiber子节点都会使用这个mode.
-
-这里附上需要注意的函数`createLegacyRoot`和`createHostRootFiber`
-
-```js
-export function createLegacyRoot(
-  container: Container,
-  options?: RootOptions,
-): RootType {
-  // 注意这里的第二个参数LegacyRoot, 这个值决定了HostRootFiber.mode
-  return new ReactDOMBlockingRoot(container, LegacyRoot, options); 
-}
-```
-
-```js
-export function createHostRootFiber(tag: RootTag): Fiber {
-  let mode;
-  if (tag === ConcurrentRoot) {
-    mode = ConcurrentMode | BlockingMode | StrictMode;
-  } else if (tag === BlockingRoot) {
-    mode = BlockingMode | StrictMode;
-  } else {// 由于tag=LegacyRoot, 所以会进入这个分支. 使得HostRootFiber.mode = NoMode
-    mode = NoMode;
-  }
-  // ...
-  return createFiber(HostRoot, null, null, mode);
-}
-```
-
-3个基本对象创建完成之后, 将内存中的对象引用关系表示出来:
-
-![](../snapshots/process-02.png)
-
-注意: 此时`reactElement`对象`<App/>`还是独立在外的, 还没有发生关联. 
-
-记录一下全局对象`FiberRoot`当前的属性:
-
-![](../snapshots/object-fiberroot-01.png)
-
-
-### render过程
-#### 更新updateQueue
-回到`legacyRenderSubtreeIntoContainer`函数, 执行`updateContainer()`, 跟踪函数调用栈, 在此之后的函数调用已经进入到了`react-reconciliation`包中.
+在[React 应用初始化](./06-bootstrap.md#调用更新入口)中得知更新的入口是`updateContainer`函数.
 
 ```js
 // ... 函数中省略了与首次render无关代码, 先关心主流程
@@ -158,6 +67,9 @@ export function updateContainer(
 
 注意`update`的数据结构是一个链表, 后续在二次更新过程中(如调用`setState`或者调用hook对象的`dispatchAction`都会深度使用, 会在react任务调度机制中详细说明, 这里先了解基本结构)
 
+#### 更新updateQueue
+
+
 ```js
 export function createUpdate(
   eventTime: ExpirationTime,
@@ -182,7 +94,7 @@ export function createUpdate(
 对于`update1`对象,处于`HostRootFiber.updateQueue`之中, 是`react`应用中的第一个`update`对象, 比较特殊(`processUpdateQueue`过程会体现出来), 可以看到它的基本属性.
 
 ![](../snapshots/object-update-01.png)
-
+### render过程
 #### 执行调度
 步骤3, 代码进入`ReactFiberWorkLoop.js`中, 逻辑正式来到了ReactFiber的工作循环.
 
