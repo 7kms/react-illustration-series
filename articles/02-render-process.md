@@ -1,18 +1,17 @@
 # 首次render
 
-在[React 应用初始化](./06-bootstrap.md)中介绍了`react`应用启动的3种模式.并且知道更新的入口就是`updateContainer`函数.
-为了简便, 这里在`legacy`模式为前提之下进行讨论. 对于`concurrent`和`blocking`的讨论, 放在`任务分片`中详细展开.
+在[React 应用初始化](./06-bootstrap.md)中介绍了`react`应用启动的3种模式.为了简便, 这里在`legacy`模式为前提之下进行讨论. 对于`concurrent`和`blocking`的讨论, 在`任务分片`中详细展开.
 
-初始化完成之后, 调用`updateContainer`之前, 先回顾一下此时主要对象的引用关系.
+初始化完成之后, 在调用`updateContainer`之前, 先回顾一下此时主要对象的引用关系.
 
 ![](../snapshots/bootstrap/process-legacy.png)
 
-## 更新入口
+## 调用更新入口
 
 在[React 应用初始化](./06-bootstrap.md#调用更新入口)中得知更新的入口是`updateContainer`函数.
 
 ```js
-// ... 函数中省略了与首次render无关代码, 先关心主流程
+// ... 函数中省略了与legacy无关代码
 export function updateContainer(
   element: ReactNodeList,
   container: OpaqueRoot,
@@ -31,7 +30,7 @@ export function updateContainer(
     currentTime,
     current,
     suspenseConfig,
-  );//初次render, expirationTime=Sync
+  );//legacy下, expirationTime=Sync
 
   // 2. 设置FiberRoot.context
   // 拿到当前的context, 首次执行返回一个emptyContext, 是一个{}
@@ -55,7 +54,7 @@ export function updateContainer(
 
 ```
 `updateContainer()`有4个核心步骤:
-1. 执行`computeExpirationForFiber`, 计算本次更新(`update`)的过期时间(`expirationTime`). 具体的时间计算方法, 在react任务调度机制中详细说明, 这里直接获取结果(初次render, expirationTime=Sync)
+1. 执行`computeExpirationForFiber`, 计算本次更新(`update`)的过期时间(`expirationTime`). 具体的时间计算方法, 在react任务调度机制中详细说明, 这里直接获取结果(`legacy`下, `expirationTime=Sync`)
 2. 设置`FiberRoot.context`
 3. 执行`enqueueUpdate`, 初始化`current`(`HostRootFiber`)对象的`updateQueue`队列
 4. 执行`scheduleUpdateOnFiber`, 调度和更新`current`(`HostRootFiber`)对象
@@ -65,11 +64,9 @@ export function updateContainer(
 
 ![](../snapshots/process-03.png)
 
-注意`update`的数据结构是一个链表, 后续在二次更新过程中(如调用`setState`或者调用hook对象的`dispatchAction`都会深度使用, 会在react任务调度机制中详细说明, 这里先了解基本结构)
+注意`update`的数据结构是一个链表, 后续在二次更新过程中(如调用`setState`或者调用hook对象的`dispatchAction`都会深度使用, 会在react更新机制中体现, 这里先了解基本结构)
 
-#### 更新updateQueue
-
-
+### 更新updateQueue
 ```js
 export function createUpdate(
   eventTime: ExpirationTime,
@@ -99,14 +96,14 @@ export function createUpdate(
 步骤3, 代码进入`ReactFiberWorkLoop.js`中, 逻辑正式来到了ReactFiber的工作循环.
 
 ```js
-// ... 函数中省略了与首次render无关代码, 先关心主流程
+// ... 函数中省略了与legacy无关代码
 export function scheduleUpdateOnFiber(
   fiber: Fiber,
   expirationTime: ExpirationTime,
 ) {
   // 1. 设置Fiber树上受影响节点的过期时间, 更新全局对象FiberRoot上的时间区间
   const root = markUpdateTimeFromFiberToRoot(fiber, expirationTime);
-  if (expirationTime === Sync) {// 初次render expirationTime=Sync
+  if (expirationTime === Sync) {// legacy下, expirationTime=Sync
     if (
       // Check if we're inside unbatchedUpdates
       (executionContext & LegacyUnbatchedContext) !== NoContext &&
@@ -150,7 +147,7 @@ export function scheduleUpdateOnFiber(
 分析`performSyncWorkOnRoot(root)`
 
 ```js
-// ... 函数中省略了与首次render无关代码, 先关心主流程
+// ... 函数中省略了与legacy无关代码
 function performSyncWorkOnRoot(root) {
 
   const lastExpiredTime = root.lastExpiredTime; // NoWork
@@ -165,7 +162,7 @@ function performSyncWorkOnRoot(root) {
   // 1. render阶段
   // 1.1 传入FiberRoot对象, 执行同步render
   let exitStatus = renderRootSync(root, expirationTime);
-  // 1.2 render结束之后, 设置FiberRoot.finishedWork(指向root.current.alternate)
+  // 1.2 render结束之后, 设置fiberRoot.finishedWork(指向root.current.alternate)
   const finishedWork: Fiber = (root.current.alternate: any);
   root.finishedWork = finishedWork;
   root.finishedExpirationTime = expirationTime;
@@ -174,7 +171,7 @@ function performSyncWorkOnRoot(root) {
   // 2. commit阶段
   commitRoot(root);
 
-  // 3. 再次对FiberRoot进行调度(退出之前保证FiberRoot没有需要调度的任务)
+  // 3. 再次对fiberRoot进行调度(退出之前保证fiberRoot没有需要调度的任务)
   ensureRootIsScheduled(root);
 
   return null;
@@ -183,15 +180,16 @@ function performSyncWorkOnRoot(root) {
 该函数有3个核心步骤:
 1. `renderRootSync`(`render`阶段).
 2. `commitRoot`(`commit`阶段).
-3. `ensureRootIsScheduled`, 更新之后再次调度`FiberRoot`上的任务 , 直到没有新任务之后退出.
+3. `ensureRootIsScheduled`, 更新之后再次调度`fiberRoot`上的任务 , 直到没有新任务之后退出.
 
 
 #### render阶段
 
+##### renderRootSync
 进入`renderRootSync(root, expirationTime)`
 
 ```js
-// ... 函数中省略了与首次render无关代码, 先关心主流程
+// ... 函数中省略了与legacy无关代码
 function renderRootSync(root, expirationTime) {
   const prevExecutionContext = executionContext;
   // 1. 位运算, 更新executionContext
@@ -257,7 +255,7 @@ function prepareFreshStack(root, expirationTime) {
 
 ![](../snapshots/firstrender-workloop-01.png)
 
-
+##### workLoopSync
 回到`renderRootSync()`函数作用域, 继续向下执行`workLoopSync()`函数
 
 ```js
@@ -289,8 +287,6 @@ function performUnitOfWork(unitOfWork: Fiber): void {
 }
 ```
 
-
-
 `performUnitOfWork`是以对当前传入`Fiber`节点开始, 进行深度优先循环处理.
 
 分析到这里, 可以把`workLoopSync`的主杆调用逻辑全部串联起来.
@@ -316,7 +312,7 @@ function performUnitOfWork(unitOfWork: Fiber): void {
     - 把当前Fiber对象的effects队列添加到父节点effects队列之后, 更新父节点的`firstEffect`, `lastEffect`指针.
     - 根据beginWork阶段设置的`effectTag`判断当前Fiber是否有副作用(增,删,改), 如果有, 需要将当前Fiber加入到父节点的`effects`队列, 等待commit阶段处理.
 
-`beginWork`
+##### beginWork
 
 ```js
 // ... 函数中省略了与首次render无关代码, 先关心主流程
@@ -443,7 +439,7 @@ function updateHostComponent(current, workInProgress, renderExpirationTime) {
 }
 ```
 
-`completeUnitOfWork(unitOfWork)`
+##### completeUnitOfWork
 
 ```js
 // ... 函数中省略了与首次render无关代码, 先关心主流程
@@ -509,6 +505,8 @@ function completeUnitOfWork(unitOfWork: Fiber): void {
   }
 }
 ```
+
+##### completeWork
 
 这里列出`HostComponent`, `HostText`的代码, 对于其他case的分析, 放在组件的生命周期详细说明.
 ```js
@@ -955,7 +953,7 @@ function commitLifeCycles(
 ```
 #### ensureRootIsScheduled
 
-在`commitRoot`的最后会执行`ensureRootIsScheduled`, 由于没有新的work可用, 所以会直接退出.执行完`commitRoot`之后, 第一次render过程就已经全部完成了.
+在`commitRoot`的最后会执行`ensureRootIsScheduled`再次进行调度, 由于没有新的任务, 所以会退出.执行完`commitRoot`之后, 第一次render过程就已经全部完成了.
 
 最终完成`ReactDOM.render`函数.
 ```js

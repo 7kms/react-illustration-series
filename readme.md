@@ -7,6 +7,6 @@
 * [更新机制](./articles/05-update-process.md)
 * `hooks`的工作原理
 * `context`机制
-* 任务分片
+* 任务切割机制
 
 * 如何实现一个自定义渲染器
