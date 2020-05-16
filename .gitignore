@@ -1,3 +1,17 @@
-### macOS ###
-# General
+# dependencies
+/node_modules
+/npm-debug.log*
+/yarn-error.log
+/yarn.lock
+/package-lock.json
+
+# production
+/dist
+
+# misc
 .DS_Store
+
+# umi
+.umi
+.umi-production
+.env.local

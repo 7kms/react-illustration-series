@@ -1,8 +1,8 @@
-# react更新机制
+# react 更新机制
 
-在[React 应用初始化](./06-bootstrap.md)中介绍了`react`应用启动的3种模式.为了简便, 这里在`legacy`模式为前提之下进行讨论. 对于`concurrent`和`blocking`的讨论, 在`任务分片`中详细展开.
+在[React 应用初始化](./02-bootstrap)中介绍了`react`应用启动的 3 种模式.为了简便, 这里在`legacy`模式为前提之下进行讨论. 对于`concurrent`和`blocking`的讨论, 在`任务分片`中详细展开.
 
-正常react应用有3种主动更新方式:
+正常 react 应用有 3 种主动更新方式:
 
 1. `Class`组件中主动调用`setState`.
 2. `Function`组件中使用`hook`对象的`dispatchAction`.
@@ -10,59 +10,61 @@
 
 ## setState
 
-继续使用[首次render](./02-render-process.md)中的例子.
+继续使用[首次 render](./03-render-process)中的例子.
 
 定义`<App/>`组件的结构如下:
 
 ```js
-
-class App extends React.Component{
-  componentDidMount(){
-    console.log('App componentDidMount')
+class App extends React.Component {
+  componentDidMount() {
+    console.log('App componentDidMount');
   }
-  render(){
+  render() {
     return (
       <div class="wrap">
-        <Box/>
+        <Box />
         <span>list组件</span>
-    </div>
+      </div>
     );
   }
 }
-class Box extends React.Component{
+class Box extends React.Component {
   state = {
-    count: 0
-  }
-  handleClick = ()=>{
-    this.setState(state=>{
+    count: 0,
+  };
+  handleClick = () => {
+    this.setState(state => {
       return {
-        count: ++state.count
-      }
-    })
+        count: ++state.count,
+      };
+    });
+  };
+  componentDidMount() {
+    console.log('Box componentDidMount');
   }
-  componentDidMount(){
-    console.log('Box componentDidMount')
-  }
-  render(){
-    return <button onClick={this.handleClick}>点击次数({this.state.count})</button>
+  render() {
+    return (
+      <button onClick={this.handleClick}>点击次数({this.state.count})</button>
+    );
   }
 }
-
 ```
 
 在初次`render`结束后, 工作空间的主要变量的状态如下:
 
 ![](../snapshots/firstrender-workloop-03.png)
 
-
 ### 环境准备
-从[合成事件](./03-syntheticEvent.md#事件触发)中对事件触发的分析得知, `onClick`事件对应的`listener`是`dispatchDiscreteEvent`. 
+
+从[合成事件](./04-syntheticEvent#事件触发)中对事件触发的分析得知, `onClick`事件对应的`listener`是`dispatchDiscreteEvent`.
 
 所以在执行`handleClick`回调之前, 可以明确当前环境:
+
 1. 工作空间(`ReactFiberWorkLoop`)执行上下文: `excutionContext |= DiscreteEventContext`
 2. 调度(`Scheduler`)优先级: `currentPriorityLevel = UserBlockingPriority`
 
 ### 调度更新
+
 点击`button`,触发合成事件,最后在`handleClick`中执行`setState`. 跟踪`setState`函数的调用栈:
 
 在`Component`对象的原型中有:
@@ -73,7 +75,7 @@ Component.prototype.setState = function(partialState, callback) {
 };
 ```
 
-在[首次render](./02-render-process.md#beginWork)中的`beginWork`阶段, class类型的组件初始化完成之后, `this.updater`对象如下:
+在[首次 render](./03-render-process#beginWork)中的`beginWork`阶段, class 类型的组件初始化完成之后, `this.updater`对象如下:
 
 ```js
 const classComponentUpdater = {
@@ -101,13 +103,15 @@ const classComponentUpdater = {
     enqueueUpdate(fiber, update);
     // 4. 在当前Fiber节点上进行调度更新
     scheduleUpdateOnFiber(fiber, expirationTime);
-  }
-}
+  },
+};
 ```
-核心步骤: 
+
+核心步骤:
+
 1. 获取`class`实例对应的`Fiber`节点
 2. 创建`update`对象
-3. 将`update`对象添加到当前Fiber节点的`updateQueue`队列当中
+3. 将`update`对象添加到当前 Fiber 节点的`updateQueue`队列当中
 4. 调用`scheduleUpdateOnFiber`, 从当前节点调度更新
 
 #### scheduleUpdateOnFiber
@@ -118,7 +122,8 @@ export function scheduleUpdateOnFiber(
   expirationTime: ExpirationTime,
 ) {
   const root = markUpdateTimeFromFiberToRoot(fiber, expirationTime);
-  if (expirationTime === Sync) {// leagcy下, expirationTime = Sync
+  if (expirationTime === Sync) {
+    // leagcy下, expirationTime = Sync
     if (
       (executionContext & LegacyUnbatchedContext) !== NoContext &&
       (executionContext & (RenderContext | CommitContext)) === NoContext
@@ -135,30 +140,34 @@ export function scheduleUpdateOnFiber(
   }
 }
 ```
+
 #### markUpdateTimeFromFiberToRoot
 
 ![](../snapshots/update/markupdatetime.png)
 
-1. 从当前fiber节点开始, 向上查找直到`HostRootFiber`, 标记当前`fiber.expirationTime`
-2. 标记所有父节点(包括alternate)的`childExpirationTime`
+1. 从当前 fiber 节点开始, 向上查找直到`HostRootFiber`, 标记当前`fiber.expirationTime`
+2. 标记所有父节点(包括 alternate)的`childExpirationTime`
 3. 设置`fiberRoot`上的`pendingTime`和`suspendedTime`(非`legacy`模式下会使用)
+
 #### ensureRootIsScheduled
 
-通过[Scheduler调度机制](./04-scheduler)的分析, legacy下`ensureRootIsScheduled`是对`performSyncWorkOnRoot`进行包装.
+通过[Scheduler 调度机制](./05-scheduler)的分析, legacy 下`ensureRootIsScheduled`是对`performSyncWorkOnRoot`进行包装.
 
 #### performSyncWorkOnRoot
-`performSyncWorkOnRoot`,的流程可以参照[首次render](./02-render-process.md#从FiberRoot节点开始进行更新)中的流程:
+
+`performSyncWorkOnRoot`,的流程可以参照[首次 render](./03-render-process#从FiberRoot节点开始进行更新)中的流程:
 
 ![](../snapshots/function-call-updatecontainer.png)
 
-和[首次render](./02-render-process.md#从FiberRoot节点开始进行更新)比较的异同点如下:
+和[首次 render](./03-render-process#从FiberRoot节点开始进行更新)比较的异同点如下:
 
 相同点:
+
 1. 调用`renderRootSync`生成新的`fiber`树
 2. `fiberRoot.finishedWork`上挂载最新的`fiber`树
 3. `fiberRoot`传入`commitWork`函数, 最终更新`DOM`
-不同点: 
-1. `renderRootSync`内部生成`fiber`的逻辑不同
+   不同点:
+4. `renderRootSync`内部生成`fiber`的逻辑不同
 
 ```js
 function performSyncWorkOnRoot(root) {
@@ -179,7 +188,9 @@ function performSyncWorkOnRoot(root) {
   return null;
 }
 ```
+
 #### renderRootSync
+
 ```js
 function renderRootSync(root, expirationTime) {
   // 1. 设置执行上下文
@@ -204,25 +215,30 @@ function renderRootSync(root, expirationTime) {
   return workInProgressRootExitStatus;
 }
 ```
+
 #### prepareFreshStack
+
 重置工作空间(workloop)中全局变量之后, 工作空间如下表示:
 
 ![](../snapshots/update/workloop-01.png)
 
-注意: 
-1. `fiberRoot.current`指向的是当前dom对应的fiber树
+注意:
+
+1. `fiberRoot.current`指向的是当前 dom 对应的 fiber 树
 2. `workInProgress`指向`fiberRoot.current.alternate`称为`HostRootFiber(alternate)`
-3. `workInProgress`在`prepareFreshStack`后会切换fiber树(切换到`alternate`分支)
+3. `workInProgress`在`prepareFreshStack`后会切换 fiber 树(切换到`alternate`分支)
 4. `HostRootFiber(alternate).child`指向`HostRootFiber.child`
 
 #### workLoopSync
-`workLoopSync`和[首次render](./02-render-process.md#workLoopSync)中的`workLoopSync`逻辑是一致的, 核心流程:
+
+`workLoopSync`和[首次 render](./03-render-process#workLoopSync)中的`workLoopSync`逻辑是一致的, 核心流程:
 
 ![](../snapshots/function-call-workloopsync.png)
 
 进入具体的`fiber`更新流程:
 
 #### beginWork
+
 ```js
 // 省略部分代码
 function beginWork(
@@ -285,77 +301,15 @@ function beginWork(
   }
 }
 ```
+
 核心流程:
 
 ![](../snapshots/update/beginwork.png)
 
-1. `current`指针存在
-    1. `props`或`context`有变动, 表示`workInProgress`有更新, 调用`updateXXXComponent`
-    2. `workInProgress`没有更新, 调用`bailoutOnAlreadyFinishedWork`
-        - 通过`childExpirationTime`判断子节点是否有更新, 如果有更新则调用`cloneChildFibers(current,workInProgress)`,将current的子节点clone到workInProgress中
-2. `current`不存在, 调用`updateXXXComponent`
+1. 如果`current`指针存在
+   1. `workInProgress`有更新(`props`或`context`有变动), 调用`updateXXXComponent`
+   2. `workInProgress`没有更新, 调用`bailoutOnAlreadyFinishedWork`
+      - 通过`childExpirationTime`判断子节点是否有更新, 如果有更新则调用`cloneChildFibers(current,workInProgress)`,将 current 的子节点 clone 到 workInProgress 中
+2. 如果`current`指针为 null(初次`render`), 调用`updateXXXComponent`
 
-
-##### updateXXXComponent
-`beginWork`中的更新分支包括了所有类型的组件, 这里介绍和当前示例有关的组件(组件的生命周期中会对所有组件的说明)
-`updateClassComponent`
-```js
-
-function updateClassComponent(
-  current: Fiber | null,
-  workInProgress: Fiber,
-  Component: any,
-  nextProps,
-  renderExpirationTime: ExpirationTime,
-) {
-  const instance = workInProgress.stateNode;
-  let shouldUpdate;
-  if (instance === null) {
-    if (current !== null) {
-      // A class component without an instance only mounts if it suspended
-      // inside a non-concurrent tree, in an inconsistent state. We want to
-      // treat it like a new mount, even though an empty version of it already
-      // committed. Disconnect the alternate pointers.
-      current.alternate = null;
-      workInProgress.alternate = null;
-      // Since this is conceptually a new fiber, schedule a Placement effect
-      workInProgress.effectTag |= Placement;
-    }
-    // In the initial pass we might need to construct the instance.
-    constructClassInstance(workInProgress, Component, nextProps);
-    mountClassInstance(
-      workInProgress,
-      Component,
-      nextProps,
-      renderExpirationTime,
-    );
-    shouldUpdate = true;
-  } else if (current === null) {
-    // In a resume, we'll already have an instance we can reuse.
-    shouldUpdate = resumeMountClassInstance(
-      workInProgress,
-      Component,
-      nextProps,
-      renderExpirationTime,
-    );
-  } else {
-    shouldUpdate = updateClassInstance(
-      current,
-      workInProgress,
-      Component,
-      nextProps,
-      renderExpirationTime,
-    );
-  }
-  const nextUnitOfWork = finishClassComponent(
-    current,
-    workInProgress,
-    Component,
-    shouldUpdate,
-    hasContext,
-    renderExpirationTime,
-  );
-
-  return nextUnitOfWork;
-}
-```
+#### completeWork

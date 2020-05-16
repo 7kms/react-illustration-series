@@ -1,7 +1,6 @@
 # 合成事件
 
-> `SyntheticEvent`是原生事件的跨浏览器包装器, 拥有和浏览器原生事件相同的接口(`stopPropagation`,`preventDefault`), 抹平不同浏览器api的差异, 兼容性好.
-
+> `SyntheticEvent`是原生事件的跨浏览器包装器, 拥有和浏览器原生事件相同的接口(`stopPropagation`,`preventDefault`), 抹平不同浏览器 api 的差异, 兼容性好.
 
 ## 事件优先级
 
@@ -13,19 +12,17 @@ export type EventPriority = 0 | 1 | 2;
 export const DiscreteEvent: EventPriority = 0;
 export const UserBlockingEvent: EventPriority = 1;
 export const ContinuousEvent: EventPriority = 2;
-
 ```
 
-|优先级|事件类型|
-|--|--|
-|`DiscreteEvent`|blur,cancel,click,close,contextMenu,copy,cut,auxClick,doubleClick,dragEnd,dragStart,drop,focus,input,invalid,keyDown,keyPress,keyUp,mouseDown,mouseUp,paste,pause,play,pointerCancel,pointerDown,pointerUp,rateChange,reset,seeked,submit,touchCancel,touchEnd,touchStart,volumeChange|
-|`UserBlockingEvent`|drag,dragEnter,dragExit,dragLeave,dragOver,mouseMove,mouseOut,mouseOver,pointerMove,pointerOut,pointerOver,scroll,toggle,touchMove,wheel|
-|`ContinuousEvent`|abort,animationEnd,animationIteration,animationStart,canPlay,canPlayThrough,durationChange,emptied,encryptedended,error,gotPointerCapture,load,loadedData,loadedMetadata,loadStart,lostPointerCapture,playing,progress,seeking,stalled,suspend,timeUpdate,transitionEnd,waiting|
-
+| 优先级              | 事件类型                                                                                                                                                                                                                                                                               |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DiscreteEvent`     | blur,cancel,click,close,contextMenu,copy,cut,auxClick,doubleClick,dragEnd,dragStart,drop,focus,input,invalid,keyDown,keyPress,keyUp,mouseDown,mouseUp,paste,pause,play,pointerCancel,pointerDown,pointerUp,rateChange,reset,seeked,submit,touchCancel,touchEnd,touchStart,volumeChange |
+| `UserBlockingEvent` | drag,dragEnter,dragExit,dragLeave,dragOver,mouseMove,mouseOut,mouseOver,pointerMove,pointerOut,pointerOver,scroll,toggle,touchMove,wheel                                                                                                                                               |
+| `ContinuousEvent`   | abort,animationEnd,animationIteration,animationStart,canPlay,canPlayThrough,durationChange,emptied,encryptedended,error,gotPointerCapture,load,loadedData,loadedMetadata,loadStart,lostPointerCapture,playing,progress,seeking,stalled,suspend,timeUpdate,transitionEnd,waiting        |
 
 ## 事件注册
 
-在[首次render](../02-render-process.md)中, 已经介绍, dom事件的绑定是在`completeWork`阶段. 
+在[首次 render](../03-render-process)中, 已经介绍, dom 事件的绑定是在`completeWork`阶段.
 
 `completeWork`
 
@@ -67,8 +64,8 @@ function completeWork(
     }
   }
 }
-
 ```
+
 在`finalizeInitialChildren`函数中, 最终完成`dom`对象的属性设置(包括事件注册).
 
 ```js
@@ -116,7 +113,7 @@ function setInitialDOMProperties(
 ): void {
   for (const propKey in nextProps) {
     // 注册事件监听
-   if (registrationNameModules.hasOwnProperty(propKey)) {
+    if (registrationNameModules.hasOwnProperty(propKey)) {
       if (nextProp != null) {
         ensureListeningTo(rootContainerElement, propKey);
       }
@@ -124,6 +121,7 @@ function setInitialDOMProperties(
   }
 }
 ```
+
 跟踪`finalizeInitialChildren`调用栈, 核心逻辑可以用流程图表示:
 
 ![](../snapshots/syntheticEvent/process-register-event.png)
@@ -131,6 +129,7 @@ function setInitialDOMProperties(
 其中`ensureListeningTo`完成事件的注册
 
 `ensureListeningTo`
+
 ```js
 function ensureListeningTo(
   rootContainerInstance: Element | Node,
@@ -142,17 +141,21 @@ function ensureListeningTo(
     rootContainerInstance.nodeType === DOCUMENT_FRAGMENT_NODE;
   const doc = isDocumentOrFragment
     ? rootContainerInstance
-    : rootContainerInstance.ownerDocument;// 最后返回rootContainerInstance.ownerDocument
+    : rootContainerInstance.ownerDocument; // 最后返回rootContainerInstance.ownerDocument
   // 第二个参数`doc`比较重要, 通过上两步的运算,doc = document
   // 最后会将事件监听注册到document对象之上
   legacyListenToEvent(registrationName, ((doc: any): Document));
 }
 ```
+
 注意点:
+
 1. 把`document`对象传入后续的处理逻辑当中
-  - 最后会将事件监听注册到`document`对象之上
+
+- 最后会将事件监听注册到`document`对象之上
 
 `legacyListenToEvent`
+
 ```js
 export function legacyListenToEvent(
   registrationName: string,
@@ -180,12 +183,12 @@ export function legacyListenToTopLevelEvent(
     switch (topLevelType) {
       // 共有3种情况
       case '1xx':
-         // TOP_INVALID,TOP_SUBMIT,TOP_RESET 会在特定的dom对象上注册监听,不用在document上面重复监听,这里会跳过注册
+        // TOP_INVALID,TOP_SUBMIT,TOP_RESET 会在特定的dom对象上注册监听,不用在document上面重复监听,这里会跳过注册
         break;
       case '2xx':
-         // TOP_SCROLL,TOP_FOCUS,TOP_BLUR 会在捕获阶段监听
+        // TOP_SCROLL,TOP_FOCUS,TOP_BLUR 会在捕获阶段监听
         legacyTrapCapturedEvent(TOP_SCROLL, mountAt, listenerMap);
-      break;
+        break;
       case '3xx':
         // 其他情况, 除了媒事件之外, 都会在冒泡阶段监听
         legacyTrapBubbledEvent(topLevelType, mountAt, listenerMap);
@@ -193,12 +196,17 @@ export function legacyListenToTopLevelEvent(
   }
 }
 ```
-注意点: 
+
+注意点:
+
 1. `legacyListenToTopLevelEvent`函数内置决定了不同事件的注册阶段不相同
-  - `scroll`,`focus`,`blur`会在捕获阶段监听
-  - 其他除了媒事件之外, 都会在冒泡阶段监听
+
+- `scroll`,`focus`,`blur`会在捕获阶段监听
+- 其他除了媒事件之外, 都会在冒泡阶段监听
+
 2. `react`应用外界无法决定原生事件的注册阶段
-  - 如`onClick`,`onClickCapture`等只能是在原生事件冒泡阶段监听
+
+- 如`onClick`,`onClickCapture`等只能是在原生事件冒泡阶段监听
 
 ```js
 export function legacyTrapCapturedEvent(
@@ -214,15 +222,19 @@ export function legacyTrapCapturedEvent(
     true,
   );
   // 2. 更新`listenerMap`
-  listenerMap.set(topLevelType, {passive: undefined, listener});
+  listenerMap.set(topLevelType, { passive: undefined, listener });
 }
 ```
-核心步骤: 
+
+核心步骤:
+
 1. 注册事件
 2. 更新`listenerMap`
-  - 保证同一个dom节点(这里是document对象), 同种事件(如: click), 如果多次调用, 只会注册一次监听.
+
+- 保证同一个 dom 节点(这里是 document 对象), 同种事件(如: click), 如果多次调用, 只会注册一次监听.
 
 `addTrappedEventListener`
+
 ```js
 export function addTrappedEventListener(
   targetContainer: EventTarget,
@@ -242,7 +254,7 @@ export function addTrappedEventListener(
   let listener;
   let listenerWrapper;
   // 1.2 根据优先级设置listenerWrapper
-   switch (eventPriority) {
+  switch (eventPriority) {
     case DiscreteEvent:
       listenerWrapper = dispatchDiscreteEvent;
       break;
@@ -280,9 +292,10 @@ export function addEventBubbleListener(
   target.addEventListener(eventType, listener, false);
   return listener;
 }
- 
 ```
+
 核心步骤:
+
 1. 生成`listener`函数
 2. 把`listener`函数注册到`target`对象(这里的`target`也就是`document`对象)之上
 
@@ -299,6 +312,7 @@ export function addEventBubbleListener(
 3. `dispatchEvent`
 
 `DiscreteEvent`:
+
 ```js
 function dispatchDiscreteEvent(
   topLevelType,
@@ -344,9 +358,10 @@ export function discreteUpdates<A, B, C, D, R>(
     }
   }
 }
-
 ```
+
 `UserBlockingEvent`:
+
 ```js
 function dispatchUserBlockingUpdate(
   topLevelType,
@@ -366,7 +381,9 @@ function dispatchUserBlockingUpdate(
   );
 }
 ```
+
 `ContinuousEvent`:
+
 ```js
 export function dispatchEvent(
   topLevelType: DOMTopLevelEventType,
@@ -390,13 +407,12 @@ export function dispatchEvent(
 
 所有可能的`listener`函数, 最终都会调用`dispatchEvent`, 然后执行`attemptToDispatchEvent`.
 
-
-跟踪`listener`函数, 从原生事件响到callback执行完毕, 可以得到流程图如下(后面逐步解释):
+跟踪`listener`函数, 从原生事件响到 callback 执行完毕, 可以得到流程图如下(后面逐步解释):
 
 ![](../snapshots/syntheticEvent/process-dispatch-event.png)
 
-
 `attemptToDispatchEvent`
+
 ```js
 // Attempt dispatching an event. Returns a SuspenseInstance or Container if it's blocked.
 export function attemptToDispatchEvent(
@@ -415,16 +431,15 @@ export function attemptToDispatchEvent(
   }
   // 派发事件
   dispatchEventForLegacyPluginEventSystem(
-        topLevelType,
-        eventSystemFlags,
-        nativeEvent,
-        targetInst,
-      );
+    topLevelType,
+    eventSystemFlags,
+    nativeEvent,
+    targetInst,
+  );
   // We're not blocked on anything.
   return null;
 }
 ```
-
 
 ```js
 export function dispatchEventForLegacyPluginEventSystem(
@@ -492,6 +507,7 @@ export function batchedEventUpdates<A, R>(fn: A => R, a: A): R {
 ```
 
 `handleTopLevel`
+
 ```js
 function handleTopLevel(bookKeeping: BookKeepingInstance) {
   let targetInst = bookKeeping.targetInst;
@@ -540,7 +556,6 @@ function handleTopLevel(bookKeeping: BookKeepingInstance) {
     );
   }
 }
-
 ```
 
 ```js
@@ -559,13 +574,14 @@ function runExtractedPluginEventsInBatch(
     nativeEventTarget,
     eventSystemFlags,
   );
-  // 2. 执行事件监听函数  
+  // 2. 执行事件监听函数
   runEventsInBatch(events);
 }
 ```
-#### 创建SyntheticEvent对象
-```js
 
+#### 创建 SyntheticEvent 对象
+
+```js
 /**
  * Allows registered plugins an opportunity to extract events from top-level
  * native browser events.
@@ -602,7 +618,9 @@ function extractPluginEvents(
   return events;
 }
 ```
+
 内置插件之一: `LegacySimpleEventPlugin.js`
+
 ```js
 
 const SimpleEventPlugin: PluginModule<MouseEvent> = {
@@ -653,14 +671,12 @@ export default SimpleEventPlugin;
 
 ```
 
-
 ```js
 export function accumulateTwoPhaseDispatches(
   events: ReactSyntheticEvent | Array<ReactSyntheticEvent>,
 ): void {
   forEachAccumulated(events, accumulateTwoPhaseDispatchesSingle);
 }
-
 
 function accumulateTwoPhaseDispatchesSingle(event) {
   if (event && event.dispatchConfig.phasedRegistrationNames) {
@@ -695,9 +711,9 @@ function traverseTwoPhase(
 
 /**
  * 根据phase收集需要执行派发的监听函数和实例
- * @param {Fiber} inst 
- * @param {*} phase 
- * @param {*} event 
+ * @param {Fiber} inst
+ * @param {*} phase
+ * @param {*} event
  */
 function accumulateDirectionalDispatches(inst, phase, event) {
   // 获取Fiber对象上当前阶段(capture,bubble)的监听函数. 如(onClick, onClickCapture等)
@@ -714,27 +730,28 @@ function accumulateDirectionalDispatches(inst, phase, event) {
 ```
 
 假设有如下的`fiber`结构, 其中有注册`onClick`和`onClickCapture`事件.
-当点击`span`元素的时候,浏览器原生事件`event.target[internalInstanceKey]`指向span这个fiber节点.
+当点击`span`元素的时候,浏览器原生事件`event.target[internalInstanceKey]`指向 span 这个 fiber 节点.
 
 ![](../snapshots/syntheticEvent/twophase-fiber-tree.png)
 
-为了在内部模拟`capture`和`bubble`特性.主要做了3步操作
+为了在内部模拟`capture`和`bubble`特性.主要做了 3 步操作
 
-1. 收集从当前fiber节点和所有tag=HostComponent的父节点到`path`数组当中
-  - 如上图中的红色曲线路径
-最终得到`path`如下
+1. 收集从当前 fiber 节点和所有 tag=HostComponent 的父节点到`path`数组当中
+
+- 如上图中的红色曲线路径
+  最终得到`path`如下
 
 ![](../snapshots/syntheticEvent/twophase-path.png)
 
-2. 收集捕获阶段的回调. 倒序遍历`path`数组, 如果该fiber节点含有属性`onClickCapture`, 则将该回调函数加入到`SyntheticEvent._dispatchListeners`数组中, 同时将该节点加入到`SyntheticEvent._dispatchInstances`
+2. 收集捕获阶段的回调. 倒序遍历`path`数组, 如果该 fiber 节点含有属性`onClickCapture`, 则将该回调函数加入到`SyntheticEvent._dispatchListeners`数组中, 同时将该节点加入到`SyntheticEvent._dispatchInstances`
 
 ![](../snapshots/syntheticEvent/twophase-capture.png)
 
-3. 收集冒泡阶段的回调. 顺序遍历`path`数组, 如果该fiber节点含有属性`onClick`, 则将该回调函数加入到`SyntheticEvent._dispatchListeners`数组中
+3. 收集冒泡阶段的回调. 顺序遍历`path`数组, 如果该 fiber 节点含有属性`onClick`, 则将该回调函数加入到`SyntheticEvent._dispatchListeners`数组中
 
 ![](../snapshots/syntheticEvent/twophase-bubble.png)
 
-#### 执行callback回调
+#### 执行 callback 回调
 
 ```js
 export function runEventsInBatch(
@@ -756,12 +773,9 @@ export function runEventsInBatch(
   forEachAccumulated(processingEventQueue, executeDispatchesAndReleaseTopLevel);
 }
 
-
-
 const executeDispatchesAndReleaseTopLevel = function(e) {
   return executeDispatchesAndRelease(e);
 };
-
 
 /**
  * Dispatches an event and releases it back into the pool, unless persistent.
@@ -803,7 +817,6 @@ export function executeDispatchesInOrder(event) {
   event._dispatchInstances = null;
 }
 
-
 /**
  * Dispatch the event to the listener.
  * @param {SyntheticEvent} event SyntheticEvent to handle
@@ -820,26 +833,28 @@ export function executeDispatch(event, listener, inst) {
 ```
 
 ## 总结
-> `SyntheticEvent`是原生事件的跨浏览器包装器, 拥有和浏览器原生事件相同的接口(`stopPropagation`,`preventDefault`), 抹平不同浏览器api的差异, 兼容性好.
+
+> `SyntheticEvent`是原生事件的跨浏览器包装器, 拥有和浏览器原生事件相同的接口(`stopPropagation`,`preventDefault`), 抹平不同浏览器 api 的差异, 兼容性好.
+
 1. 事件注册
-    - 通过`ensureListeningTo`函数, 将事件监听注册到`document`对象之上, 并且在冒泡阶段进行监听.
-    - 不是所有事件都注册到`document`上, 也有直接注册到相应的`dom`对象之上的
-        1. `form`表单上的`submit`,`reset`事件
-        2. `video`,`audio`等媒体事件
-        3. 其他情况
+   - 通过`ensureListeningTo`函数, 将事件监听注册到`document`对象之上, 并且在冒泡阶段进行监听.
+   - 不是所有事件都注册到`document`上, 也有直接注册到相应的`dom`对象之上的
+     1. `form`表单上的`submit`,`reset`事件
+     2. `video`,`audio`等媒体事件
+     3. 其他情况
 2. 事件触发
-    1. 创建一个`SyntheticEvent`对象, 并将`nativeEvent`包装到`SyntheticEvent`对象中
-    2. 收集所有fiber节点中对本事件进行监听的回调函数(以click事件为例)
-        - 以`nativeEvent.target`节点为起点, 向上查找所有`tag=HostComponent`的fiber节点加入到一个数组中记为`path`
-        - 收集捕获阶段的回调. 倒序遍历`path`数组, 如果该fiber节点含有属性`onClickCapture`, 则将该回调函数加入到`SyntheticEvent._dispatchListeners`数组中
-        - 收集冒泡阶段的回调. 顺序遍历`path`数组, 如果该fiber节点含有属性`onClick`, 则将该回调函数加入到`SyntheticEvent._dispatchListeners`数组中
-    3. 执行回调函数
-        - 顺序执行`SyntheticEvent._dispatchListeners`数组中的回调函数,将`SyntheticEvent`作为参数,传入被执行的回调函数中.
-        - 任何回调函数中调用了`event.stopPropagation()`则停止遍历, 这样就模拟出捕获和冒泡机制
+   1. 创建一个`SyntheticEvent`对象, 并将`nativeEvent`包装到`SyntheticEvent`对象中
+   2. 收集所有 fiber 节点中对本事件进行监听的回调函数(以 click 事件为例)
+      - 以`nativeEvent.target`节点为起点, 向上查找所有`tag=HostComponent`的 fiber 节点加入到一个数组中记为`path`
+      - 收集捕获阶段的回调. 倒序遍历`path`数组, 如果该 fiber 节点含有属性`onClickCapture`, 则将该回调函数加入到`SyntheticEvent._dispatchListeners`数组中
+      - 收集冒泡阶段的回调. 顺序遍历`path`数组, 如果该 fiber 节点含有属性`onClick`, 则将该回调函数加入到`SyntheticEvent._dispatchListeners`数组中
+   3. 执行回调函数
+      - 顺序执行`SyntheticEvent._dispatchListeners`数组中的回调函数,将`SyntheticEvent`作为参数,传入被执行的回调函数中.
+      - 任何回调函数中调用了`event.stopPropagation()`则停止遍历, 这样就模拟出捕获和冒泡机制
 3. 性能优化
-    1. 事件注册优化
-        - 同一个dom对象上的同种事件只会被注册一次.(如在多个节点上设置了`onClick`, 不会重复注册`document`对象上click事件监听)
-    2. 对象缓存
-        - `bookKeeping`记账簿缓存池: bookKeeping用于生成`SyntheticEvent`对象
-        - `SyntheticEvent`缓存池: SyntheticEvent对象会被维护到一个缓存池中, 当回调函数执行完后, 会重置`SyntheticEvent`对象(清空nativeEvent等属性), 放回缓存池. 如要持续使用该事件, 需要调用`event.persist()`阻止被回收.
-        - 在频繁触发事件回调时(如scroll, 媒体事件等)能避免频繁创建`SyntheticEvent`,减少对象创建, 节省内存开销, 提升性能
+   1. 事件注册优化
+      - 同一个 dom 对象上的同种事件只会被注册一次.(如在多个节点上设置了`onClick`, 不会重复注册`document`对象上 click 事件监听)
+   2. 对象缓存
+      - `bookKeeping`记账簿缓存池: bookKeeping 用于生成`SyntheticEvent`对象
+      - `SyntheticEvent`缓存池: SyntheticEvent 对象会被维护到一个缓存池中, 当回调函数执行完后, 会重置`SyntheticEvent`对象(清空 nativeEvent 等属性), 放回缓存池. 如要持续使用该事件, 需要调用`event.persist()`阻止被回收.
+      - 在频繁触发事件回调时(如 scroll, 媒体事件等)能避免频繁创建`SyntheticEvent`,减少对象创建, 节省内存开销, 提升性能
