@@ -142,7 +142,7 @@ export function createLegacyRoot(
 
 ##### Concurrent 模式和 Blocking 模式
 
-`Concurrent`模式和`Blocking`模式下十分明显,
+`Concurrent`模式和`Blocking`模式从调用方式上直接可以看出
 
 1. 分别调用`ReactDOM.createRoot`和`ReactDOM.createBlockingRoot`创建`ReactDOMRoot`和`ReactDOMBlockingRoot`实例
 2. 调用`ReactDOMRoot`和`ReactDOMBlockingRoot`实例的`render`方法
@@ -348,4 +348,4 @@ ReactDOMRoot.prototype.render = ReactDOMBlockingRoot.prototype.render = function
 1. `legacy`下的更新会先调用`unbatchedUpdates`, 更改执行上下文为`LegacyUnbatchedContext`
 1. `concurrent`和`blocking`不会更改执行上下文
 
-这里明确了`react`应用的初始化完成之后便可以通过调用`updateContainer`执行更新, 对于`updateContainer`的深入分析分为 2 个阶段, 在[首次 render](./03-render-process)和[更新机制](./06-update-process)中详细讨论.
+这里明确了`react`应用的初始化完成之后便可以通过调用`updateContainer`执行更新, 对于`updateContainer`的深入分析分为 2 个阶段, 在[首次 render](./03-render-process.md)和[更新机制](./06-update-process.md)中详细讨论.

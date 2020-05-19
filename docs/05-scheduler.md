@@ -1,6 +1,6 @@
-# 调度机制
+# React 调度机制
 
-从[第一次 render](./03-render-process#执行调度)的分析中知道,ReactFiber 工作循环入口函数是`scheduleUpdateOnFiber`.`scheduleUpdateOnFiber`接受渲染器的输入信号, 通过调度机制, 最后再把结果通过渲染器进行输出.
+从[第一次 render](./03-render-process.md#执行调度)的分析中知道,ReactFiber 工作循环入口函数是`scheduleUpdateOnFiber`.`scheduleUpdateOnFiber`接受渲染器的输入信号, 通过调度机制, 最后再把结果通过渲染器进行输出.
 
 所以分析 scheduler 机制, 也会从`scheduleUpdateOnFiber`作为入口.
 
@@ -26,7 +26,7 @@ enqueueSetState(inst, payload, callback) {
 }
 ```
 
-在[React 应用初始化](./02-bootstrap)中分析过, `legacy`模式下, 所有节点`fiber.mode = NoMode`, 导致`computeExpirationForFiber`总是会返回`Sync`.
+在[React 应用初始化](./02-bootstrap.md)中分析过, `legacy`模式下, 所有节点`fiber.mode = NoMode`, 导致`computeExpirationForFiber`总是会返回`Sync`.
 
 ```js
 export function computeExpirationForFiber(
@@ -103,7 +103,7 @@ export function scheduleUpdateOnFiber(
 }
 ```
 
-legacy 下[第一次 render](./03-render-process#执行调度)会进入`performSyncWorkOnRoot`分支. 其它情况无论进入哪一个分支, 核心逻辑都是执行`ensureRootIsScheduled`.
+legacy 下[第一次 render](./03-render-process.md#执行调度)会进入`performSyncWorkOnRoot`分支. 其它情况无论进入哪一个分支, 核心逻辑都是执行`ensureRootIsScheduled`.
 
 ## 执行调度
 

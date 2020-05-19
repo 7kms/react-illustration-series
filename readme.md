@@ -11,11 +11,11 @@
 
 ### 主要类容
 
-1. [基本包结构](./docs/01-basic)
-2. [启动模式和初始化](./docs/02-bootstrap)
-3. [初次渲染 render 流程](./docs/03-render-process)
-4. [合成事件机制](./docs/04-syntheticEvent)
-5. [调度机制 scheduler](./docs/05-scheduler)
-6. [更新机制](./docs/06-update-process)
+1. [基本包结构](./docs/01-basic.md)
+2. [启动模式和初始化](./docs/02-bootstrap.md)
+3. [初次渲染 render 流程](./docs/03-render-process.md)
+4. [合成事件机制](./docs/04-syntheticEvent.md)
+5. [调度机制 scheduler](./docs/05-scheduler.md)
+6. [更新机制](./docs/06-update-process.md.md)
 7. `context`机制
 8. 任务切割机制(concurrent 模式)

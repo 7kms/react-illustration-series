@@ -1,6 +1,6 @@
-# 首次 render
+# React 首次 render
 
-在[React 应用初始化](./02-bootstrap)中介绍了`react`应用启动的 3 种模式.为了简便, 这里在`legacy`模式为前提之下进行讨论. 对于`concurrent`和`blocking`的讨论, 在`任务分片`中详细展开.
+在[React 应用初始化](./02-bootstrap.md)中介绍了`react`应用启动的 3 种模式.为了简便, 这里在`legacy`模式为前提之下进行讨论. 对于`concurrent`和`blocking`的讨论, 在`任务分片`中详细展开.
 
 初始化完成之后, 在调用`updateContainer`之前, 先回顾一下此时主要对象的引用关系.
 
@@ -8,7 +8,7 @@
 
 ## 调用更新入口
 
-在[React 应用初始化](./02-bootstrap#调用更新入口)中得知更新的入口是`updateContainer`函数.
+在[React 应用初始化](./02-bootstrap.md#调用更新入口)中得知更新的入口是`updateContainer`函数.
 
 ```js
 // ... 函数中省略了与legacy无关代码
@@ -596,7 +596,7 @@ class App extends React.Component {
   }
   render() {
     return (
-      <div class="wrap">
+      <div className="wrap">
         <Box />
         <span>list组件</span>
       </div>

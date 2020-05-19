@@ -1,6 +1,6 @@
-# react 更新机制
+# React 更新机制
 
-在[React 应用初始化](./02-bootstrap)中介绍了`react`应用启动的 3 种模式.为了简便, 这里在`legacy`模式为前提之下进行讨论. 对于`concurrent`和`blocking`的讨论, 在`任务分片`中详细展开.
+在[React 应用初始化](./02-bootstrap.md)中介绍了`react`应用启动的 3 种模式.为了简便, 这里在`legacy`模式为前提之下进行讨论. 对于`concurrent`和`blocking`的讨论, 在`任务分片`中详细展开.
 
 正常 react 应用有 3 种主动更新方式:
 
@@ -10,7 +10,7 @@
 
 ## setState
 
-继续使用[首次 render](./03-render-process)中的例子.
+继续使用[首次 render](./03-render-process.md)中的例子.
 
 定义`<App/>`组件的结构如下:
 
@@ -21,7 +21,7 @@ class App extends React.Component {
   }
   render() {
     return (
-      <div class="wrap">
+      <div className="wrap">
         <Box />
         <span>list组件</span>
       </div>
@@ -56,7 +56,7 @@ class Box extends React.Component {
 
 ### 环境准备
 
-从[合成事件](./04-syntheticEvent#事件触发)中对事件触发的分析得知, `onClick`事件对应的`listener`是`dispatchDiscreteEvent`.
+从[合成事件](./04-syntheticEvent.md#事件触发)中对事件触发的分析得知, `onClick`事件对应的`listener`是`dispatchDiscreteEvent`.
 
 所以在执行`handleClick`回调之前, 可以明确当前环境:
 
@@ -75,7 +75,7 @@ Component.prototype.setState = function(partialState, callback) {
 };
 ```
 
-在[首次 render](./03-render-process#beginWork)中的`beginWork`阶段, class 类型的组件初始化完成之后, `this.updater`对象如下:
+在[首次 render](./03-render-process.md#beginWork)中的`beginWork`阶段, class 类型的组件初始化完成之后, `this.updater`对象如下:
 
 ```js
 const classComponentUpdater = {
@@ -151,15 +151,15 @@ export function scheduleUpdateOnFiber(
 
 #### ensureRootIsScheduled
 
-通过[Scheduler 调度机制](./05-scheduler)的分析, legacy 下`ensureRootIsScheduled`是对`performSyncWorkOnRoot`进行包装.
+通过[Scheduler 调度机制](./05-scheduler.md)的分析, legacy 下`ensureRootIsScheduled`是对`performSyncWorkOnRoot`进行包装.
 
 #### performSyncWorkOnRoot
 
-`performSyncWorkOnRoot`,的流程可以参照[首次 render](./03-render-process#从FiberRoot节点开始进行更新)中的流程:
+`performSyncWorkOnRoot`,的流程可以参照[首次 render](./03-render-process.md#从FiberRoot节点开始进行更新)中的流程:
 
 ![](../snapshots/function-call-updatecontainer.png)
 
-和[首次 render](./03-render-process#从FiberRoot节点开始进行更新)比较的异同点如下:
+和[首次 render](./03-render-process.md#从FiberRoot节点开始进行更新)比较的异同点如下:
 
 相同点:
 
@@ -231,7 +231,7 @@ function renderRootSync(root, expirationTime) {
 
 #### workLoopSync
 
-`workLoopSync`和[首次 render](./03-render-process#workLoopSync)中的`workLoopSync`逻辑是一致的, 核心流程:
+`workLoopSync`和[首次 render](./03-render-process.md#workLoopSync)中的`workLoopSync`逻辑是一致的, 核心流程:
 
 ![](../snapshots/function-call-workloopsync.png)
 
@@ -306,10 +306,78 @@ function beginWork(
 
 ![](../snapshots/update/beginwork.png)
 
-1. 如果`current`指针存在
-   1. `workInProgress`有更新(`props`或`context`有变动), 调用`updateXXXComponent`
+1. 为了向下更新`workInProgress.child`节点(直到`workInProgress.child=null`), 最终形成完整的`fiber`树
+2. 如果`current`指针存在
+   1. `workInProgress`有更新(`props`或`context`有变动), 调用`update(mount)XXXComponent`
    2. `workInProgress`没有更新, 调用`bailoutOnAlreadyFinishedWork`
       - 通过`childExpirationTime`判断子节点是否有更新, 如果有更新则调用`cloneChildFibers(current,workInProgress)`,将 current 的子节点 clone 到 workInProgress 中
-2. 如果`current`指针为 null(初次`render`), 调用`updateXXXComponent`
+3. 如果`current`指针为`null`(初次`render`), 调用`update(mount)XXXComponent`
+
+##### update(mount)XXXComponent
+
+`update(mount)XXXComponent`分为两种情况
+
+1. 停止向下
+   - 已经是末端节点(如`HostText`类型节点), 无需再往下更新
+2. 继续向下
+   - `class`类型的节点且`shouldComponentUpdate`返回`false`, 会调用`bailoutOnAlreadyFinishedWork`(同为向下逻辑)
+   - 调用`reconcileChildren`进入调和算法
+
+#### reconcileChildren
+
+目的:
+
+1. 给新增和删除的`fiber`节点设置`effectTag`(打上副作用标记)
+2. 如果是需要删除的`fiber`, 除了自身打上`effectTag`之外, 还要将其添加到父节点的`effects`链表中(该节点会脱离`fiber`树, 不会再进入`completeWork`阶段).
+
+方法:
+
+1. 单元素
+
+   1. 调用`reconcileSingleElement`
+      - 比较`oldfiber.key`和`reactElement.key`(单节点通常不显式设置 key, react 内部会设置成 null)
+        - 如 key 相同, 进一步比较`fiber.elementType`与`newChild.type`.
+          - 如 type 相同, 调用`useFiber`, 创建`oldFiber.alternate`,并返回
+          - 如 type 不同, 调用`createFiber`创建新的`fiber`
+        - 如 key 不同, 给`oldFiber`打上`Deletion`标记, 并创建新的`fiber`
+
+2. 可迭代元素(数组类型, [Symbol.iterator]=fn,[@@iterator]=fn)
+   1. 进入第一次循环`newChildren: Array<*>`
+      - 调用`updateSlot`(与`oldChildren`中相同`index`的`fiber`进行比较), 返回该槽位对应的`fiber`
+        - 如 key 相同, 进一步比较`fiber.elementType`与`newChild.type`.
+          - 如 type 相同, 调用`useFiber`, 创建`oldFiber.alternate`,并返回
+          - 如 type 不同, 调用`createFiber`创建新的`fiber`
+        - 如 key 不同, 则返回`null`
+      - 调用`placeChild`
+        - 设置`newFiber.index`
+        - 如`newFiber`是新增节点或者是移动节点,则设置`newFiber.effectTag = Placement`
+   2. 如果`oldFiber === null`,则表示`newIdx`之后都为新增节点, 进入第二次循环`newChildren: Array<*>`
+      - 调用`createChild`和`placeChild`.创建新节点并设置`newFiber.effectTag = Placement`
+   3. 将所有`oldFiber`以 key 为键,添加到一个`Map`中
+   4. 进入第三次循环`newChildren: Array<*>`
+      - 调用`updateFromMap`,从 map 中寻找`key`相同的`fiber`进行创建`newFiber`
+        - 调用`placeChild`
+   5. 为`Map`中的旧节点设置删除标记`childToDelete.effectTag = Deletion`
+
+注意:
+
+虽然有三次循环, 但指针都是`newIdx`, 时间复杂度是线性 O(n)
 
 #### completeWork
+
+1. 新增节点
+   - 调用渲染器, 同首次 render 一样, 创建`fiber`节点对应的实例.并将子节点`childfiber.stateNode`添加到当前实例中
+2. 更新节点
+   - 调用`updateXXXComponent`
+     - 如属性变化, 将其转换成`dom`属性挂载到`workInProgress.updateQueue`中, 并打上 update 标记
+     - 如属性没有变化, 退出调用
+
+#### completeUnitOfWork
+
+把子节点和当前节点的`effects`上移到父节点,更新父节点的`effects`队列
+
+#### commitWork
+
+和首次 render 完全一样, 分为 3 个阶段, 最后完全更到 dom 对象, 页面呈现.
+
+## effects
