@@ -1,53 +1,16 @@
 # React 调度机制
 
-从[第一次 render](./03-render-process.md#执行调度)的分析中知道,ReactFiber 工作循环入口函数是`scheduleUpdateOnFiber`.`scheduleUpdateOnFiber`接受渲染器的输入信号, 通过调度机制, 最后再把结果通过渲染器进行输出.
+## 发起调度
 
-所以分析 scheduler 机制, 也会从`scheduleUpdateOnFiber`作为入口.
+1. 首次 render
+   从[首次 render](./03-render-process.md#执行调度)的分析中知道, 是通过`scheduleUpdateOnFiber`执行首次 render.
 
-## 调度更新
+2. 后续更新
+   在[更新机制](./06-update-process.md#发起更新)有过讨论. 无论以哪种方式发起更新, 都会进入`scheduleUpdateOnFiber`函数.
 
-假设在`react`组件逻辑中调用了`setState`来触发更新, 以`setState`为起点进行分析.
-跟踪`setState`, 最后会调用`React.Component`实例的`updater.enqueueSetState`
+> 无论是首次 render 还是后续更新, 都会调用`scheduleUpdateOnFiber`发起调度
 
-```js
-enqueueSetState(inst, payload, callback) {
-    const fiber = getInstance(inst);
-    const currentTime = requestCurrentTimeForUpdate();
-    const suspenseConfig = requestCurrentSuspenseConfig();
-    const expirationTime = computeExpirationForFiber(
-      currentTime,
-      fiber,
-      suspenseConfig,
-    ); // legacy下返回Sync
-    const update = createUpdate(expirationTime, suspenseConfig);
-    update.payload = payload;
-    enqueueUpdate(fiber, update);
-    scheduleUpdateOnFiber(fiber, expirationTime);
-}
-```
-
-在[React 应用初始化](./02-bootstrap.md)中分析过, `legacy`模式下, 所有节点`fiber.mode = NoMode`, 导致`computeExpirationForFiber`总是会返回`Sync`.
-
-```js
-export function computeExpirationForFiber(
-  currentTime: ExpirationTime,
-  fiber: Fiber,
-  suspenseConfig: null | SuspenseConfig,
-): ExpirationTime {
-  const mode = fiber.mode;
-  if ((mode & BlockingMode) === NoMode) {
-    // legacy下返回Sync
-    return Sync;
-  }
-  const priorityLevel = getCurrentPriorityLevel();
-  if ((mode & ConcurrentMode) === NoMode) {
-    return priorityLevel === ImmediatePriority ? Sync : Batched;
-  }
-  // ...
-}
-```
-
-现在正式进入了`scheduleUpdateOnFiber`
+### scheduleUpdateOnFiber
 
 ```js
 export function scheduleUpdateOnFiber(
@@ -103,9 +66,11 @@ export function scheduleUpdateOnFiber(
 }
 ```
 
-legacy 下[第一次 render](./03-render-process.md#执行调度)会进入`performSyncWorkOnRoot`分支. 其它情况无论进入哪一个分支, 核心逻辑都是执行`ensureRootIsScheduled`.
+`legacy`下[首次 render](./03-render-process.md#执行调度)会进入`performSyncWorkOnRoot`分支. 其它情况无论进入哪一个分支, 都会进入`ensureRootIsScheduled`.
 
-## 执行调度
+## 调度确保
+
+> 确保`FiberRoot`节点已经被调度
 
 `ensureRootIsScheduled`
 
@@ -215,6 +180,8 @@ root.callbackNode = scheduleSyncCallback(
    - 新旧任务的过期时间不同, 或者且旧任务的优先级 `<` 新任务优先级, 会取消旧任务.
 
 4. 根据`expirationTime`调用不同的`scheduleCallback`, 最后将返回值设置到`fiberRoot.callbackNode`
+
+### 创建调度
 
 ```js
 if (expirationTime === Sync) {

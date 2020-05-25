@@ -1,8 +1,8 @@
 # React 首次 render
 
-在[React 应用初始化](./02-bootstrap.md)中介绍了`react`应用启动的 3 种模式.为了简便, 这里在`legacy`模式为前提之下进行讨论. 对于`concurrent`和`blocking`的讨论, 在`任务分片`中详细展开.
+在[React 应用初始化](./02-bootstrap.md)中介绍了`react`应用启动的 3 种模式.为了简便, 本文在`legacy`模式为前提之下进行讨论. 对于`concurrent`和`blocking`的讨论, 在`任务分片机制`中详细展开.
 
-初始化完成之后, 在调用`updateContainer`之前, 先回顾一下此时主要对象的引用关系.
+初始化完成之后, 调用`updateContainer`之前, 先回顾一下此时主要对象的引用关系.
 
 ![](../snapshots/bootstrap/process-legacy.png)
 
@@ -96,7 +96,9 @@ export function createUpdate(
 
 ### render 过程
 
-#### 执行调度
+#### scheduleUpdateOnFiber
+
+> 执行调度
 
 步骤 3, 代码进入`ReactFiberWorkLoop.js`中, 逻辑正式来到了 ReactFiber 的工作循环.
 
@@ -127,8 +129,6 @@ export function scheduleUpdateOnFiber(
 }
 ```
 
-##### 更新 FiberTree 上的 expirationTime
-
 跟踪函数调用栈, 可以得到`scheduleUpdateOnFiber`的主杆逻辑(包含主杆逻辑, 省略一些和首次 render 无关的逻辑分支).在流程图中用分支 2️⃣ 表示.
 
 ![](../snapshots/function-call-updatecontainer.png)
@@ -146,7 +146,9 @@ export function scheduleUpdateOnFiber(
 
 2. `performSyncWorkOnRoot(root)`, 传入`FiberRoot`对象, 执行同步更新
 
-##### 从 FiberRoot 节点开始进行更新
+##### performSyncWorkOnRoot
+
+> 从 FiberRoot 节点开始进行更新
 
 分析`performSyncWorkOnRoot(root)`
 
@@ -966,16 +968,16 @@ function commitLifeCycles(
 
 #### ensureRootIsScheduled
 
-在`commitRoot`的最后会执行`ensureRootIsScheduled`再次进行调度, 由于没有新的任务, 所以会退出.执行完`commitRoot`之后, 第一次 render 过程就已经全部完成了.
-
-最终完成`ReactDOM.render`函数.
-
-```js
-ReactDOM.render(<App />, document.getElementById('root')); // 执行结束
-```
+在`commitRoot`的最后会执行`ensureRootIsScheduled`确保`FiberRoot`已经被调度, 由于没有新的任务, 所以会退出.执行完`commitRoot`之后, 首次 render 过程就已经全部完成了.
 
 当前工作空间的主要变量的状态如下:
 
 ![](../snapshots/firstrender-workloop-03.png)
 
 初次 render 结束之后, 除了`HostRootFiber`节点有`alternate`属性之外, 其余的`Fiber`节点均无`alternate`.
+
+最终完成`ReactDOM.render`函数.
+
+```js
+ReactDOM.render(<App />, document.getElementById('root')); // 执行结束
+```

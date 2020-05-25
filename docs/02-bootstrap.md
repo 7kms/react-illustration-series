@@ -1,6 +1,6 @@
 # React 应用初始化
 
-## 3 种启动模式
+## 启动模式
 
 在当前版本`react@16.13.1`中, 有 3 种启动方式. 先引出官网上对于[这 3 种模式的介绍](https://zh-hans.reactjs.org/docs/concurrent-mode-adoption.html#why-so-many-modes)
 
@@ -90,8 +90,7 @@ function legacyRenderSubtreeIntoContainer(
       updateContainer(children, fiberRoot, parentComponent, callback);
     });
   } else {
-    // root已经初始化
-
+    // root已经初始化, 二次调用render会进入
     // 1. 获取ReactDOMRoot对象
     fiberRoot = root._internalRoot;
     if (typeof callback === 'function') {
@@ -348,4 +347,4 @@ ReactDOMRoot.prototype.render = ReactDOMBlockingRoot.prototype.render = function
 1. `legacy`下的更新会先调用`unbatchedUpdates`, 更改执行上下文为`LegacyUnbatchedContext`
 1. `concurrent`和`blocking`不会更改执行上下文
 
-这里明确了`react`应用的初始化完成之后便可以通过调用`updateContainer`执行更新, 对于`updateContainer`的深入分析分为 2 个阶段, 在[首次 render](./03-render-process.md)和[更新机制](./06-update-process.md)中详细讨论.
+这里明确了`react`应用的初始化完成之后便可以通过调用`updateContainer`执行更新, 对于`updateContainer`的深入分析, 在[首次 render](./03-render-process.md)和[更新机制](./06-update-process.md)中详细讨论.

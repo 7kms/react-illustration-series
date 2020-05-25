@@ -1,30 +1,24 @@
 # React 更新机制
 
-在[React 应用初始化](./02-bootstrap.md)中介绍了`react`应用启动的 3 种模式.为了简便, 这里在`legacy`模式为前提之下进行讨论. 对于`concurrent`和`blocking`的讨论, 在`任务分片`中详细展开.
+> 在[React 应用初始化](./02-bootstrap.md)中介绍了`react`应用启动的 3 种模式.为了简便, 本文在`legacy`模式下进行讨论. 对于`concurrent`和`blocking`的讨论, 在`任务分片机制`中详细展开.
 
-正常 react 应用有 3 种主动更新方式:
+如要主动发起更新, 有 3 种常见方式:
 
-1. `Class`组件中主动调用`setState`.
-2. `Function`组件中使用`hook`对象的`dispatchAction`.
-3. 改变`context`
+1. `Class`组件中调用`setState`.
+2. `Function`组件中调用`hook`对象暴露出的`dispatchAction`.
+3. 在`container`节点上重复调用`render`([官网示例](https://reactjs.org/docs/rendering-elements.html#react-only-updates-whats-necessary))
 
-## setState
+有如下示例代码:
 
-继续使用[首次 render](./03-render-process.md)中的例子.
-
-定义`<App/>`组件的结构如下:
-
-```js
+```jsx
+import React from 'react';
 class App extends React.Component {
-  componentDidMount() {
-    console.log('App componentDidMount');
-  }
   render() {
     return (
-      <div className="wrap">
+      <>
         <Box />
-        <span>list组件</span>
-      </div>
+        <Extra />
+      </>
     );
   }
 }
@@ -32,7 +26,8 @@ class Box extends React.Component {
   state = {
     count: 0,
   };
-  handleClick = () => {
+  handleClick = (...args) => {
+    console.log(args);
     this.setState(state => {
       return {
         count: ++state.count,
@@ -48,13 +43,24 @@ class Box extends React.Component {
     );
   }
 }
+class Extra extends React.Component {
+  render() {
+    return (
+      <div className="extra">
+        <div>Extra Content</div>
+      </div>
+    );
+  }
+}
+
+export default App;
 ```
 
-在初次`render`结束后, 工作空间的主要变量的状态如下:
+根据[首次 render](./03-render-process.md)中的分析, 初次`render`结束后, 可以得到`fiber`树形结构:
 
 ![](../snapshots/firstrender-workloop-03.png)
 
-### 环境准备
+## 执行环境
 
 从[合成事件](./04-syntheticEvent.md#事件触发)中对事件触发的分析得知, `onClick`事件对应的`listener`是`dispatchDiscreteEvent`.
 
@@ -63,11 +69,11 @@ class Box extends React.Component {
 1. 工作空间(`ReactFiberWorkLoop`)执行上下文: `excutionContext |= DiscreteEventContext`
 2. 调度(`Scheduler`)优先级: `currentPriorityLevel = UserBlockingPriority`
 
-### 调度更新
+## 发起更新
 
-点击`button`,触发合成事件,最后在`handleClick`中执行`setState`. 跟踪`setState`函数的调用栈:
+### setState
 
-在`Component`对象的原型中有:
+在`Component`对象的原型上挂载有`setState`:
 
 ```js
 Component.prototype.setState = function(partialState, callback) {
@@ -111,10 +117,71 @@ const classComponentUpdater = {
 
 1. 获取`class`实例对应的`Fiber`节点
 2. 创建`update`对象
-3. 将`update`对象添加到当前 Fiber 节点的`updateQueue`队列当中
+3. 将`update`对象添加到当前节点`fiber.updateQueue`队列当中
 4. 调用`scheduleUpdateOnFiber`, 从当前节点调度更新
 
-#### scheduleUpdateOnFiber
+#### dispatchAction
+
+> 此处只是为了对比`dispatchAction`和`setState`. 对于`hook`对象的详细分析, 在[hook 原理](./07-hook.md)中详细讨论.
+
+```js
+function dispatchAction<S, A>(
+  fiber: Fiber,
+  queue: UpdateQueue<S, A>,
+  action: A,
+) {
+  // 1. 获取expirationTime
+  const currentTime = requestCurrentTimeForUpdate();
+  const suspenseConfig = requestCurrentSuspenseConfig();
+  const expirationTime = computeExpirationForFiber(
+    currentTime,
+    fiber,
+    suspenseConfig,
+  );
+  // 2. 创建update对象
+  const update: Update<S, A> = {
+    expirationTime,
+    suspenseConfig,
+    action,
+    eagerReducer: null,
+    eagerState: null,
+    next: (null: any),
+  };
+  //3. 将update对象设置到hook.queue队列当中
+  const pending = queue.pending;
+  if (pending === null) {
+    update.next = update;
+  } else {
+    update.next = pending.next;
+    pending.next = update;
+  }
+  queue.pending = update;
+  //4. 请求调度
+  scheduleUpdateOnFiber(fiber, expirationTime);
+}
+```
+
+#### 重复调用 render
+
+```jsx
+import ReactDOM from 'react-dom';
+function tick() {
+  const element = (
+    <div>
+      <h1>Hello, world!</h1>
+      <h2>It is {new Date().toLocaleTimeString()}.</h2>
+    </div>
+  );
+  ReactDOM.render(element, document.getElementById('root'));
+}
+setInterval(tick, 1000);
+```
+
+对于重复`render`, 在[React 应用初始化](./02-bootstrap.md#legacy模式)中已有说明, 实质调用`updateContainer`, 再结合[首次 render]()中对`updateContainer`的分析, 最终也是进入`scheduleUpdateOnFiber`.
+
+> 可见无论用哪种方式发起更新. 最终都会进入`scheduleUpdateOnFiber`.
+
+### scheduleUpdateOnFiber
 
 ```js
 export function scheduleUpdateOnFiber(
@@ -141,7 +208,11 @@ export function scheduleUpdateOnFiber(
 }
 ```
 
-#### markUpdateTimeFromFiberToRoot
+`scheduleUpdateOnFiber`在[首次 render](./03-render-process.md#执行调度)和[Scheduler 调度机制](./05-scheduler.md#)都有介绍, 是发起调度的入口函数.
+
+其中`markUpdateTimeFromFiberToRoot`在更新阶段十分重要.
+
+### markUpdateTimeFromFiberToRoot
 
 ![](../snapshots/update/markupdatetime.png)
 
@@ -149,25 +220,17 @@ export function scheduleUpdateOnFiber(
 2. 标记所有父节点(包括 alternate)的`childExpirationTime`
 3. 设置`fiberRoot`上的`pendingTime`和`suspendedTime`(非`legacy`模式下会使用)
 
-#### ensureRootIsScheduled
+## 发起调度
 
-通过[Scheduler 调度机制](./05-scheduler.md)的分析, legacy 下`ensureRootIsScheduled`是对`performSyncWorkOnRoot`进行包装.
+### ensureRootIsScheduled
 
-#### performSyncWorkOnRoot
+通过[Scheduler 调度机制](./05-scheduler.md)的分析, legacy 下`ensureRootIsScheduled`会设置`performSyncWorkOnRoot`回调.
 
-`performSyncWorkOnRoot`,的流程可以参照[首次 render](./03-render-process.md#从FiberRoot节点开始进行更新)中的流程:
+### performSyncWorkOnRoot
+
+`performSyncWorkOnRoot`的流程可以参照首次 render 中的流程:
 
 ![](../snapshots/function-call-updatecontainer.png)
-
-和[首次 render](./03-render-process.md#从FiberRoot节点开始进行更新)比较的异同点如下:
-
-相同点:
-
-1. 调用`renderRootSync`生成新的`fiber`树
-2. `fiberRoot.finishedWork`上挂载最新的`fiber`树
-3. `fiberRoot`传入`commitWork`函数, 最终更新`DOM`
-   不同点:
-4. `renderRootSync`内部生成`fiber`的逻辑不同
 
 ```js
 function performSyncWorkOnRoot(root) {
@@ -189,7 +252,7 @@ function performSyncWorkOnRoot(root) {
 }
 ```
 
-#### renderRootSync
+### renderRootSync
 
 ```js
 function renderRootSync(root, expirationTime) {
@@ -216,7 +279,7 @@ function renderRootSync(root, expirationTime) {
 }
 ```
 
-#### prepareFreshStack
+### prepareFreshStack
 
 重置工作空间(workloop)中全局变量之后, 工作空间如下表示:
 
@@ -229,7 +292,7 @@ function renderRootSync(root, expirationTime) {
 3. `workInProgress`在`prepareFreshStack`后会切换 fiber 树(切换到`alternate`分支)
 4. `HostRootFiber(alternate).child`指向`HostRootFiber.child`
 
-#### workLoopSync
+### workLoopSync
 
 `workLoopSync`和[首次 render](./03-render-process.md#workLoopSync)中的`workLoopSync`逻辑是一致的, 核心流程:
 
@@ -307,21 +370,23 @@ function beginWork(
 ![](../snapshots/update/beginwork.png)
 
 1. 为了向下更新`workInProgress.child`节点(直到`workInProgress.child=null`), 最终形成完整的`fiber`树
-2. 如果`current`指针存在
+2. 如果`current`指针存在(为更新节点)
    1. `workInProgress`有更新(`props`或`context`有变动), 调用`update(mount)XXXComponent`
    2. `workInProgress`没有更新, 调用`bailoutOnAlreadyFinishedWork`
       - 通过`childExpirationTime`判断子节点是否有更新, 如果有更新则调用`cloneChildFibers(current,workInProgress)`,将 current 的子节点 clone 到 workInProgress 中
-3. 如果`current`指针为`null`(初次`render`), 调用`update(mount)XXXComponent`
+3. 如果`current`指针为`null`(为新增节点), 调用`update(mount)XXXComponent`
 
-##### update(mount)XXXComponent
+#### update(mount)XXXComponent
 
-`update(mount)XXXComponent`分为两种情况
+`update(mount)XXXComponent`总体分为两种情况
 
-1. 停止向下
-   - 已经是末端节点(如`HostText`类型节点), 无需再往下更新
-2. 继续向下
-   - `class`类型的节点且`shouldComponentUpdate`返回`false`, 会调用`bailoutOnAlreadyFinishedWork`(同为向下逻辑)
+1. 继续向下构造`fiber`树
+
+   - 调用`bailoutOnAlreadyFinishedWork`(当前节点无需更新, 如: `class`类型的节点且`shouldComponentUpdate`返回`false`. )
    - 调用`reconcileChildren`进入调和算法
+
+2. 中断退出
+   - 已经是末端节点(如`HostText`类型节点), 无需再往下更新
 
 #### reconcileChildren
 
@@ -376,8 +441,6 @@ function beginWork(
 
 把子节点和当前节点的`effects`上移到父节点,更新父节点的`effects`队列
 
-#### commitWork
+### commitWork
 
 和首次 render 完全一样, 分为 3 个阶段, 最后完全更到 dom 对象, 页面呈现.
-
-## effects
