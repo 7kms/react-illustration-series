@@ -10,4 +10,7 @@ export default defineConfig({
   logo: 'logo.png',
   copy: ['public'],
   // more config: https://d.umijs.org/config
+  // dynamicImport: {
+
+  // }
 });

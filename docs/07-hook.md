@@ -166,8 +166,77 @@ function mountState<S>(
 
 核心步骤:
 
-1. 创建`hook`对象, 挂载到当前` fiber.memoizedState``,workInProgressHook `指向此`hook`
+1. 创建`hook`对象, 挂载到当前`fiber.memoizedState`,`workInProgressHook`指向此`hook`
 2. 设置`hook.queue`, 和当前`fiber`进行关联
+
+新增节点, `useEffect`对应`mountEffect`
+
+```js
+function mountEffect(
+  create: () => (() => void) | void,
+  deps: Array<mixed> | void | null,
+): void {
+  // 注意这里指定了两种tag
+  return mountEffectImpl(
+    UpdateEffect | PassiveEffect, // fiber.effectTag 适用于fiber对象
+    HookPassive, // effect.tag 适用于effect对象
+    create,
+    deps,
+  );
+}
+
+function mountEffectImpl(fiberEffectTag, hookEffectTag, create, deps): void {
+  const hook = mountWorkInProgressHook();
+  const nextDeps = deps === undefined ? null : deps;
+  currentlyRenderingFiber.effectTag |= fiberEffectTag;
+  hook.memoizedState = pushEffect(
+    HookHasEffect | hookEffectTag, //再次指定 effect.tag
+    create,
+    undefined,
+    nextDeps,
+  );
+}
+
+function pushEffect(tag, create, destroy, deps) {
+  // 创建新的effect对象
+  const effect: Effect = {
+    tag,
+    create,
+    destroy,
+    deps,
+    // Circular
+    next: (null: any),
+  };
+  // 将effect对象添加到fiber.updateQueue队列中
+  let componentUpdateQueue: null | FunctionComponentUpdateQueue = (currentlyRenderingFiber.updateQueue: any);
+  if (componentUpdateQueue === null) {
+    componentUpdateQueue = createFunctionComponentUpdateQueue();
+    currentlyRenderingFiber.updateQueue = (componentUpdateQueue: any);
+    componentUpdateQueue.lastEffect = effect.next = effect;
+  } else {
+    const lastEffect = componentUpdateQueue.lastEffect;
+    if (lastEffect === null) {
+      componentUpdateQueue.lastEffect = effect.next = effect;
+    } else {
+      const firstEffect = lastEffect.next;
+      lastEffect.next = effect;
+      effect.next = firstEffect;
+      componentUpdateQueue.lastEffect = effect;
+    }
+  }
+  return effect;
+}
+```
+
+核心步骤:
+
+1. 创建`hook`对象, 并且添加到`hook`队列中,`workInProgressHook`指向此`hook`
+2. 设置`fiber.effectTag = UpdateEffect | PassiveEffect`
+3. 创建`effect`对象(设置`effect.tag = HookHasEffect | HookPassive`), 并将`effect`添加到`fiber.UpdateQueue`队列中
+
+在整个创建`hook`阶段, 主要流程表示如下:
+
+![](../snapshots/hook/beginWork.png)
 
 ### 执行 hook
 
