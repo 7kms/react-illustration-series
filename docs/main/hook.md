@@ -236,7 +236,7 @@ function pushEffect(tag, create, destroy, deps) {
 
 在整个创建`hook`阶段, 主要流程表示如下:
 
-![](../snapshots/hook/beginWork.png)
+![](../../snapshots/hook/beginWork.png)
 
 ### 执行 hook
 
@@ -388,7 +388,7 @@ function dispatchAction<S, A>(
 
 `dispatchAction`创建了一个新的`update`对象, 添加到`hook.queue.pending`队列之后.
 
-![](../snapshots/hook/dispatchAction.png)
+![](../../snapshots/hook/dispatchAction.png)
 
 ### 更新 fiber
 
@@ -462,13 +462,13 @@ function updateWorkInProgressHook(): Hook {
 1. 调用`updateWorkInProgressHook`创建新的`hook`对象
    - 注意新`hook`实际上是旧`hook`的浅拷贝
 
-![](../snapshots/hook/useState-create-WorkInProgressHook.png)
+![](../../snapshots/hook/useState-create-WorkInProgressHook.png)
 
 2. 如果`hook.queue.pending !=== null`
    - 遍历`hook.queue.pending`队列, 提取足够优先级的`update`对象, 生成`newState`
    - 更新`hook`和`queue`对象的相关属性
 
-![](../snapshots/hook/useState-update-WorkInProgressHook.png)
+![](../../snapshots/hook/useState-update-WorkInProgressHook.png)
 
 最后返回新的元组`[hook.memoizedState, dispatch]`
 
@@ -602,7 +602,7 @@ function updateReducer<S, I, A>(
 1. 调用`updateWorkInProgressHook`创建新的`hook`对象
    - 和`useState`中是一致的(不同的是, 通过`useEffect`创建的`hook`对象,`hook.queue = null`)
 
-![](../snapshots/hook/useEffect-create-WorkInProgressHook.png)
+![](../../snapshots/hook/useEffect-create-WorkInProgressHook.png)
 
 2. 生成新的`effect`对象
 
@@ -610,14 +610,14 @@ function updateReducer<S, I, A>(
 
      - 生成新的`effect(HookPassive)`,添加到`fiber.updateQueue`
 
-     ![](../snapshots/hook/useEffect-update-WorkInProgressHook-1.png)
+     ![](../../snapshots/hook/useEffect-update-WorkInProgressHook-1.png)
 
    - deps 依赖改变.
 
      - 设置`fier.effectTag = UpdateEffect | PassiveEffect`
      - 生成新的`effect(HookHasEffect | HookPassive)`,添加到`fiber.updateQueue`
 
-     ![](../snapshots/hook/useEffect-update-WorkInProgressHook-2.png)
+     ![](../../snapshots/hook/useEffect-update-WorkInProgressHook-2.png)
 
 ```js
 function updateEffectImpl(fiberEffectTag, hookEffectTag, create, deps): void {
@@ -654,6 +654,6 @@ function updateEffectImpl(fiberEffectTag, hookEffectTag, create, deps): void {
 
 左边是`current`右边是`workInProgress`
 
-![](../snapshots/hook/hook-update.png)
+![](../../snapshots/hook/hook-update.png)
 
 注意浅蓝色背景的`updateQueue`队列中, 新`effect`会引用旧`effect`对象的`destroy`方法.

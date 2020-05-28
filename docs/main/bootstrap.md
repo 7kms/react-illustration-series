@@ -1,3 +1,8 @@
+---
+nav:
+  title: 原理解析
+---
+
 # React 应用初始化
 
 ## 启动模式
@@ -37,7 +42,7 @@ reactDOMBolckingRoot.render(<App />); // 不支持回调
 
 在`react`正式调用之前,`reactElement(<App/>`和 DOM 对象`div#root`之间没有关联, 用图片表示如下:
 
-![](../snapshots/bootstrap/process-before.png)
+![](../../snapshots/bootstrap/process-before.png)
 
 ### 创建全局对象
 
@@ -51,7 +56,7 @@ react 在初始化时, 创建了 3 个全局对象
 
 涉及到`react-dom`和`react-reconciler`两个包,核心核心流程图如下(后面逐步解释).
 
-![](../snapshots/bootstrap/function-call.png)
+![](../../snapshots/bootstrap/function-call.png)
 
 #### 创建 ReactDOM(Blocking)Root 对象
 
@@ -293,15 +298,15 @@ export function createHostRootFiber(tag: RootTag): Fiber {
 
 1. lagacy
 
-![](../snapshots/bootstrap/process-legacy.png)
+![](../../snapshots/bootstrap/process-legacy.png)
 
 2. concurrent
 
-![](../snapshots/bootstrap/process-concurrent.png)
+![](../../snapshots/bootstrap/process-concurrent.png)
 
 3. blocking
 
-![](../snapshots/bootstrap/process-blocking.png)
+![](../../snapshots/bootstrap/process-blocking.png)
 
 注意:
 
@@ -311,7 +316,7 @@ export function createHostRootFiber(tag: RootTag): Fiber {
 
 同时`HostRootFiber.updateQueue`也已经初始化完成了.
 
-![](../snapshots/bootstrap/update-queue.png)
+![](../../snapshots/bootstrap/update-queue.png)
 
 运行到这里, `react`应用的初始化已经完成了.
 

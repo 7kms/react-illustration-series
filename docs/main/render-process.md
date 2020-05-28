@@ -4,7 +4,7 @@
 
 初始化完成之后, 调用`updateContainer`之前, 先回顾一下此时主要对象的引用关系.
 
-![](../snapshots/bootstrap/process-legacy.png)
+![](../../snapshots/bootstrap/process-legacy.png)
 
 ## 调用更新入口
 
@@ -62,7 +62,7 @@ export function updateContainer(
 
 步骤 1,2, 创建了第一个`update`对象(用`update1`表示), 并且把`react`对象`<App/>`关联到了`update.payload`之上. 这一步的变化在图上标记出来:
 
-![](../snapshots/process-03.png)
+![](../../snapshots/process-03.png)
 
 注意`update`的数据结构是一个链表, 后续在二次更新过程中(如调用`setState`或者调用 hook 对象的`dispatchAction`都会深度使用, 会在 react 更新机制中体现, 这里先了解基本结构)
 
@@ -92,7 +92,7 @@ export function createUpdate(
 
 对于`update1`对象,处于`HostRootFiber.updateQueue`之中, 是`react`应用中的第一个`update`对象, 比较特殊(`processUpdateQueue`过程会体现出来), 可以看到它的基本属性.
 
-![](../snapshots/object-update-01.png)
+![](../../snapshots/object-update-01.png)
 
 ### render 过程
 
@@ -131,7 +131,7 @@ export function scheduleUpdateOnFiber(
 
 跟踪函数调用栈, 可以得到`scheduleUpdateOnFiber`的主杆逻辑(包含主杆逻辑, 省略一些和首次 render 无关的逻辑分支).在流程图中用分支 2️⃣ 表示.
 
-![](../snapshots/function-call-updatecontainer.png)
+![](../../snapshots/function-call-updatecontainer.png)
 
 `scheduleUpdateOnFiber`在第一次 render 的逻辑有 2 个核心步骤:
 
@@ -142,7 +142,7 @@ export function scheduleUpdateOnFiber(
 
 `FiberRoot`的属性变化(红色字体标记):
 
-![](../snapshots/object-fiberroot-02.png)
+![](../../snapshots/object-fiberroot-02.png)
 
 2. `performSyncWorkOnRoot(root)`, 传入`FiberRoot`对象, 执行同步更新
 
@@ -262,7 +262,7 @@ function prepareFreshStack(root, expirationTime) {
 
 当前工作空间的主要变量的状态如下:
 
-![](../snapshots/firstrender-workloop-01.png)
+![](../../snapshots/firstrender-workloop-01.png)
 
 ##### workLoopSync
 
@@ -302,7 +302,7 @@ function performUnitOfWork(unitOfWork: Fiber): void {
 
 分析到这里, 可以把`workLoopSync`的主杆调用逻辑全部串联起来.
 
-![](../snapshots/function-call-workloopsync.png)
+![](../../snapshots/function-call-workloopsync.png)
 
 其中`workLoopSync`相关的逻辑用红色矩形块标识, 有 4 个主要函数:
 
@@ -633,53 +633,53 @@ export default App;
 
 beginWork: 第一次执行`beginWork`之前, `workInProgress`指针指向`HostRootFiber.alternate`对象:
 
-![](../snapshots/first-render-performunitofwork-00.png)
+![](../../snapshots/first-render-performunitofwork-00.png)
 
 beginWork: 第一次执行`beginWork`之后, `workInProgress`指针指向`Fiber`对象(`<App/>`):
 
-![](../snapshots/first-render-performunitofwork-01.png)
+![](../../snapshots/first-render-performunitofwork-01.png)
 
 beginWork: 第二次执行`beginWork`之后, `<App/>`节点的`effectTag`已经更新, `workInProgress`指针指向`<App/>`的子节点`<div/>`:
 
-![](../snapshots/first-render-performunitofwork-02.png)
+![](../../snapshots/first-render-performunitofwork-02.png)
 
 beginWork: 第三次执行`beginWork`之后, `workInProgress`指针指向`<Box/>`:
 
-![](../snapshots/first-render-performunitofwork-03.png)
+![](../../snapshots/first-render-performunitofwork-03.png)
 
 beginWork: 第四次执行`beginWork`之后, `<Box/>`节点的`effectTag`已经更新, `workInProgress`指针指向`<Box/>`的子节点`<button/>`:
 
-![](../snapshots/first-render-performunitofwork-04.png)
+![](../../snapshots/first-render-performunitofwork-04.png)
 
 beginWork: 第五次执行`beginWork`之后, `workInProgress`指针指向一个`HostText`类型的`Fiber`节点:
 
-![](../snapshots/first-render-performunitofwork-05.png)
+![](../../snapshots/first-render-performunitofwork-05.png)
 
 beginWork: 第六次执行`beginWork`之后, 由于`HostText`类型的节点没有`child`节点.所以后面会进入`completeUnitOfWork`.
 
 completeWork: `workInProgress`指针指向 text 节点, 执行完`completeWork`之后, `Fiber`节点的`stateNode`属性指向该节点对应的`DOM`对象.
 
-![](../snapshots/first-render-performunitofwork-06.png)
+![](../../snapshots/first-render-performunitofwork-06.png)
 
 beginWork: 上一步(`completeWork`)执行完成之后, `workInProgress`指针移动指向`sibling`节点(上图中的白色圆形部分, 也是一个 HostText 类型的 Fiber 节点). 此时由于该节点还未通过`beginWork`阶段, 所以会先执行`beginWork`. 这里略过后续`sibling`文本节点的`beginWork`和`completeWork`.
 
 completeWork: 当`Fiber(button)`节点的所有子节点都执行完`completeWork`之后, workInProgress 指针指向`Fiber(button)`节点, 更新其`stateNode`属性, 指向对应的`DOM`对象.
 
-![](../snapshots/first-render-performunitofwork-07.png)
+![](../../snapshots/first-render-performunitofwork-07.png)
 
 completeWork: `workInProgress`指针指向`<Box/>`节点, 更新其`stateNode`属性. 由于该节点在`beginWork`阶段被标记有副作用(`effectTag > PerformedWork`), 所以会将此节点的副作用挂载到父节点的副作用队列之后(实现副作用向上移动).此时父节点`Fiber(div)`的属性`firstEffect`和`lastEffect`属性分别指向`effects`队列的开始和末尾.如图所示,这时父节点的副作用队列里面只有一个对象`<Box/>`.
 
-![](../snapshots/first-render-performunitofwork-08.png)
+![](../../snapshots/first-render-performunitofwork-08.png)
 
 beginWork: 处理`sibling`节点, 过程通处理`button`的子节点一致, 这里略过具体的执行步骤.
 
 completeWork: `workInProgress`指针指向`<div/>`节点, 更新其`stateNode`属性. 由于该节点的`firstEffect`和`lastEffect`属性不为`null`, 故先将`effects`队列继续上移, 挂载到父节点之后. 此时, 父节点`<App/>`的`firstEffect`和`lastEffect`属性分别指向`effects`队列的开始和末尾.如图所示,这时的父节点副作用队列里面只有一个对象`<Box/>`
 
-![](../snapshots/first-render-performunitofwork-09.png)
+![](../../snapshots/first-render-performunitofwork-09.png)
 
 completeWork: `workInProgress`指针指向`<App/>`节点. 先将该节点的副作用队列上移, 并且由于该节点在`beginWork`阶段被标记有副作用(`effectTag > PerformedWork`), 所以还需要将该节点添加到父节点的副作用队列的末尾. 如图所示: 父节点`HostFiberRoot`的属性`firstEffect`和`lastEffect`属性分别指向`effects`队列的开始(`<Box/>`)和末尾(`<App/>`)
 
-![](../snapshots/first-render-performunitofwork-10.png)
+![](../../snapshots/first-render-performunitofwork-10.png)
 
 `workInProgress`继续上移, 直到退出循环, 结束`workLoopSync`, 完成`renderRootSync`.
 
@@ -697,7 +697,7 @@ commitRoot(root);
 
 在执行`commitRoot`之前, 当前工作空间的主要变量的状态如下:
 
-![](../snapshots/firstrender-workloop-02.png)
+![](../../snapshots/firstrender-workloop-02.png)
 
 `commitRootImpl`
 
@@ -792,7 +792,7 @@ commit 分为 3 个阶段:
 
 注意当 3 个阶段都执行完成之后, 为了辅助垃圾回收, 会去除`effects`队列中所有`effect`的`nextEffect`指针
 
-![](../snapshots/function-call-commitroot.png)
+![](../../snapshots/function-call-commitroot.png)
 
 相关代码如下:
 
@@ -972,7 +972,7 @@ function commitLifeCycles(
 
 当前工作空间的主要变量的状态如下:
 
-![](../snapshots/firstrender-workloop-03.png)
+![](../../snapshots/firstrender-workloop-03.png)
 
 初次 render 结束之后, 除了`HostRootFiber`节点有`alternate`属性之外, 其余的`Fiber`节点均无`alternate`.
 

@@ -124,7 +124,7 @@ function setInitialDOMProperties(
 
 跟踪`finalizeInitialChildren`调用栈, 核心逻辑可以用流程图表示:
 
-![](../snapshots/syntheticEvent/process-register-event.png)
+![](../../snapshots/syntheticEvent/process-register-event.png)
 
 其中`ensureListeningTo`完成事件的注册
 
@@ -409,7 +409,7 @@ export function dispatchEvent(
 
 跟踪`listener`函数, 从原生事件响到 callback 执行完毕, 可以得到流程图如下(后面逐步解释):
 
-![](../snapshots/syntheticEvent/process-dispatch-event.png)
+![](../../snapshots/syntheticEvent/process-dispatch-event.png)
 
 `attemptToDispatchEvent`
 
@@ -732,7 +732,7 @@ function accumulateDirectionalDispatches(inst, phase, event) {
 假设有如下的`fiber`结构, 其中有注册`onClick`和`onClickCapture`事件.
 当点击`span`元素的时候,浏览器原生事件`event.target[internalInstanceKey]`指向 span 这个 fiber 节点.
 
-![](../snapshots/syntheticEvent/twophase-fiber-tree.png)
+![](../../snapshots/syntheticEvent/twophase-fiber-tree.png)
 
 为了在内部模拟`capture`和`bubble`特性.主要做了 3 步操作
 
@@ -741,15 +741,15 @@ function accumulateDirectionalDispatches(inst, phase, event) {
 - 如上图中的红色曲线路径
   最终得到`path`如下
 
-![](../snapshots/syntheticEvent/twophase-path.png)
+![](../../snapshots/syntheticEvent/twophase-path.png)
 
 2. 收集捕获阶段的回调. 倒序遍历`path`数组, 如果该 fiber 节点含有属性`onClickCapture`, 则将该回调函数加入到`SyntheticEvent._dispatchListeners`数组中, 同时将该节点加入到`SyntheticEvent._dispatchInstances`
 
-![](../snapshots/syntheticEvent/twophase-capture.png)
+![](../../snapshots/syntheticEvent/twophase-capture.png)
 
 3. 收集冒泡阶段的回调. 顺序遍历`path`数组, 如果该 fiber 节点含有属性`onClick`, 则将该回调函数加入到`SyntheticEvent._dispatchListeners`数组中
 
-![](../snapshots/syntheticEvent/twophase-bubble.png)
+![](../../snapshots/syntheticEvent/twophase-bubble.png)
 
 #### 执行 callback 回调
 

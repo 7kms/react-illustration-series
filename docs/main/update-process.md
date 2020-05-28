@@ -58,7 +58,7 @@ export default App;
 
 根据[首次 render](./03-render-process.md)中的分析, 初次`render`结束后, 可以得到`fiber`树形结构:
 
-![](../snapshots/firstrender-workloop-03.png)
+![](../../snapshots/firstrender-workloop-03.png)
 
 ## 执行环境
 
@@ -214,7 +214,7 @@ export function scheduleUpdateOnFiber(
 
 ### markUpdateTimeFromFiberToRoot
 
-![](../snapshots/update/markupdatetime.png)
+![](../../snapshots/update/markupdatetime.png)
 
 1. 从当前 fiber 节点开始, 向上查找直到`HostRootFiber`, 标记当前`fiber.expirationTime`
 2. 标记所有父节点(包括 alternate)的`childExpirationTime`
@@ -230,7 +230,7 @@ export function scheduleUpdateOnFiber(
 
 `performSyncWorkOnRoot`的流程可以参照首次 render 中的流程:
 
-![](../snapshots/function-call-updatecontainer.png)
+![](../../snapshots/function-call-updatecontainer.png)
 
 ```js
 function performSyncWorkOnRoot(root) {
@@ -283,7 +283,7 @@ function renderRootSync(root, expirationTime) {
 
 重置工作空间(workloop)中全局变量之后, 工作空间如下表示:
 
-![](../snapshots/update/workloop-01.png)
+![](../../snapshots/update/workloop-01.png)
 
 注意:
 
@@ -296,7 +296,7 @@ function renderRootSync(root, expirationTime) {
 
 `workLoopSync`和[首次 render](./03-render-process.md#workLoopSync)中的`workLoopSync`逻辑是一致的, 核心流程:
 
-![](../snapshots/function-call-workloopsync.png)
+![](../../snapshots/function-call-workloopsync.png)
 
 进入具体的`fiber`更新流程:
 
@@ -367,7 +367,7 @@ function beginWork(
 
 核心流程:
 
-![](../snapshots/update/beginwork.png)
+![](../../snapshots/update/beginwork.png)
 
 1. 为了向下更新`workInProgress.child`节点(直到`workInProgress.child=null`), 最终形成完整的`fiber`树
 2. 如果`current`指针存在(为更新节点)
@@ -467,9 +467,9 @@ export default () => {
 
 针对`div.wrap`节点展开讨论, 在点击`change`按钮之后, 更改`list`. `reconcileChildren`执行前后对比如下:
 
-![](../snapshots/update/before-reconcileChildren.png)
+![](../../snapshots/update/before-reconcileChildren.png)
 
-![](../snapshots/update/after-reconcileChildren.png)
+![](../../snapshots/update/after-reconcileChildren.png)
 
 1. 新增节点和移动节点
    - 新增节点 E,F 都打上了`Placement`标记
@@ -483,11 +483,11 @@ export default () => {
 
 进入调和函数之前, 先明确一下比较对象.是`fiber`对象和`pendingProps.children`对象(这里是`reactElement`对象,也有可能是字符串)进行比较,最终目的是为了生成`workInProgress.child`
 
-![](../snapshots/update/reconcileChildrenArray-01.png)
+![](../../snapshots/update/reconcileChildrenArray-01.png)
 
 2. 第一次循环
 
-![](../snapshots/update/reconcileChildrenArray-02.png)
+![](../../snapshots/update/reconcileChildrenArray-02.png)
 
 对应代码:
 
@@ -568,7 +568,7 @@ if (oldFiber === null) {
 
 3. 第三次循环
 
-![](../snapshots/update/reconcileChildrenArray-03.png)
+![](../../snapshots/update/reconcileChildrenArray-03.png)
 
 对应代码:
 
@@ -608,7 +608,7 @@ for (; newIdx < newChildren.length; newIdx++) {
 
 4. 标记删除的节点
 
-![](../snapshots/update/reconcileChildrenArray-04.png)
+![](../../snapshots/update/reconcileChildrenArray-04.png)
 
 对应代码:
 

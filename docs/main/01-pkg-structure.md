@@ -1,3 +1,7 @@
+---
+title: 核心包结构
+---
+
 # React 基础包结构(web 开发)
 
 > react 工程目录的 packages 下包含 30 几个包(`@16.13.1`版本), 其中与`web`开发相关的核心包共有 5 个
@@ -27,4 +31,4 @@
 
 核心的调用脉络就是通过板块间的入口和出口函数连接起来的.
 
-![](../snapshots/core-package.png)
+![](../../snapshots/core-package.png)

@@ -1,5 +1,7 @@
 ---
 title: 图解React原理系列
+nav:
+  title: 使用指南
 hero:
   title: 图解React原理系列
   desc: 基于[`react@16.13.1`](https://github.com/facebook/react/tree/v16.13.1)(尽可能跟随 react 版本的升级, 持续更新). 用大量配图的方式, 致力于将`react原理`表述清楚.

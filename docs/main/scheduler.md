@@ -247,7 +247,7 @@ export function scheduleCallback(
 
 附上流程图:
 
-![](../snapshots/scheduler/ensure-root-isschdeuled.png)
+![](../../snapshots/scheduler/ensure-root-isschdeuled.png)
 
 往下跟踪`Scheduler_scheduleCallback`来到`unstable_scheduleCallback`:
 
@@ -336,7 +336,7 @@ function unstable_scheduleCallback(priorityLevel, callback, options) {
 1. 新建`task`对象(基本属性如下图)
    - 将回调函数挂载到`task.callback`之上
 
-![](../snapshots/scheduler/task.png)
+![](../../snapshots/scheduler/task.png)
 
 2. 把`task`对象加入到一个队列中(注意: 这里的 2 个队列都是小顶堆数组, 保证优先级最高的任务排在最前面)
    - 如果是及时任务加入到`taskQueue`
@@ -344,7 +344,7 @@ function unstable_scheduleCallback(priorityLevel, callback, options) {
    - 只有`taskQueue`中的任务才会被调度执行
    - 通过`advanceTimers`函数可以把`timerQueue`中优先级足够的任务添加到`taskQueue`
 
-![](../snapshots/scheduler/queue.png)
+![](../../snapshots/scheduler/queue.png)
 
 3. 请求调度
    - 及时任务直接调用`requestHostCallback(flushWork)`
@@ -402,7 +402,7 @@ requestHostCallback = function(callback) {
 
 调度循环的逻辑可以表示如下:
 
-![](../snapshots/scheduler/requesthostcallback.png)
+![](../../snapshots/scheduler/requesthostcallback.png)
 
 当执行完`scheduledHostCallback`之后, 会返回一个`boolean`值表示是否还有新的任务, 如果有新任务, 会再次执行`port.postMessage(null)`, 在下一次事件循环中继续执行回调(`flushWork`)
 
@@ -475,7 +475,7 @@ function workLoop(hasTimeRemaining, initialTime) {
 
 整个`scheduledHostCallback`回调的逻辑如下:
 
-![](../snapshots/scheduler/scheduledhostcallback.png)
+![](../../snapshots/scheduler/scheduledhostcallback.png)
 
 最后如果返回`false`退出调度, 如返回`true`,则回到`performWorkUntilDeadline`中准备下一次回调
 
