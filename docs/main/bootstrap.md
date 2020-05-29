@@ -50,7 +50,7 @@ react 在初始化时, 创建了 3 个全局对象
 
 1. `ReactDOM(Blocking)Root`对象
 2. `fiberRoot`对象
-3. `HostRootFibe`r 对象
+3. `HostRootFiber` 对象
 
 这 3 个对象是 react 体系得以运行的基本保障, 一经创建大多数场景是不会再销毁(卸载整个应用).
 

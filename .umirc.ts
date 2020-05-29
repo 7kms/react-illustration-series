@@ -4,8 +4,9 @@ import path from 'path';
 export default defineConfig({
   title: '图解React',
   mode: 'site',
-  favicon: 'km@2x.png',
-  description: '基于react@16.13.1.尽可能跟随react版本的升级,持续更新.',
+  favicon: '/km@2x.png',
+  description:
+    '基于react@16.13.1.尽可能跟随react版本的升级,持续更新. 用大量配图的方式, 致力于将`react原理`表述清楚.',
   locales: [['zh-CN', '中文']],
   logo: '/logo.png',
   menus: {
@@ -15,20 +16,26 @@ export default defineConfig({
         children: ['main/guide.md'],
       },
       {
-        title: '基本框架',
-        children: ['main/01-pkg-structure.md', 'main/data-structure.md'],
+        title: '基本概念',
+        children: ['main/pkg-structure.md', 'main/workspace.md'],
       },
       {
-        title: '渲染过程',
-        children: ['main/bootstrap.md', 'main/render-process.md'],
-      },
-      {
-        title: '更新过程',
-        children: ['main/update-process.md'],
+        title: '运行核心',
+        children: [
+          'main/bootstrap.md',
+          'main/scheduler.md',
+          'main/render.md',
+          'main/synthetic-event.md',
+          'main/update.md',
+        ],
       },
       {
         title: '其他',
-        children: ['main/synthetic-event.md', 'main/scheduler.md'],
+        children: [
+          'main/hook.md',
+          'main/error-boundaries.md',
+          'main/context.md',
+        ],
       },
     ],
   },
