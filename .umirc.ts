@@ -46,4 +46,6 @@ export default defineConfig({
       path: 'https://github.com/7kms/react-illustration-series',
     },
   ],
+  hash: true,
+  dynamicImport: {},
 });
