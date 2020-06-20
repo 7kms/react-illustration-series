@@ -1,3 +1,8 @@
+---
+title: fiber 构建(新增节点)
+order: 3
+---
+
 # React 首次 render
 
 在[React 应用初始化](./02-bootstrap.md)中介绍了`react`应用启动的 3 种模式.为了简便, 本文在`legacy`模式为前提之下进行讨论. 对于`concurrent`和`blocking`的讨论, 在`任务分片机制`中详细展开.

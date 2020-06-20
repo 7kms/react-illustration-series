@@ -1,6 +1,9 @@
 ---
 nav:
   title: 原理解析
+
+title: 初始化
+order: 1
 ---
 
 # React 应用初始化

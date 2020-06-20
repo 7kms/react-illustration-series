@@ -1,3 +1,7 @@
+---
+title: 合成事件
+---
+
 # React 合成事件
 
 > `SyntheticEvent`是原生事件的跨浏览器包装器, 拥有和浏览器原生事件相同的接口(`stopPropagation`,`preventDefault`), 抹平不同浏览器 api 的差异, 兼容性好.

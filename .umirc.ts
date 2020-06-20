@@ -25,8 +25,9 @@ export default defineConfig({
           'main/bootstrap.md',
           'main/scheduler.md',
           'main/render.md',
-          'main/synthetic-event.md',
+          'main/commit.md',
           'main/update.md',
+          'main/synthetic-event.md',
         ],
       },
       {
