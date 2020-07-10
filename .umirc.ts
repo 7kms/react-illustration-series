@@ -49,4 +49,17 @@ export default defineConfig({
   ],
   hash: true,
   dynamicImport: {},
+  ssr: {},
+  exportStatic: {},
+  metas: [
+    {
+      name: 'keywords',
+      content: 'react, react原理, 图解react, react hooks, hooks原理',
+    },
+    {
+      name: 'description',
+      content:
+        '图解react系列, 基于react@16.13.1. 包括react fiber构建原理, hooks原理等. 尽可能跟随react版本的升级,持续更新. 用大量配图的方式, 致力于将`react原理`表述清楚.',
+    },
+  ],
 });
