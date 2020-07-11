@@ -26,7 +26,7 @@ export const ContinuousEvent: EventPriority = 2;
 
 ## 事件注册
 
-在[首次 render](../03-render-process.md)中, 已经介绍, dom 事件的绑定是在`completeWork`阶段.
+在[fiber 构建(新增节点)](../render.md)中, 已经介绍, dom 事件的绑定是在`completeWork`阶段.
 
 `completeWork`
 

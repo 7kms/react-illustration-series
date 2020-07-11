@@ -8,10 +8,10 @@ order: 2
 ## 发起调度
 
 1. 首次 render
-   从[首次 render](./03-render-process.md#执行调度)的分析中知道, 是通过`scheduleUpdateOnFiber`执行首次 render.
+   从[fiber 构建(新增节点)](./render.md#执行调度)的分析中知道, 是通过`scheduleUpdateOnFiber`执行首次 render.
 
 2. 后续更新
-   在[更新机制](./06-update-process.md#发起更新)有过讨论. 无论以哪种方式发起更新, 都会进入`scheduleUpdateOnFiber`函数.
+   在[fiber 构建(更新节点)](./update.md#发起更新)有过讨论. 无论以哪种方式发起更新, 都会进入`scheduleUpdateOnFiber`函数.
 
 > 无论是首次 render 还是后续更新, 都会调用`scheduleUpdateOnFiber`发起调度
 
@@ -71,7 +71,7 @@ export function scheduleUpdateOnFiber(
 }
 ```
 
-`legacy`下[首次 render](./03-render-process.md#执行调度)会进入`performSyncWorkOnRoot`分支. 其它情况无论进入哪一个分支, 都会进入`ensureRootIsScheduled`.
+`legacy`下[fiber 构建(新增节点)](./render.md#执行调度)会进入`performSyncWorkOnRoot`分支. 其它情况无论进入哪一个分支, 都会进入`ensureRootIsScheduled`.
 
 ## 调度确保
 

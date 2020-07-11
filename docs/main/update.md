@@ -5,7 +5,7 @@ order: 4
 
 # React 更新机制
 
-> 在[React 应用初始化](./02-bootstrap.md)中介绍了`react`应用启动的 3 种模式.为了简便, 本文在`legacy`模式下进行讨论. 对于`concurrent`和`blocking`的讨论, 在`任务分片机制`中详细展开.
+> 在[React 应用初始化](./bootstrap.md)中介绍了`react`应用启动的 3 种模式.为了简便, 本文在`legacy`模式下进行讨论. 对于`concurrent`和`blocking`的讨论, 在`任务分片机制`中详细展开.
 
 如要主动发起更新, 有 3 种常见方式:
 
@@ -61,13 +61,13 @@ class Extra extends React.Component {
 export default App;
 ```
 
-根据[首次 render](./03-render-process.md)中的分析, 初次`render`结束后, 可以得到`fiber`树形结构:
+根据[首次 render](./render.md)中的分析, 初次`render`结束后, 可以得到`fiber`树形结构:
 
 ![](../../snapshots/firstrender-workloop-03.png)
 
 ## 执行环境
 
-从[合成事件](./04-syntheticEvent.md#事件触发)中对事件触发的分析得知, `onClick`事件对应的`listener`是`dispatchDiscreteEvent`.
+从[合成事件](./synthetic-event.md#事件触发)中对事件触发的分析得知, `onClick`事件对应的`listener`是`dispatchDiscreteEvent`.
 
 所以在执行`handleClick`回调之前, 可以明确当前环境:
 
@@ -86,7 +86,7 @@ Component.prototype.setState = function(partialState, callback) {
 };
 ```
 
-在[首次 render](./03-render-process.md#beginWork)中的`beginWork`阶段, class 类型的组件初始化完成之后, `this.updater`对象如下:
+在[首次 render](./render.md#beginWork)中的`beginWork`阶段, class 类型的组件初始化完成之后, `this.updater`对象如下:
 
 ```js
 const classComponentUpdater = {
@@ -127,7 +127,7 @@ const classComponentUpdater = {
 
 #### dispatchAction
 
-> 此处只是为了对比`dispatchAction`和`setState`. 对于`hook`对象的详细分析, 在[hook 原理](./07-hook.md)中详细讨论.
+> 此处只是为了对比`dispatchAction`和`setState`. 对于`hook`对象的详细分析, 在[hook 原理](./hook.md)中详细讨论.
 
 ```js
 function dispatchAction<S, A>(
@@ -182,7 +182,7 @@ function tick() {
 setInterval(tick, 1000);
 ```
 
-对于重复`render`, 在[React 应用初始化](./02-bootstrap.md#legacy模式)中已有说明, 实质调用`updateContainer`, 再结合[首次 render]()中对`updateContainer`的分析, 最终也是进入`scheduleUpdateOnFiber`.
+对于重复`render`, 在[初始化](./bootstrap.md#legacy模式)中已有说明, 实质调用`updateContainer`, 再结合[首次 render](./render.md)中对`updateContainer`的分析, 最终也是进入`scheduleUpdateOnFiber`.
 
 > 可见无论用哪种方式发起更新. 最终都会进入`scheduleUpdateOnFiber`.
 
@@ -213,7 +213,7 @@ export function scheduleUpdateOnFiber(
 }
 ```
 
-`scheduleUpdateOnFiber`在[首次 render](./03-render-process.md#执行调度)和[Scheduler 调度机制](./05-scheduler.md#)都有介绍, 是发起调度的入口函数.
+`scheduleUpdateOnFiber`在[fiber 构建(新增节点)](./render.md#执行调度)和[调度机制](./scheduler.md#)都有介绍, 是发起调度的入口函数.
 
 其中`markUpdateTimeFromFiberToRoot`在更新阶段十分重要.
 
@@ -229,7 +229,7 @@ export function scheduleUpdateOnFiber(
 
 ### ensureRootIsScheduled
 
-通过[Scheduler 调度机制](./05-scheduler.md)的分析, legacy 下`ensureRootIsScheduled`会设置`performSyncWorkOnRoot`回调.
+通过[调度机制](./scheduler.md)的分析, legacy 下`ensureRootIsScheduled`会设置`performSyncWorkOnRoot`回调.
 
 ### performSyncWorkOnRoot
 
@@ -299,7 +299,7 @@ function renderRootSync(root, expirationTime) {
 
 ### workLoopSync
 
-`workLoopSync`和[首次 render](./03-render-process.md#workLoopSync)中的`workLoopSync`逻辑是一致的, 核心流程:
+`workLoopSync`和[首次 render](./render.md#workLoopSync)中的`workLoopSync`逻辑是一致的, 核心流程:
 
 ![](../../snapshots/function-call-workloopsync.png)
 

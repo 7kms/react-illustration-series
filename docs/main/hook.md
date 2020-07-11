@@ -45,7 +45,7 @@ export default Example;
 
 ### 创建 fiber
 
-通过[首次 render](./03-render-process.md#beginWork)中的介绍, 创建节点都是在`beginWork`阶段.
+通过[fiber 构建(新增节点)](./render.md#beginWork)中的介绍, 创建节点都是在`beginWork`阶段.
 
 `function`类型节点在新增时调用`mountIndeterminateComponent`
 
@@ -240,7 +240,7 @@ function pushEffect(tag, create, destroy, deps) {
 
 ### 执行 hook
 
-从以上流程图可以看到, 执行`function`的时候, 只是创建了`hook`, 但是并没有执行`hook.create`.在首次 render 中有介绍, `commitRoot`分为[3 个阶段](./03-render-process.md#commit阶段)
+从以上流程图可以看到, 执行`function`的时候, 只是创建了`hook`, 但是并没有执行`hook.create`.在 fiber 构建(新增节点) 中有介绍, `commitRoot`分为[3 个阶段](./render.md#commit阶段)
 
 第一个阶段`commitBeforeMutationEffects`对`Passive`类型的 tag 做了特殊处理.如果`function`类型的`fiber`使用了`hook`api,会设置`fiber.effectTag |= Passive`
 

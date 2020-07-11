@@ -12,4 +12,4 @@ order: 0
 
 ## 现有题目
 
-1. [React 中, setState 是同步还是异步](./01-setstate.md)
+1. [React 中, setState 是同步还是异步](./interview/01-setstate.md)

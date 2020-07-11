@@ -10,7 +10,7 @@ order: 1
 
 ## 启动模式
 
-在当前版本`react@16.13.1`中, 有 3 种启动方式. 先引出官网上对于[这 3 种模式的介绍](https://zh-hans.reactjs.org/docs/concurrent-mode-adoption.html#why-so-many-modes)
+在当前版本`react@16.13.1`源码中, 有 3 种启动方式. 先引出官网上对于[这 3 种模式的介绍](https://zh-hans.reactjs.org/docs/concurrent-mode-adoption.html#why-so-many-modes)
 
 1. `Legacy`模式
 
@@ -41,9 +41,11 @@ const reactDOMBolckingRoot = ReactDOM.createBlockingRoot(
 reactDOMBolckingRoot.render(<App />); // 不支持回调
 ```
 
+注意: 虽然`16.13.1`的源码中有[`creatRoot`和`createBlockingRoot`方法](https://github.com/facebook/react/blob/v16.13.1/packages/react-dom/src/client/ReactDOM.js#L209), 但是实际在`npm i react-dom`安装`16.13.1`版本后, 却没有这两个方法(可能是构建过程中去掉了).如果要想体验非`legacy`模式, 需要[显示安装实验版本](https://zh-hans.reactjs.org/docs/concurrent-mode-adoption.html#installation).
+
 ## 初始化流程
 
-在`react`正式调用之前,`reactElement(<App/>`和 DOM 对象`div#root`之间没有关联, 用图片表示如下:
+在`react`正式调用之前,`reactElement(<App/>)`和 DOM 对象`div#root`之间没有关联, 用图片表示如下:
 
 ![](../../snapshots/bootstrap/process-before.png)
 
@@ -206,7 +208,7 @@ ReactDOMRoot.prototype.unmount = ReactDOMBlockingRoot.prototype.unmount = functi
 
 `ReactDOMRoot`和`ReactDOMBlockingRoot`有相同的特性
 
-1. 调用`createRootImpl`创建`fiberRoot`对象(后面详细说明), 并将其挂载到`this._internalRoot`上
+1. 调用`createRootImpl`创建`fiberRoot`对象, 并将其挂载到`this._internalRoot`上
 2. 原型上有`render`和`umount`方法
    - 内部都会执行`updateContainer`进行更新
 
@@ -295,7 +297,7 @@ export function createHostRootFiber(tag: RootTag): Fiber {
 }
 ```
 
-注意:`fiber`树中所节点的`mode`都会和`HostRootFiber.mode`一致(新建的 fiber 节点, 其 mode 来源于父节点)
+注意:`fiber`树中所节点的`mode`都会和`HostRootFiber.mode`一致(新建的 fiber 节点, 其 mode 来源于父节点),所以**HostRootFiber.mode**非常重要, 它决定了以后整个 fiber 树构建过程.
 
 将此刻内存中各个对象的引用情况表示出来:
 
@@ -317,7 +319,11 @@ export function createHostRootFiber(tag: RootTag): Fiber {
 2. legacy 下, `div#root`和`ReactDOMBlockingRoot`之间通过`_reactRootContainer`关联. 其他模式是没有关联的
 3. 此时`reactElement(<App/>)`还是独立在外的, 还没有和目前创建的 3 个全局对象关联起来
 
-同时`HostRootFiber.updateQueue`也已经初始化完成了.
+#### fiber.updateQueue
+
+在 fiber 数据结构中, 有一个`updateQueue`属性. 在创建`HostRootFiber`的同时`HostRootFiber.updateQueue`也已经初始化完成了.
+
+`updateQueue`队列的作用是用来记录该 fiber 对象的更新操作,
 
 ![](../../snapshots/bootstrap/update-queue.png)
 
@@ -351,8 +357,25 @@ ReactDOMRoot.prototype.render = ReactDOMBlockingRoot.prototype.render = function
 相同点:
 
 1. 3 种模式在调用更新时都会执行`updateContainer`,由`updateContainer`来引导更新
-   不同点:
-1. `legacy`下的更新会先调用`unbatchedUpdates`, 更改执行上下文为`LegacyUnbatchedContext`
-1. `concurrent`和`blocking`不会更改执行上下文
 
-这里明确了`react`应用的初始化完成之后便可以通过调用`updateContainer`执行更新, 对于`updateContainer`的深入分析, 在[首次 render](./03-render-process.md)和[更新机制](./06-update-process.md)中详细讨论.
+不同点:
+
+1. `legacy`下的更新会先调用`unbatchedUpdates`, 更改执行上下文为`LegacyUnbatchedContext`, 之后调用`updateContainer`进行更新.
+
+2. `concurrent`和`blocking`不会更改执行上下文, 直接调用`updateContainer`进行更新.
+
+对于`updateContainer`的深入分析, 在[fiber 构建(新增节点)](./render.md)和[fiber 构建(更新节点)](./update.md)中详细讨论. 此处先要明确`react`应用的初始化完成之后便可以通过调用`updateContainer`执行更新.
+
+## 可中断渲染
+
+react 中最广为人知的可中断渲染(部分生命周期函数有可能执行多次, 也被列为不安全的生命周期函数, `componentWillMount`,`componentWillReceiveProps`)只有在`HostRootFiber.mode === ConcurrentRoot | BlockingRoot`才会开启. 如果使用的是`legacy`, 即通过`ReactDOM.render(<App/>, dom)`这种方式启动的是不会开启的.
+
+### 思考
+
+对于`可中断渲染`的宣传最早来自[2018 年 Dan Abramov 的演讲](https://zh-hans.reactjs.org/blog/2018/03/01/sneak-peek-beyond-react-16.html). 但是 react 官方并没有说稳定版本的 react 中就已经应用了该特性.
+
+在最新稳定版[`v16.13.1`](https://github.com/facebook/react/blob/master/CHANGELOG.md#16131-march-19-2020)中, 虽然实现, 但是并没有暴露出 api. 只能[安装实验版本](<(https://zh-hans.reactjs.org/docs/concurrent-mode-adoption.html#installation)>)才能体验该特性.
+
+但是很多开发人员都认为自己使用的`react`就是可中断渲染(甚至张口就来 xxx 生命周期函数会调用多次, 所以应该 xxx), 可能也是受到了各类宣传文章的影响.
+
+前端从业环境还是比较浮躁的, 在当下, 更静下心来脚踏实地的学习.
