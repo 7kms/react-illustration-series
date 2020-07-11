@@ -374,7 +374,7 @@ react 中最广为人知的可中断渲染(部分生命周期函数有可能执�
 
 对于`可中断渲染`的宣传最早来自[2018 年 Dan Abramov 的演讲](https://zh-hans.reactjs.org/blog/2018/03/01/sneak-peek-beyond-react-16.html). 但是 react 官方并没有说稳定版本的 react 中就已经应用了该特性.
 
-在最新稳定版[`v16.13.1`](https://github.com/facebook/react/blob/master/CHANGELOG.md#16131-march-19-2020)中, 虽然实现, 但是并没有暴露出 api. 只能[安装实验版本](<(https://zh-hans.reactjs.org/docs/concurrent-mode-adoption.html#installation)>)才能体验该特性.
+在最新稳定版[`v16.13.1`](https://github.com/facebook/react/blob/master/CHANGELOG.md#16131-march-19-2020)中, 虽然实现, 但是并没有暴露出 api. 只能[安装实验版本](https://zh-hans.reactjs.org/docs/concurrent-mode-adoption.html#installation)才能体验该特性.
 
 但是很多开发人员都认为自己使用的`react`就是可中断渲染(甚至张口就来 xxx 生命周期函数会调用多次, 所以应该 xxx), 可能也是受到了各类宣传文章的影响.
 
