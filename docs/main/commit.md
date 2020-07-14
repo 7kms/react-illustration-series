@@ -2,6 +2,10 @@
 title: 提交渲染
 ---
 
+# 提交渲染
+
+### commitRootImpl
+
 `commitRootImpl`
 
 ```js
@@ -99,7 +103,7 @@ commit 分为 3 个阶段:
 
 相关代码如下:
 
-`commitBeforeMutationEffects`:
+### `commitBeforeMutationEffects`:
 
 ```js
 // ... 函数中省略了与首次render无关代码, 先关心主流程
@@ -115,7 +119,7 @@ function commitBeforeMutationEffects() {
 }
 ```
 
-`commitMutationEffects`:
+### `commitMutationEffects`
 
 ```js
 // ... 函数中省略了与首次render无关代码, 先关心主流程
@@ -214,7 +218,7 @@ export function appendChildToContainer(
 }
 ```
 
-`commitLayoutEffects`:
+### `commitLayoutEffects`
 
 ```js
 // ... 函数中省略了与首次render无关代码, 先关心主流程
@@ -269,7 +273,7 @@ function commitLifeCycles(
 }
 ```
 
-#### ensureRootIsScheduled
+### ensureRootIsScheduled
 
 在`commitRoot`的最后会执行`ensureRootIsScheduled`确保`FiberRoot`已经被调度, 由于没有新的任务, 所以会退出.执行完`commitRoot`之后, 首次 render 过程就已经全部完成了.
 

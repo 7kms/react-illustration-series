@@ -11,7 +11,7 @@ footer: Open-source MIT Licensed | Copyright © [公里柒(KM.Seven)](https://gi
 
 ## 使用指南
 
-1. 本系列以 react 核心包结构和运行机制为主线索进行展开.
+1. 本系列以 react 核心包结构和运行机制为主线索进行展开. 包括`react 基本包结构`, `react 工作循环`, `react 启动模式`, `react fiber原理`, `react hook原理`, `react 合成事件`等核心内容.
 2. 开源作品需要社区的净化和参与, 如有表述不清晰或表述错误, 欢迎[issue 勘误](https://github.com/7kms/react-illustration-series/issues). 如果对你有帮助, 请不吝 star.
 3. 当下(2020 年 6 月)前端技术圈总体比较浮躁, 各技术平台充斥着不少"标题党". 真正对于技术本身, 不能急于求成, 需要静下心来修炼.
 4. 本系列不是面经, 但会列举一些面试题来加深对 react 理解.

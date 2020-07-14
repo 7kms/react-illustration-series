@@ -182,7 +182,7 @@ function tick() {
 setInterval(tick, 1000);
 ```
 
-对于重复`render`, 在[初始化](./bootstrap.md#legacy模式)中已有说明, 实质调用`updateContainer`, 再结合[首次 render](./render.md)中对`updateContainer`的分析, 最终也是进入`scheduleUpdateOnFiber`.
+对于重复`render`, 在[初始化](./bootstrap.md#legacy模式)中已有说明, 实质调用`updateContainer`, 再结合[fiber 构建(新增节点)](./render.md)中对`updateContainer`的分析, 最终也是进入`scheduleUpdateOnFiber`.
 
 > 可见无论用哪种方式发起更新. 最终都会进入`scheduleUpdateOnFiber`.
 
@@ -299,7 +299,7 @@ function renderRootSync(root, expirationTime) {
 
 ### workLoopSync
 
-`workLoopSync`和[首次 render](./render.md#workLoopSync)中的`workLoopSync`逻辑是一致的, 核心流程:
+`workLoopSync`和[fiber 构建(新增节点)](./render.md#workLoopSync)中的`workLoopSync`逻辑是一致的, 核心流程:
 
 ![](../../snapshots/function-call-workloopsync.png)
 
@@ -398,9 +398,9 @@ function beginWork(
 目的:
 
 1. 给新增和删除的`fiber`节点设置`effectTag`(打上副作用标记)
-2. 如果是需要删除的`fiber`, 除了自身打上`effectTag`之外, 还要将其添加到父节点的`effects`链表中(该节点会脱离`fiber`树, 不会再进入`completeWork`阶段).
+2. 如果是需要删除的`fiber`, 除了自身打上`effectTag`之外, 还要将其添加到父节点的`effects`链表中(因为该节点会脱离`fiber`树, 不会再进入`completeWork`阶段. 所以在`beginWork`阶段就要将其添加到父节点的`effects`链表中).
 
-方法:
+调和函数核心逻辑:
 
 1. 单元素
 
@@ -415,7 +415,7 @@ function beginWork(
    1. 进入第一次循环`newChildren: Array<*>`
       - 调用`updateSlot`(与`oldChildren`中相同`index`的`fiber`进行比较), 返回该槽位对应的`fiber`
         - 如 key 相同, 进一步比较`fiber.elementType`与`newChild.type`.
-          - 如 type 相同, 调用`useFiber`, 创建`oldFiber.alternate`,并返回
+          - 如 type 相同, 调用`useFiber`进行 clone, 创建出`oldFiber.alternate`,并返回
           - 如 type 不同, 调用`createFiber`创建新的`fiber`
         - 如 key 不同, 则返回`null`
       - 调用`placeChild`

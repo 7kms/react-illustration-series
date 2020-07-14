@@ -323,7 +323,7 @@ export function createHostRootFiber(tag: RootTag): Fiber {
 
 在 fiber 数据结构中, 有一个`updateQueue`属性. 在创建`HostRootFiber`的同时`HostRootFiber.updateQueue`也已经初始化完成了.
 
-`updateQueue`队列的作用是用来记录该 fiber 对象的更新操作,
+`updateQueue`队列的作用是用来记录该 fiber 对象的更新操作, 在 fiber 节点更新中会用到.
 
 ![](../../snapshots/bootstrap/update-queue.png)
 
@@ -368,14 +368,14 @@ ReactDOMRoot.prototype.render = ReactDOMBlockingRoot.prototype.render = function
 
 ## 可中断渲染
 
-react 中最广为人知的可中断渲染(部分生命周期函数有可能执行多次, 也被列为不安全的生命周期函数, `componentWillMount`,`componentWillReceiveProps`)只有在`HostRootFiber.mode === ConcurrentRoot | BlockingRoot`才会开启. 如果使用的是`legacy`, 即通过`ReactDOM.render(<App/>, dom)`这种方式启动的是不会开启的.
+react 中最广为人知的可中断渲染(render 可以中断, 部分生命周期函数有可能执行多次, `UNSAFE_componentWillMount`,`UNSAFE_componentWillReceiveProps`)只有在`HostRootFiber.mode === ConcurrentRoot | BlockingRoot`才会开启. 如果使用的是`legacy`, 即通过`ReactDOM.render(<App/>, dom)`这种方式启动时`HostRootFiber.mode = NoMode`, 这种情况下无论是首次 render 还是后续 update 都只会进入同步工作循环, `reconciliation`没有机会中断, 所以生命周期函数只会调用一次.
 
 ### 思考
 
-对于`可中断渲染`的宣传最早来自[2018 年 Dan Abramov 的演讲](https://zh-hans.reactjs.org/blog/2018/03/01/sneak-peek-beyond-react-16.html). 但是 react 官方并没有说稳定版本的 react 中就已经应用了该特性.
+对于`可中断渲染`的宣传最早来自[2017 年 Lin Clark 的演讲](http://conf2017.reactjs.org/speakers/lin). 演讲中阐述了未来 react 会应用 fiber 架构, `reconciliation可中断`等(13:15 秒). 在[`v16.1.0`](https://github.com/facebook/react/blob/master/CHANGELOG.md#1610-november-9-2017)中应用了 fiber.
 
-在最新稳定版[`v16.13.1`](https://github.com/facebook/react/blob/master/CHANGELOG.md#16131-march-19-2020)中, 虽然实现, 但是并没有暴露出 api. 只能[安装实验版本](https://zh-hans.reactjs.org/docs/concurrent-mode-adoption.html#installation)才能体验该特性.
+在最新稳定版[`v16.13.1`](https://github.com/facebook/react/blob/master/CHANGELOG.md#16131-march-19-2020)中, `可中断渲染`虽然实现, 但是并没有暴露出 api. 只能[安装实验版本](https://zh-hans.reactjs.org/docs/concurrent-mode-adoption.html#installation)才能体验该特性.
 
-但是很多开发人员都认为自己使用的`react`就是可中断渲染(甚至张口就来 xxx 生命周期函数会调用多次, 所以应该 xxx), 可能也是受到了各类宣传文章的影响.
+但是很多开发人员都认为自己使用的`react`就是可中断渲染(都认为不安全的生命周期会执行多次, 误区很大), 大概率也是受到了各类宣传文章的影响.
 
-前端从业环境还是比较浮躁的, 在当下, 更静下心来脚踏实地的学习.
+前端大环境还是比较浮躁的, 在当下, 应该静下心来脚踏实地的学习.
