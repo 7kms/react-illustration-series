@@ -125,7 +125,7 @@ const classComponentUpdater = {
 3. 将`update`对象添加到当前节点`fiber.updateQueue`队列当中
 4. 调用`scheduleUpdateOnFiber`, 从当前节点调度更新
 
-#### dispatchAction
+### dispatchAction
 
 > 此处只是为了对比`dispatchAction`和`setState`. 对于`hook`对象的详细分析, 在[hook 原理](./hook.md)中详细讨论.
 
@@ -166,7 +166,7 @@ function dispatchAction<S, A>(
 }
 ```
 
-#### 重复调用 render
+### 重复调用 render
 
 ```js
 import ReactDOM from 'react-dom';
@@ -257,6 +257,21 @@ function performSyncWorkOnRoot(root) {
 }
 ```
 
+## 构建 fiber
+
+### 指针介绍
+
+在 fiber 构建过程中, 有两个全局变量非常重要. `current`和`workInProgress`可以看成是 2 个指针
+
+1. `current`指针:
+
+   - `current`指针指向当前页面上已经呈现出来的那个`fiber`, 所以在第一次 render 的时候它始终为 null
+   - `current`指针所在的 fiber 树是当前页面正在使用的 fiber 树
+
+2. `workInProgress`指针:
+   - `workInProgress`指针指向当前内存中正在构造的`fiber`, 是一个未完成的`fiber`. 正在构造的 fiber 和已经在使用的 fiber 之间用`alternate`属性相互关联.
+   - `workInProgress`指针所在的 fiber 树是正在构造的 fiber 树, 构造完成之后就会代替当前正在使用的 fiber 树
+
 ### renderRootSync
 
 ```js
@@ -305,7 +320,7 @@ function renderRootSync(root, expirationTime) {
 
 进入具体的`fiber`更新流程:
 
-#### beginWork
+### beginWork
 
 ```js
 // 省略部分代码
@@ -328,8 +343,9 @@ function beginWork(
       // This may be unset if the props are determined to be equal later (memo).
       didReceiveUpdate = true;
     } else if (updateExpirationTime < renderExpirationTime) {
+      // 如果当前fiber没有变动, 其updateExpirationTime=NoWork=0, 必然会小于renderExpirationTime=Sync
       didReceiveUpdate = false;
-      // ...
+      // 当前fiber没有变动, 调用bailoutOnAlreadyFinishedWork循环检测子节点是否需要更新
       return bailoutOnAlreadyFinishedWork(
         current,
         workInProgress,
@@ -375,13 +391,13 @@ function beginWork(
 ![](../../snapshots/update/beginwork.png)
 
 1. 为了向下更新`workInProgress.child`节点(直到`workInProgress.child=null`), 最终形成完整的`fiber`树
-2. 如果`current`指针存在(为更新节点)
+2. 如果`current`指针存在(为更新节点), current 指向当前页面已经呈现出来的 dom 对象对应的 fiber
    1. `workInProgress`有更新(`props`或`context`有变动), 调用`update(mount)XXXComponent`
    2. `workInProgress`没有更新, 调用`bailoutOnAlreadyFinishedWork`
       - 通过`childExpirationTime`判断子节点是否有更新, 如果有更新则调用`cloneChildFibers(current,workInProgress)`,将 current 的子节点 clone 到 workInProgress 中
 3. 如果`current`指针为`null`(为新增节点), 调用`update(mount)XXXComponent`
 
-#### update(mount)XXXComponent
+### update(mount)XXXComponent
 
 `update(mount)XXXComponent`总体分为两种情况
 
@@ -393,9 +409,9 @@ function beginWork(
 2. 中断退出
    - 已经是末端节点(如`HostText`类型节点), 无需再往下更新
 
-#### reconcileChildren
+### 调和函数 reconcileChildren
 
-目的:
+调和函数目的:
 
 1. 给新增和删除的`fiber`节点设置`effectTag`(打上副作用标记)
 2. 如果是需要删除的`fiber`, 除了自身打上`effectTag`之外, 还要将其添加到父节点的`effects`链表中(因为该节点会脱离`fiber`树, 不会再进入`completeWork`阶段. 所以在`beginWork`阶段就要将其添加到父节点的`effects`链表中).
@@ -625,7 +641,7 @@ if (shouldTrackSideEffects) {
 }
 ```
 
-#### completeWork
+### completeWork
 
 1. 新增节点
    - 调用渲染器, 同首次 render 一样, 创建`fiber`节点对应的实例.并将子节点`childfiber.stateNode`添加到当前实例中
@@ -634,10 +650,14 @@ if (shouldTrackSideEffects) {
      - 如属性变化, 将其转换成`dom`属性挂载到`workInProgress.updateQueue`中, 并打上 update 标记
      - 如属性没有变化, 退出调用
 
-#### completeUnitOfWork
+### completeUnitOfWork
 
 把子节点和当前节点的`effects`上移到父节点,更新父节点的`effects`队列
+
+## 提交渲染
 
 ### commitWork
 
 和首次 render 完全一样, 分为 3 个阶段, 最后完全更到 dom 对象, 页面呈现.
+
+[详情参照](./commit.md)
