@@ -1,12 +1,30 @@
 ---
-title: 提交渲染
+title: fiber树渲染
 ---
 
-# 提交渲染
+# fiber 树渲染
 
-### commitRootImpl
+在 fiber 树构建中已经分析, 无论是否是首次 render, 都会在内存中构造最新的 fiber 树.
 
-`commitRootImpl`
+## 内存结构
+
+在 fiber 树提交渲染之前, 也就是`commitRoot`执行之前. 内存中有两棵 fiber 树, ` current``和workInProgress `指针分别指向这两棵树.
+
+1. `current`
+   - 代表当前正在使用的 fiber 树, 此 fiber 树上所有节点与当前页面上的 dom 节点相互引用
+   - 如果是首次 render, `current=null`, 此刻页面还未渲染
+2. `workInProgress`
+   - 代表即将更新到页面的 fiber 树, 此刻该 fiber 树已经构造完成, 等待最后的渲染
+
+## 副作用队列
+
+在 beginWork 和 completeWork 阶段, 所有有副作用的 fiber 节点都被打上了标记. 并且全部收集到了`HostRootFiber`节点的副作用队列里面.
+
+在后续同步更新到 DOM 的实现中, 副作用队列起到关键作用.
+
+## 分步渲染
+
+分析渲染实现类`commitRootImpl`的源码:
 
 ```js
 // ... 函数中省略了与首次render无关代码, 先关心主流程
@@ -79,19 +97,19 @@ function commitRootImpl(root, renderPriorityLevel) {
   flushSyncCallbackQueue();// 如果layout阶段有调度更新, 在这里进行刷新
 ```
 
-commit 分为 3 个阶段:
+可以知道 commit 分为 3 个阶段:
 
-1. `commitBeforeMutationEffects`
+1. dom 变化之前, `commitBeforeMutationEffects`
 
 - 调用`getSnapshotBeforeUpdate`(非初次 render)
 
-2.  `commitMutationEffects`
+2. 同步 fiber 更新到 dom 上, `commitMutationEffects`
 
 - 调用`componentWillUnmount`(非初次 render)
 - 调用渲染器, 把`stateNode`更新到`FiberRoot.containerInfo`节点之上. 此时浏览器会渲染出页面
 - 本阶段执行完成之后, `FiberRoot.current = HostRootFiber.alternate`, `FiberRoot.current`指针指向了`HostRootFiber.alternate`
 
-3. `commitLayoutEffects`
+3. dom 变化之后, `commitLayoutEffects`
 
 - 调用`componentDidMount/Update`
 
@@ -101,9 +119,9 @@ commit 分为 3 个阶段:
 
 ![](../../snapshots/function-call-commitroot.png)
 
-相关代码如下:
+### DOM 变化之前
 
-### `commitBeforeMutationEffects`:
+执行`commitBeforeMutationEffects`
 
 ```js
 // ... 函数中省略了与首次render无关代码, 先关心主流程
@@ -119,7 +137,9 @@ function commitBeforeMutationEffects() {
 }
 ```
 
-### `commitMutationEffects`
+### 同步 DOM
+
+执行`commitMutationEffects`
 
 ```js
 // ... 函数中省略了与首次render无关代码, 先关心主流程
@@ -191,7 +211,7 @@ function commitPlacement(finishedWork: Fiber): void {
 ```
 
 ```js
-// ... 函数中省略了与首次render无关代码, 先关心主流程
+// ... 函数中省略了无关代码, 先关心主流程
 function insertOrAppendPlacementNodeIntoContainer(
   node: Fiber,
   before: ?Instance,
@@ -218,10 +238,12 @@ export function appendChildToContainer(
 }
 ```
 
-### `commitLayoutEffects`
+### DOM 变化之后
+
+执行`commitLayoutEffects`
 
 ```js
-// ... 函数中省略了与首次render无关代码, 先关心主流程
+// ... 函数中省略了无关代码, 先关心主流程
 function commitLayoutEffects(
   root: FiberRoot,
   committedExpirationTime: ExpirationTime,

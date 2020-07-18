@@ -26,8 +26,8 @@
 
 3. [启动模式](./docs/main/bootstrap.md)
 4. [调度机制](./docs/main/scheduler.md)
-5. [fiber 构建(新增节点)](./docs/main/render.md)
-6. [fiber 构建(更新节点)](./docs/main/update.md)
+5. [fiber 树构建(创建)](./docs/main/render.md)
+6. [fiber 树构建(更新)](./docs/main/update.md)
 7. [提交渲染](./docs/main/commit.md)
 8. [事件机制](./docs/main/synthetic-event.md)
 
