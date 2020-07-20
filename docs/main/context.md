@@ -269,7 +269,13 @@ function Content(props) {
 export default App;
 ```
 
-根据示例代码可以提取出来以下 7 个和`context`有关的 fiber 节点, 对与这些节点进行分析.
+根据[fiber 构建(新增节点)](./render.md)一文中的分析, 可以画出本示例代码在初次 render 过后的 fiber 结构图:
+
+![](../../snapshots/context/fiber-tree-firstrender.png)
+
+注意: 图中对 context 的说明是建立在`最新的context api`前提之下
+
+从 fiber 树的构造过程可以提取出来以下 7 个重要的 fiber 节点与`context`有关, 对与这些节点进行分析.
 
 1. `HostRootFiber`对应`updateHostRoot`
 2. `ThemeContext.Provider`对应`updateContextProvider`, 提供`ThemeContext`
@@ -279,7 +285,7 @@ export default App;
 6. `UserContext.Consumer`对应`updateContext`, 消费`UserContext`
 7. `ThemedButton`对应`updateClassComponent`, 消费`ThemeContext`
 
-其余节点(如 div,button 等`HostComponent`类型的节点)不会直接访问`context`, 其所有属性都通过父组件的`props`传入, 这类组件没有生产和控制`props`的能力, 也不会感知到`props`属性的来源, 只需要按照`props`进行更新就行.
+其余节点(如 div,button 等`HostComponent`类型的节点)和`context`没有关系, 其所有属性都通过父组件的`props`传入, 这类组件没有生产和控制`props`的能力, 也不会感知到`props`属性的来源, 只需要按照`props`进行更新就行.
 
 ### context 创建
 
@@ -842,9 +848,9 @@ changeUser = () => {
 
 后续在`beginWork`和`completWork`阶段对 context 的处理逻辑, 入栈和出栈等逻辑都和初次渲染一样.
 
-需要说明的是如何确定需要更新的节点, 比方说`UserContext.Provider`组件中的`value`发生变化, 只应该重新渲染其消费节点(`UserContext.Consumer`).
+需要说明的是如何确定需要更新的节点, 比方说`UserContext.Provider`组件中的`value`发生变化, 只应该重新渲染其消费节点(`UserContext.Consumer`), 其余节点理论上无需更新.
 
-### dependecies
+### 寻找消费节点
 
 在上文中`updateContextProvider`函数有一部分逻辑, 是专门在更新阶段中使用的
 
@@ -893,16 +899,20 @@ function updateContextProvider(
 }
 ```
 
-`propagateContextChange`函数内容较长, 但是逻辑意图比较清晰. 从函数名称来看`propagate`是冒泡的意思(很熟悉事件冒泡里面`event.stopPropagation()`)
+`propagateContextChange`函数内容较长, 但是逻辑意图比较清晰, 目的是为了标记所有消费该 context 的节点, 为构建新 fiber 树做准备.
+
+从函数名称来看`propagate`是冒泡的意思(很熟悉事件冒泡里面`event.stopPropagation()`)
 
 核心逻辑分为 2 步:
 
-1. 从当前节点`workInProgress`开始, 向下寻找所有消费此`context`的节点
-2. 找到对应的消费者节点之后, 设置消费节点的`expirationTime`, 并从消费节点开始给其所有的父节点标记`childExpirationTime`
+1. 从当前节点`workInProgress`开始, 向下遍历寻找所有消费此`context`的节点
+2. 找到对应的消费节点(consumer)之后, 设置消费节点的`expirationTime`
+3. 从消费节点开始向上遍历直到此`context`的`Provider`节点, 给路径上所有的父节点设置`childExpirationTime`
 
 这样就可以找到整个`fiber`树中依赖该`context`的所有节点, 并设置正确的`expirationTime`和`childExpirationTime`
 
 ```js
+// 省略了部分在concurrent模式下才会执行的逻辑, 保留主杆部分
 export function propagateContextChange(
   workInProgress: Fiber,
   context: ReactContext<mixed>,

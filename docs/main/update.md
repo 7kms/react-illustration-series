@@ -394,7 +394,7 @@ function beginWork(
 2. 如果`current`指针存在(为更新节点), current 指向当前页面已经呈现出来的 dom 对象对应的 fiber
    1. `workInProgress`有更新(`props`或`context`有变动), 调用`update(mount)XXXComponent`
    2. `workInProgress`没有更新, 调用`bailoutOnAlreadyFinishedWork`
-      - 通过`childExpirationTime`判断子节点是否有更新, 如果有更新则调用`cloneChildFibers(current,workInProgress)`,将 current 的子节点 clone 到 workInProgress 中
+      - 通过`childExpirationTime`判断子节点是否有更新, 如果有更新则调用`cloneChildFibers(current,workInProgress)`返回`workInProgress.child`继续向下遍历. 如果没有更新则返回 null, 结束本路径的遍历.
 3. 如果`current`指针为`null`(为新增节点), 调用`update(mount)XXXComponent`
 
 ### update(mount)XXXComponent
