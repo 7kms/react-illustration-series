@@ -34,7 +34,17 @@
 ### 其他
 
 9. [hook 原理](./docs/main/hook.md)
-10. `context`机制
+10. [context 机制](./docs/main/context.md)
 11. 异常处理机制
 12. `hydration`渲染模式
 13. 任务分片机制(`concurrent`模式)
+
+## 最新特性
+
+react 官方仓库 master 分支更新也比较频繁, 虽然没有发最新稳定版, 但是变化比较大的新特性可以提前跟进.
+
+### 将 expirationTime 改为 Lane
+
+[相应的 pr](https://github.com/facebook/react/pull/18796), 这个改动比较大, master 分支上的源码有关于 Lanes 更新也比较多, 所以暂时也不太稳定.
+
+[总方向的解读](https://github.com/facebook/react/pull/18796#issue-411947697)作者已经给出来了.

@@ -8,7 +8,7 @@ title: fiber树渲染
 
 ## 内存结构
 
-在 fiber 树提交渲染之前, 也就是`commitRoot`执行之前. 内存中有两棵 fiber 树, ` current``和workInProgress `指针分别指向这两棵树.
+在 fiber 树提交渲染之前, 也就是`commitRoot`执行之前. 内存中有两棵 fiber 树, `current`和`workInProgress`指针分别指向这两棵树.
 
 1. `current`
    - 代表当前正在使用的 fiber 树, 此 fiber 树上所有节点与当前页面上的 dom 节点相互引用

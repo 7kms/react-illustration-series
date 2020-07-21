@@ -19,7 +19,7 @@ title: 主要类容
 ## 其他
 
 9. [hook 原理](./hook.md)
-10. `context`机制
+10. [context 机制](./context.md)
 11. 异常处理机制
 12. `hydration`渲染模式
 13. 任务分片机制(`concurrent`模式)

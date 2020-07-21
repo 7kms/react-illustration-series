@@ -4,9 +4,15 @@ title: context
 
 # React Context 机制
 
-在前文中已经分析了[fiber 构建(新增节点)](./render.md)和[fiber 构建(更新节点)](./update.md). react 应用在 fiber 树的构建过程中, 同时也伴随对`context`的使用和管理. 本节重点分析`context`是如何运作的.
+在前文中已经分析了[fiber 构建(新增节点)](./render.md)和[fiber 构建(更新节点)](./update.md). react 应用在 fiber 树的构建过程中, 同时也伴随对`context`的使用和管理.
 
-## 文件分布
+本节重点分析`context`是如何运作的.
+
+## 数据结构
+
+在跟踪 context 源码运行之前, 先了解一下和`context api`有关的数据结构和全局变量.
+
+### 文件分布
 
 在`react-reconciler`包中, 重点关注有 context 命名的 3 个文件.
 
@@ -21,7 +27,9 @@ title: context
 
 这 3 个文件中, 真正和`react context`有关的只有前两个, 由于在 fiber 树的构建过程中对于这 3 个文件的使用方式非常相近(后文会体现, 都通过`valueStack`进行管理), 所以放在一起进行说明.
 
-这 3 个文件都有一个共同的特点, 就是在文件开始定义了一些`StackCursor`类型的全局变量.
+### 全局变量
+
+上述 3 个文件都有一个共同的特点, 就是在文件开始定义了一些`StackCursor`类型的全局变量.
 
 `ReactFiberContext.js`中:
 
@@ -65,7 +73,7 @@ let rootInstanceStackCursor: StackCursor<Container | NoContextT> = createCursor(
 );
 ```
 
-在[`ReactFiberStack.js`](https://github.com/facebook/react/blob/v16.13.1/packages/react-reconciler/src/ReactFiberStack.js#L12)中, 定义`StackCursor`, 并且维护了一个栈`valueStack`:
+另外在[`ReactFiberStack.js`](https://github.com/facebook/react/blob/v16.13.1/packages/react-reconciler/src/ReactFiberStack.js#L12)中, 定义了`StackCursor`, 并且维护了一个栈`valueStack`:
 
 ```js
 export type StackCursor<T> = {| current: T |};
@@ -88,7 +96,6 @@ function pop<T>(cursor: StackCursor<T>, fiber: Fiber): void {
   cursor.current = valueStack[index];
   // 再将旧值出栈
   valueStack[index] = null;
-
   index--;
 }
 
@@ -101,57 +108,11 @@ function push<T>(cursor: StackCursor<T>, value: T, fiber: Fiber): void {
 }
 ```
 
-注意其中`push`和`pop`函数的执行逻辑:
+这些全局的`StackCursor`和`valueStack`是`react context`得以实现的基本保证.
 
-- push: `StackCursor.current`压入`valueStack`栈中
-- pop: `valueStack`栈中的旧值被还原到`StackCursor.current`
+### context 对象
 
-同一个`StackCursor`在被`push`和`pop`之后, 其`current`属性会恢复到初始状态
-
-## 内存结构
-
-了解了文件分布, 和其中的数据结构之后, 从程序启动开始, 正式分析`react context`. 在[React 应用初始化](./bootstrap.md#调用更新入口)中已经分析, 无论使用哪种方式进行启动(或更新),都会调用[`updateContainer`](https://github.com/facebook/react/blob/v16.13.1/packages/react-reconciler/src/ReactFiberReconciler.js#L228)函数(位于`react-reconciler`包).
-
-`updateContainer`
-
-```js
-// ... 函数中省略了与context无关代码
-export function updateContainer(
-  element: ReactNodeList,
-  container: OpaqueRoot,
-  parentComponent: ?React$Component<any, any>,
-  callback: ?Function,
-): ExpirationTime {
-  const current = container.current; // current指向的是HostRootFiber(Fiber树的根节点)
-
-  // 获取当前parentComponent上关联的context, 执行后返回emptyContextObject, 是一个{}
-  const context = getContextForSubtree(parentComponent);
-  if (container.context === null) {
-    // 设置FiberRoot.context
-    container.context = context;
-  }
-
-  // 调度和更新current(HostRootFiber)对象
-  scheduleUpdateOnFiber(current, expirationTime);
-  return expirationTime;
-}
-```
-
-注意: `getContextForSubtree(parentComponent)`是获取当前 parentComponent 上关联的 context, 并且挂载到了`container(FiberRoot)`之上, 可以认为是一个全局变量, 初始值就是`emptyContextObject={}`, 之后会被送入到`valueStack`中管理.
-
-接下来调用`scheduleUpdateOnFiber`(在[调度机制](./scheduler.md)中已经分析), 最后会进入`performSyncWorkOnRoot`进行 fiber 树的构建(详细过程可以查看[fiber 构建](./render.md).
-
-在进入 fiber 构建之前, 内存中`StackCursor`和`valueStack`的状态如下:
-
-![](../../snapshots/context/context-default.png)
-
-## 调用过程
-
-**下文的重点都放在`context`的跟踪上, fiber 树的构建过程在前文中已有说明, 本文不再发散**
-
-### context 数据结构
-
-在进入 fiber 树构建之前, 先明确[`context`的数据结构](https://github.com/facebook/react/blob/v16.13.1/packages/react/src/ReactContext.js#L35).
+[context 的数据结构](https://github.com/facebook/react/blob/v16.13.1/packages/react/src/ReactContext.js#L35).
 
 ```js
 export function createContext<T>(
@@ -164,17 +125,9 @@ export function createContext<T>(
   const context: ReactContext<T> = {
     $$typeof: REACT_CONTEXT_TYPE,
     _calculateChangedBits: calculateChangedBits,
-    // As a workaround to support multiple concurrent renderers, we categorize
-    // some renderers as primary and others as secondary. We only expect
-    // there to be two concurrent renderers at most: React Native (primary) and
-    // Fabric (secondary); React DOM (primary) and React ART (secondary).
-    // Secondary renderers store their context values on separate fields.
     _currentValue: defaultValue,
     _currentValue2: defaultValue,
-    // Used to track how many concurrent renderers this context currently
-    // supports within in a single renderer. Such as parallel server rendering.
     _threadCount: 0,
-    // These are circular
     Provider: (null: any),
     Consumer: (null: any),
   };
@@ -189,9 +142,11 @@ export function createContext<T>(
 }
 ```
 
-### 演示示例
+可以看出`context.Provider`和`context.Consumer`都是 reactElement 对象. 在 fiber 树构建之后, 会对应不同的 fiber 节点.
 
-示例代码(context 的嵌套消费)如下:
+## 演示示例
+
+示例代码(`context 的嵌套消费`)如下:
 
 ```jsx
 import React from 'react';
@@ -237,12 +192,9 @@ class App extends React.Component {
 
 class ThemedButton extends React.Component {
   static contextType = ThemeContext;
-  showContext = () => {
-    this.props.onClick();
-  };
   render() {
     let theme = this.context;
-    return <button>{theme}</button>;
+    return <button onClick={this.props.onClick}>{theme}</button>;
   }
 }
 
@@ -269,41 +221,9 @@ function Content(props) {
 export default App;
 ```
 
-根据[fiber 构建(新增节点)](./render.md)一文中的分析, 可以画出本示例代码在初次 render 过后的 fiber 结构图:
+### context 初始值
 
-![](../../snapshots/context/fiber-tree-firstrender.png)
-
-注意: 图中对 context 的说明是建立在`最新的context api`前提之下
-
-从 fiber 树的构造过程可以提取出来以下 7 个重要的 fiber 节点与`context`有关, 对与这些节点进行分析.
-
-1. `HostRootFiber`对应`updateHostRoot`
-2. `ThemeContext.Provider`对应`updateContextProvider`, 提供`ThemeContext`
-3. `UserContext.Provider`对应`updateContextProvider`, 提供`UserContext`
-4. `Content`对应`mountIndeterminateComponent`(初次 render)和`updateFunctionComponent`(update)
-5. `ThemeContext.Consumer`对应`updateContext`, 消费`ThemeContext`
-6. `UserContext.Consumer`对应`updateContext`, 消费`UserContext`
-7. `ThemedButton`对应`updateClassComponent`, 消费`ThemeContext`
-
-其余节点(如 div,button 等`HostComponent`类型的节点)和`context`没有关系, 其所有属性都通过父组件的`props`传入, 这类组件没有生产和控制`props`的能力, 也不会感知到`props`属性的来源, 只需要按照`props`进行更新就行.
-
-### context 创建
-
-演示示例中, context 创建如下:
-
-```js
-// Theme context
-const ThemeContext = React.createContext('default theme');
-
-// User context
-const UserContext = React.createContext({
-  name: 'default name',
-});
-```
-
-在 render 开始之前, context 对象就已经创建出来了.
-
-根据上文中`context`的数据结构, 可以得到`ThemeContext`和`UserContext`的初始情况:
+`ThemeContext`和`UserContext`的初始情况如下:
 
 ```js
 // 伪代码 表示 ThemeContext 的初始情况
@@ -335,9 +255,62 @@ UserContext = {
 };
 ```
 
-### context 消费
+### fiber 树结构
 
-每一个 fiber 节点的创建, 都会经过`beginWork`和`completeWork`两个阶段, 其中同时伴随`context`的消费和管理
+初次 render 过后的 fiber 树结构图如下:
+
+![](../../snapshots/context/fiber-tree-firstrender.png)
+
+从 fiber 树的构造过程可以提取出来以下 7 个重要的 fiber 节点与`context`有关, 后文逐一分析这些过程:
+
+1. `HostRootFiber`对应`updateHostRoot`
+2. `ThemeContext.Provider`对应`updateContextProvider`, 提供`ThemeContext`
+3. `UserContext.Provider`对应`updateContextProvider`, 提供`UserContext`
+4. `Content`对应`mountIndeterminateComponent`(初次 render)和`updateFunctionComponent`(update)
+5. `ThemeContext.Consumer`对应`updateContext`, 消费`ThemeContext`
+6. `UserContext.Consumer`对应`updateContext`, 消费`UserContext`
+7. `ThemedButton`对应`updateClassComponent`, 消费`ThemeContext`
+
+其余节点(如 div,button 等`HostComponent`类型的节点)和`context`没有关系, 其所有属性都通过父组件的`props`传入, 这类组件没有生产和控制`props`的能力, 也不会感知到`props`属性的来源, 只需要按照`props`进行更新就行.
+
+## 调用过程
+
+下文将从 react 应用启动开始, 逐一分析 context 的使用过程
+
+### 初始内存状态
+
+根据前文的学习, react 启动必然会进入`updateContainer`之后开启调度(可参见[React 应用初始化](./bootstrap.md#调用更新入口))
+
+`updateContainer`
+
+```js
+// ... 函数中省略了与context无关代码
+export function updateContainer(
+  element: ReactNodeList,
+  container: OpaqueRoot,
+  parentComponent: ?React$Component<any, any>,
+  callback: ?Function,
+): ExpirationTime {
+  const current = container.current; // current指向的是HostRootFiber(Fiber树的根节点)
+  // 获取当前parentComponent上关联的context, 执行后返回emptyContextObject, 是一个{}
+  const context = getContextForSubtree(parentComponent);
+  if (container.context === null) {
+    // 设置FiberRoot.context
+    container.context = context;
+  }
+  // 调度和更新current(HostRootFiber)对象
+  scheduleUpdateOnFiber(current, expirationTime);
+  return expirationTime;
+}
+```
+
+在进入 fiber 构建之前, 内存中`StackCursor`和`valueStack`的状态如下:
+
+![](../../snapshots/context/context-default.png)
+
+### 使用 context
+
+每一个 fiber 节点的创建, 都会经过`beginWork`和`completeWork`两个阶段, 其中同时伴随`context`的使用和消费
 
 ### [beginWork](https://github.com/facebook/react/blob/v16.13.1/packages/react-reconciler/src/ReactFiberBeginWork.js#L2874)阶段
 
@@ -607,13 +580,10 @@ function Content(props) {
 class ThemedButton extends React.Component {
   // 第1步: 在class实例化之前, 定义一个静态属性 contextType, 并且赋值为需要消费的那一个context
   static contextType = ThemeContext;
-  showContext = () => {
-    this.props.onClick();
-  };
   render() {
     // 第2步: 在class实例化之后, 即可消费context
     let theme = this.context;
-    return <button>{theme}</button>;
+    return <button onClick={this.props.onClick}>{theme}</button>;
   }
 }
 ```
@@ -655,7 +625,7 @@ function updateClassComponent(
 }
 ```
 
-和函数型组件步骤相似, 先调用`prepareToReadContext`(上文已经分析), 然后在实例化 class(`constructClassInstance`)过程中去消费 context
+和函数型组件步骤相似, 先调用`prepareToReadContext`(参见上文), 然后在实例化 class(`constructClassInstance`)过程中去消费 context
 
 ```js
 // 省略和context无关的代码
@@ -694,7 +664,7 @@ function constructClassInstance(
 }
 ```
 
-可以看到调用`readContext`(上文已经分析)对当前`Component.contextType`进行消费.
+可以看到调用`readContext`(参见上文)对当前`Component.contextType`进行消费.
 
 然后`mountClassInstance`过程中, 会将最新的 context 值挂载到 class 实例上. 所以在 class 组件内部, 都可以通过`this.context`获取
 
@@ -830,7 +800,7 @@ export function popProvider(providerFiber: Fiber): void {
 
 此时内存中`valueStack`出栈和`StackCursor`都已经恢复到了初始状态, 与 fiber 树构建之前是完全一样的.
 
-### context 更新
+### 更新 context
 
 更新过程同样也要构建新的 fiber 树, 从上至下的构建过程和初次渲染的逻辑是一模一样的.
 
@@ -846,11 +816,11 @@ changeUser = () => {
 
 那么`UserContext.Provider`组件中的`value`发生变化, 初次渲染是`{ name: "initial user"}`, 本次是`{ name: "user 11"}`.
 
-后续在`beginWork`和`completWork`阶段对 context 的处理逻辑, 入栈和出栈等逻辑都和初次渲染一样.
+之后在`beginWork`和`completWork`阶段对 context 的处理逻辑, 入栈和出栈等逻辑都和初次渲染一样.
 
-需要说明的是如何确定需要更新的节点, 比方说`UserContext.Provider`组件中的`value`发生变化, 只应该重新渲染其消费节点(`UserContext.Consumer`), 其余节点理论上无需更新.
+需要说明的是如何确定需要更新的节点, 比方说`ThemeContext.Provider`组件中的`value`发生变化, 那么所有消费该`context`(`ThemeContext.Consumer`和`ThemeButton`)的节点必须更新.如何找出这些必须更新的节点, 是`conext`更新阶段一个的重点.
 
-### 寻找消费节点
+### 生成新的 fiber 树
 
 在上文中`updateContextProvider`函数有一部分逻辑, 是专门在更新阶段中使用的
 
@@ -899,17 +869,7 @@ function updateContextProvider(
 }
 ```
 
-`propagateContextChange`函数内容较长, 但是逻辑意图比较清晰, 目的是为了标记所有消费该 context 的节点, 为构建新 fiber 树做准备.
-
-从函数名称来看`propagate`是冒泡的意思(很熟悉事件冒泡里面`event.stopPropagation()`)
-
-核心逻辑分为 2 步:
-
-1. 从当前节点`workInProgress`开始, 向下遍历寻找所有消费此`context`的节点
-2. 找到对应的消费节点(consumer)之后, 设置消费节点的`expirationTime`
-3. 从消费节点开始向上遍历直到此`context`的`Provider`节点, 给路径上所有的父节点设置`childExpirationTime`
-
-这样就可以找到整个`fiber`树中依赖该`context`的所有节点, 并设置正确的`expirationTime`和`childExpirationTime`
+[`propagateContextChange`](https://github.com/facebook/react/blob/v16.13.1/packages/react-reconciler/src/ReactFiberNewContext.js#L190)源码看似较长, 但是逻辑意图比较清晰, 目的是为了所有消费该`context`的节点能得到更新机会.
 
 ```js
 // 省略了部分在concurrent模式下才会执行的逻辑, 保留主杆部分
@@ -987,3 +947,14 @@ export function propagateContextChange(
   }
 }
 ```
+
+执行过程如图:
+
+![](../../snapshots/context/fiber-tree-propagatecontextchange.png)
+
+1. 进入`propagateContextChange`后, 向下遍历寻找所有消费此`context`的节点.
+2. 第 1 步会找到 2 个节点,`ThemeContext.Consumer`和`ThemeButton`
+3. 设置 `ThemeContext.Consumer`和`ThemeButton`的`expirationTime`
+4. 以`ThemeContext.Consumer`和`ThemeButton`为起点, 向上遍历, 给路径上的父节点设置`childExpirationTime`
+
+设置`childExpirationTime`的目的在[fiber 构建(更新节点)](./update.md#fiber更新的策略)一文中有详细说明, 最终保证了所有消费该`context`的节点能得到更新机会.

@@ -215,7 +215,7 @@ export function scheduleUpdateOnFiber(
 
 `scheduleUpdateOnFiber`在[fiber 构建(新增节点)](./render.md#执行调度)和[调度机制](./scheduler.md#)都有介绍, 是发起调度的入口函数.
 
-其中`markUpdateTimeFromFiberToRoot`在更新阶段十分重要.
+其中`markUpdateTimeFromFiberToRoot`在更新阶段十分重要, 对于 fiber 节点在更新阶段是否能顺利更新起到决定作用([后文详细说明](#fiber更新的策略)).
 
 ### markUpdateTimeFromFiberToRoot
 
@@ -314,11 +314,15 @@ function renderRootSync(root, expirationTime) {
 
 ### workLoopSync
 
-`workLoopSync`和[fiber 构建(新增节点)](./render.md#workLoopSync)中的`workLoopSync`逻辑是一致的, 核心流程:
+`workLoopSync`和[fiber 构建(新增节点)](./render.md#workLoopSync)中的`workLoopSync`逻辑是一致的, 核心流程为`performUnitOfWork`和`completeUnitOfWork`, 目的就是为了得到全新的 fiber 树.
 
 ![](../../snapshots/function-call-workloopsync.png)
 
-进入具体的`fiber`更新流程:
+与[fiber 构建(新增节点)](./render.md#workLoopSync)不同的是, 在更新阶段`current`指针不会为`null`, `workInProgress`和`current`指向的两个 fiber 会有一些[属性变动](https://github.com/facebook/react/blob/v16.13.1/packages/react-reconciler/src/ReactFiber.js#L404).
+
+### fiber 构建
+
+在新增节点一文中已经分析, 每一个 fiber 的构建都会[经过`beginWork`和`completeWork`两个阶段](./render.md#workLoopSync).
 
 ### beginWork
 
@@ -330,6 +334,7 @@ function beginWork(
   renderExpirationTime: ExpirationTime,
 ): Fiber | null {
   const updateExpirationTime = workInProgress.expirationTime;
+  // 下面几个判断条件体现了fiber更新的策略
   if (current !== null) {
     const oldProps = current.memoizedProps;
     const newProps = workInProgress.pendingProps;
@@ -382,13 +387,25 @@ function beginWork(
       return updateHostComponent(current, workInProgress, renderExpirationTime);
     case HostText:
       return updateHostText(current, workInProgress);
+    case '...': // 省略后面的case
   }
 }
 ```
 
-核心流程:
+### fiber 更新的策略
 
 ![](../../snapshots/update/beginwork.png)
+
+下面着重分析`current!==null`的情况, 说明这个 fiber 节点不是新增节点.
+
+| 策略                                                   | 说明                                          | 结果                                                                                                                     |
+| ------------------------------------------------------ | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `oldProps !== newProps`                                | fiber 属性有变动的时候                        | `didReceiveUpdate = true` <br/> 调用`updateXXX`函数返回子节点                                                            |
+| `hasLegacyContextChanged()`                            | 过时的 context 有变动                         | `didReceiveUpdate = true` <br/> 调用`updateXXX`函数返回子节点                                                            |
+| `workInProgress.expirationTime < renderExpirationTime` | 该节无需更新 <br/> `didReceiveUpdate = false` | 调用`bailoutOnAlreadyFinishedWork`函数返回子节点                                                                         |
+| 其余情况                                               | 等待后续阶段处理                              | 暂时设置`didReceiveUpdate = false` <br/> 调用`updateXXX`函数阶段可能还会对`didReceiveUpdate`进行改变, 最后同样返回子节点 |
+
+其中需要特别注意`workInProgress.expirationTime < renderExpirationTime`这个判断分支, 当进入此逻辑时, 最后会调用`bailoutOnAlreadyFinishedWork`.这个过程中, 决定子节点是否能得到更新机会的属性就是`fiber.childExpirationTime`. 这也是前文介绍[`markUpdateTimeFromFiberToRoot`](#markUpdateTimeFromFiberToRoot)函数十分重要的原因.
 
 1. 为了向下更新`workInProgress.child`节点(直到`workInProgress.child=null`), 最终形成完整的`fiber`树
 2. 如果`current`指针存在(为更新节点), current 指向当前页面已经呈现出来的 dom 对象对应的 fiber
