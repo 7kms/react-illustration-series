@@ -8,9 +8,13 @@ order: 1
 
 # React 应用初始化
 
-## 启动模式
+## 3 种启动模式
 
-在当前版本`react@16.13.1`源码中, 有 3 种启动方式. 先引出官网上对于[这 3 种模式的介绍](https://zh-hans.reactjs.org/docs/concurrent-mode-adoption.html#why-so-many-modes)
+在当前稳定版`react@16.13.1`源码中, 有 3 种启动方式. 先引出官网上对于[这 3 种模式的介绍](https://zh-hans.reactjs.org/docs/concurrent-mode-adoption.html#why-so-many-modes), 其基本说明如下:
+
+- `legacy` 模式: `ReactDOM.render(<App />, rootNode)`. 这是当前 React app 使用的方式. 这个模式可能不支持[这些新功能(concurrent 支持的所有功能)](https://zh-hans.reactjs.org/docs/concurrent-mode-patterns.html#the-three-steps).
+- `blocking` 模式: `ReactDOM.createBlockingRoot(rootNode).render(<App />)`. 目前正在实验中, 它仅提供了 `concurrent` 模式的小部分功能, 作为迁移到 `concurrent` 模式的第一个步骤.
+- `concurrent` 模式: `ReactDOM.createRoot(rootNode).render(<App />)`. 目前在实验中, 未来稳定之后，打算作为 React 的默认开发模式. 这个模式开启了所有的新功能.
 
 1. `Legacy`模式
 
@@ -41,7 +45,7 @@ const reactDOMBolckingRoot = ReactDOM.createBlockingRoot(
 reactDOMBolckingRoot.render(<App />); // 不支持回调
 ```
 
-注意: 虽然`16.13.1`的源码中有[`creatRoot`和`createBlockingRoot`方法](https://github.com/facebook/react/blob/v16.13.1/packages/react-dom/src/client/ReactDOM.js#L209), 但是实际在`npm i react-dom`安装`16.13.1`版本后, 却没有这两个方法(可能是构建过程中去掉了).如果要想体验非`legacy`模式, 需要[显示安装实验版本](https://zh-hans.reactjs.org/docs/concurrent-mode-adoption.html#installation).
+注意: 虽然`16.13.1`的源码中有[`createRoot`和`createBlockingRoot`方法](https://github.com/facebook/react/blob/v16.13.1/packages/react-dom/src/client/ReactDOM.js#L209), 但是实际在`npm i react-dom`安装`16.13.1`版本后, 却没有这两个方法(可能是构建过程中去掉了).如果要想体验非`legacy`模式, 需要[显示安装实验版本](https://zh-hans.reactjs.org/docs/concurrent-mode-adoption.html#installation).
 
 ## 初始化流程
 
@@ -51,17 +55,19 @@ reactDOMBolckingRoot.render(<App />); // 不支持回调
 
 ### 创建全局对象
 
-react 在初始化时, 创建了 3 个全局对象
+无论`Legacy, Concurrent或Blocking`模式, react 在初始化时, 都会创建 3 个全局对象
 
 1. `ReactDOM(Blocking)Root`对象
 2. `fiberRoot`对象
 3. `HostRootFiber` 对象
 
-这 3 个对象是 react 体系得以运行的基本保障, 一经创建大多数场景是不会再销毁(卸载整个应用).
+这 3 个对象是 react 体系得以运行的基本保障, 一经创建大多数场景不会再销毁(除非卸载整个应用`root.unmount()`).
 
-涉及到`react-dom`和`react-reconciler`两个包,核心核心流程图如下(后面逐步解释).
+这一步骤涉及到`react-dom`和`react-reconciler`两个包, 核心流程图如下(其中红色标注了 3 个对象的创建时机).
 
 ![](../../snapshots/bootstrap/function-call.png)
+
+下面逐一解释这 3 个对象的创建过程.
 
 #### 创建 ReactDOM(Blocking)Root 对象
 
@@ -323,7 +329,7 @@ export function createHostRootFiber(tag: RootTag): Fiber {
 
 在 fiber 数据结构中, 有一个`updateQueue`属性. 在创建`HostRootFiber`的同时`HostRootFiber.updateQueue`也已经初始化完成了.
 
-`updateQueue`队列的作用是用来记录该 fiber 对象的更新操作, 在 fiber 节点更新中会用到.
+`updateQueue`队列的作用是用来记录该 fiber 对象的更新操作, 在 fiber 节点更新中会用到(此处先了解, 在组件更新章节中详细解释).
 
 ![](../../snapshots/bootstrap/update-queue.png)
 
