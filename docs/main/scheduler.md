@@ -5,6 +5,8 @@ order: 2
 
 # React 调度机制
 
+通过前文[工作循环](./workloop.md)的介绍, react 主干逻辑中有两大工作循环, 本节将介绍`任务调度循环`.
+
 ## 发起调度
 
 1. 首次 render
@@ -13,7 +15,7 @@ order: 2
 2. 后续更新
    在[fiber 构建(更新节点)](./update.md#发起更新)有过讨论. 无论以哪种方式发起更新, 都会进入`scheduleUpdateOnFiber`函数.
 
-> 无论是首次 render 还是后续更新, 都会调用`scheduleUpdateOnFiber`发起调度
+> 无论是首次 render 还是后续更新, 都会调用`scheduleUpdateOnFiber`(在`react-reconciler`包)发起调度
 
 ### scheduleUpdateOnFiber
 
@@ -71,7 +73,7 @@ export function scheduleUpdateOnFiber(
 }
 ```
 
-`legacy`下[fiber 构建(新增节点)](./render.md#执行调度)会进入`performSyncWorkOnRoot`分支. 其它情况无论进入哪一个分支, 都会进入`ensureRootIsScheduled`.
+`legacy`下[fiber 构建(新增节点)](./render.md#执行调度)会进入`performSyncWorkOnRoot`分支. 其它情况无论进入哪一个分支, 都会调用`ensureRootIsScheduled`.
 
 ## 调度确保
 

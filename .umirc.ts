@@ -17,7 +17,7 @@ export default defineConfig({
       },
       {
         title: '基本概念',
-        children: ['main/pkg-structure.md', 'main/workspace.md'],
+        children: ['main/pkg-structure.md', 'main/workloop.md'],
       },
       {
         title: '运行核心',
