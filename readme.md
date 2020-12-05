@@ -31,37 +31,38 @@ react@17 到目前(2020 年 11 月 30 日)共有 2 个版本的发布([`react@17
 
 ### 基本概念
 
-1. 宏观结构
-2. 重要数据结构
+- [宏观结构](./docs/main/macro-structure.md)
+- [重要对象](./docs/main/data-structure.md)
+- 重要数据结构
 
 ### 运行核心
 
-3. [启动模式](./docs/main/bootstrap.md)
-4. reconciler 工作空间
-5. reconciler 执行上下文
-6. 工作循环
-7. scheduler 调度机制
-8. fiber 树构建(创建)
-9. fiber 树构建(更新)
-10. 提交渲染
-11. 任务分片
+- [启动模式](./docs/main/bootstrap.md)
+- reconciler 工作空间
+- reconciler 执行上下文
+- 工作循环
+- scheduler 调度机制
+- fiber 树构建(创建)
+- fiber 树构建(更新)
+- 提交渲染
+- 任务分片
 
 ### 数据管理
 
-12. class 组件与 function 组件
-13. hook 原理
-14. context 机制
+- class 组件与 function 组件
+- hook 原理
+- context 机制
 
 ### 交互
 
-15. 事件机制
+- 事件机制
 
 ### 重点算法
 
-16. 递归
-17. 堆排序
-18. 深度优先遍历
-19. diff 算法
+- 递归
+- 堆排序
+- 深度优先遍历
+- diff 算法
 
 ## 历史版本
 
