@@ -1,8 +1,8 @@
 ---
-title: 宏观结构
+title: 宏观包结构
 ---
 
-# React 应用的宏观结构(web 开发)
+# React 应用的宏观包结构(web 开发)
 
 > React 工程目录的 packages 下包含 35 个包([`@17.0.1`版本](https://github.com/facebook/react/tree/v17.0.1)).
 > 其中与`web`开发相关的核心包共有 4 个, 本系列近 20 篇文章, 以这 4 个包为线索进行展开, 深入理解 react 内部作用原理.
@@ -44,9 +44,10 @@ title: 宏观结构
    `react`包, 平时在开发过程中使用的绝大部分`api`均来自此包(不是所有). 在`react`启动之后, 正常可以改变渲染的基本操作有 3 个.
 
    - class 组件中使用`setState()`
-   - function 组件里面使用 hook,并发起`dispatchEffect`去改变 hook 对象
-   - 改变 context(其实也需要`setState`或`dispatchEffect`的辅助才能改变)
-     以上`setState`和`dispatchEffect`都由`react`包提供. 所有要想 react 工作, 基本上是调用`react`包的 api 去与其他包进行交互.
+   - function 组件里面使用 hook,并发起`dispatchAction`去改变 hook 对象
+   - 改变 context(其实也需要`setState`或`dispatchAction`的辅助才能改变)
+
+   以上`setState`和`dispatchAction`都由`react`包直接暴露. 所有要想 react 工作, 基本上是调用`react`包的 api 去与其他包进行交互.
 
 2. 内核层(core)
    整个内核部分, 由 3 部分构成:
@@ -63,11 +64,11 @@ title: 宏观结构
    3. 渲染器
       `react-dom`包, 有 2 个核心职责:
       1. 引导`react`应用的启动(通过`ReactDOM.render`).
-      2. 实现[`HostConfig`协议](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/README.md#practical-examples), 能够将`react-reconciler`包构造出来的`fiber`树表现出来, 生成 dom 节点(浏览器中), 生成字符串(ssr).
+      2. 实现[`HostConfig`协议](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/README.md#practical-examples)([源码在 ReactDOMHostConfig.js 中](https://github.com/facebook/react/blob/v17.0.1/packages/react-dom/src/client/ReactDOMHostConfig.js)), 能够将`react-reconciler`包构造出来的`fiber`树表现出来, 生成 dom 节点(浏览器中), 生成字符串(ssr).
 
 注意:
 
-- 此处分层的标准并非官方说法, 因为官方没有`架构分层`这样的表述.
+- 此处分层的标准并非官方说法, 因为官方没有`架构分层`这样的术语.
 - 本文只是为了深入理解 react, 在官方标准之外, 对其进行分解和剖析, 方便我们理解 react 架构.
 
 ### 内核关系

@@ -31,9 +31,9 @@ react@17 到目前(2020 年 11 月 30 日)共有 2 个版本的发布([`react@17
 
 ### 基本概念
 
-- [宏观结构](./docs/main/macro-structure.md)
-- [重要对象](./docs/main/data-structure.md)
-- 重要数据结构
+- [宏观包结构](./docs/main/macro-structure.md)
+- [重要对象](./docs/main/object-structure.md)
+- [重要数据结构](./docs/main/data-structure.md)
 
 ### 运行核心
 
@@ -49,9 +49,9 @@ react@17 到目前(2020 年 11 月 30 日)共有 2 个版本的发布([`react@17
 
 ### 数据管理
 
-- class 组件与 function 组件
+- 状态组件(class 与 function)
 - hook 原理
-- context 机制
+- context 原理
 
 ### 交互
 
