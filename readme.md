@@ -59,10 +59,10 @@ react@17 到目前(2020 年 11 月 30 日)共有 2 个版本的发布([`react@17
 
 ### 重点算法
 
-- 递归
-- 堆排序
-- 深度优先遍历
-- diff 算法
+- [位运算](./docs/algorithm/bitfiled.md)
+- [堆排序](./docs/algorithm/heapsort.md)
+- [深度优先遍历](./docs/algorithm/dfs.md)
+- [diff 算法](./docs/algorithm/diff.md)
 
 ## 历史版本
 
