@@ -32,8 +32,7 @@ react@17 到目前(2020 年 11 月 30 日)共有 2 个版本的发布([`react@17
 ### 基本概念
 
 - [宏观包结构](./docs/main/macro-structure.md)
-- [重要对象](./docs/main/object-structure.md)
-- [重要数据结构](./docs/main/data-structure.md)
+- [高频对象](./docs/main/object-structure.md)
 
 ### 运行核心
 
@@ -41,6 +40,7 @@ react@17 到目前(2020 年 11 月 30 日)共有 2 个版本的发布([`react@17
 - reconciler 工作空间
 - reconciler 执行上下文
 - 工作循环
+- 优先级管理 lanes
 - scheduler 调度机制
 - fiber 树构建(创建)
 - fiber 树构建(更新)
@@ -57,11 +57,13 @@ react@17 到目前(2020 年 11 月 30 日)共有 2 个版本的发布([`react@17
 
 - 事件机制
 
-### 重点算法
+### 高频算法
 
 - [位运算](./docs/algorithm/bitfiled.md)
 - [堆排序](./docs/algorithm/heapsort.md)
 - [深度优先遍历](./docs/algorithm/dfs.md)
+- 链表拼接
+- 栈存储
 - [diff 算法](./docs/algorithm/diff.md)
 
 ## 历史版本

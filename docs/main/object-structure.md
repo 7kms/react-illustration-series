@@ -213,7 +213,7 @@ export type Fiber = {|
   subtreeFlags: Flags, //替代16.x版本中的 firstEffect, nextEffect. 当设置了 enableNewReconciler=true才会启用
   deletions: Array<Fiber> | null, // 存储将要被删除的子节点. 当设置了 enableNewReconciler=true才会启用
 
-  nextEffect: Fiber | null, // 单项链表, 指向下一个有副作用的fiber节点
+  nextEffect: Fiber | null, // 单向链表, 指向下一个有副作用的fiber节点
   firstEffect: Fiber | null, // 指向副作用链表中的第一个fiber节点
   lastEffect: Fiber | null, // 指向副作用链表中的最后一个fiber节点
 
@@ -252,7 +252,7 @@ export type Fiber = {|
 - `fiber.flags`: 标志位, 副作用标记(在 16.x 版本中叫做`effectTag`, 相应[pr](https://github.com/facebook/react/pull/19755)), 在[`ReactFiberFlags.js`](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberFlags.js#L10-L41)中定义了所有的标志位. `reconciler`阶段会将所有拥有`flags`标记的节点添加到副作用链表中, 等待 commit 阶段的处理.
 - `fiber.subtreeFlags`: 替代 16.x 版本中的 firstEffect, nextEffect. 默认未开启, 当设置了[enableNewReconciler=true](https://github.com/facebook/react/blob/v17.0.1/packages/shared/ReactFeatureFlags.js#L93) 才会启用, 本系列只跟踪稳定版的代码, 未来版本不会深入解读, [使用示例见源码](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberCompleteWork.new.js#L690-L714).
 - `fiber.deletions`: 存储将要被删除的子节点. 默认未开启, 当设置了[enableNewReconciler=true](https://github.com/facebook/react/blob/v17.0.1/packages/shared/ReactFeatureFlags.js#L93) 才会启用, 本系列只跟踪稳定版的代码, 未来版本不会深入解读, [使用示例见源码](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactChildFiber.new.js#L275-L287).
-- `fiber.nextEffect`: 单项链表, 指向下一个有副作用的 fiber 节点.
+- `fiber.nextEffect`: 单向链表, 指向下一个有副作用的 fiber 节点.
 - `fiber.firstEffect`: 指向副作用链表中的第一个 fiber 节点.
 - `fiber.lastEffect`: 指向副作用链表中的最后一个 fiber 节点.
 - `fiber.lanes`: 本 fiber 节点所属的优先级, 创建 fiber 的时候设置.
@@ -264,8 +264,8 @@ export type Fiber = {|
 最后绘制一颗 fiber 树与上文中的`ReactElement`树对照起来:
 
 <div>
-<img src="../../snapshots/data-structure/reactelement-tree.png" alt="reactelement" width="300">
-<img src="../../snapshots/data-structure/fiber-tree.png" alt="fiber"  width="300">
+<img src="../../snapshots/data-structure/reactelement-tree.png" alt="reactelement" width="500">
+<img src="../../snapshots/data-structure/fiber-tree.png" alt="fiber"  width="500">
 </div>
 注意:
 
@@ -275,7 +275,7 @@ export type Fiber = {|
 
 ### Update 与 UpdateQueue 对象
 
-在`fiber`对象中有一个属性`fiber.updateQueue`(`updateQueue`对象以`queue`命名, 后文都称之为队列, 实现上是一个链表).
+在`fiber`对象中有一个属性`fiber.updateQueue`, 是一个链式队列(即使用链表实现的队列存储结构), 后文会根据场景表述成链表或队列.
 
 首先观察`Update`对象的数据结构([对照源码](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactUpdateQueue.old.js#L106-L129)):
 
@@ -393,7 +393,7 @@ type UpdateQueue<S, A> = {|
 
 ## scheduler 包
 
-如[宏观结构](./macro-structure.md)中所介绍, `scheduler`包负责调度, 在内部维护一个任务队列([taskQueue](https://github.com/facebook/react/blob/v17.0.1/packages/scheduler/src/Scheduler.js#L63)). 这个队列是一个小顶堆数组, 其中存储了 task 对象.
+如[宏观结构](./macro-structure.md)中所介绍, `scheduler`包负责调度, 在内部维护一个任务队列([taskQueue](https://github.com/facebook/react/blob/v17.0.1/packages/scheduler/src/Scheduler.js#L63)). 这个队列是一个最小堆数组(详见[React 算法之堆排序](../algorithm/heapsort.md)), 其中存储了 task 对象.
 
 ### Task 对象
 
