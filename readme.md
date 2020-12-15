@@ -37,15 +37,16 @@ react@17 到目前(2020 年 11 月 30 日)共有 2 个版本的发布([`react@17
 ### 运行核心
 
 - [启动模式](./docs/main/bootstrap.md)
+- 工作循环
 - reconciler 工作空间
 - reconciler 执行上下文
-- 工作循环
 - 优先级管理 lanes
 - scheduler 调度机制
-- fiber 树构建(创建)
-- fiber 树构建(更新)
-- 提交渲染
+- fiber 树构造(创建)
+- fiber 树构造(更新)
+- fiber 树渲染
 - 任务分片
+- 异常处理
 
 ### 数据管理
 
@@ -62,8 +63,8 @@ react@17 到目前(2020 年 11 月 30 日)共有 2 个版本的发布([`react@17
 - [位运算](./docs/algorithm/bitfiled.md)
 - [堆排序](./docs/algorithm/heapsort.md)
 - [深度优先遍历](./docs/algorithm/dfs.md)
-- 链表合并
-- 栈存储
+- [链表操作](./docs/algorithm/linkedlist.md)
+- [栈存储](./docs/algorithm/stack.md)
 - [diff 算法](./docs/algorithm/diff.md)
 
 ## 历史版本

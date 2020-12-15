@@ -19,8 +19,6 @@ DFS 的主流实现方式有 2 种.
 1. 递归(简单粗暴)
 2. 利用`栈`存储遍历路径
 
-3. 使用递归调用
-
 ```js
 function Node() {
   this.name = '';
@@ -130,7 +128,7 @@ function completeUnitOfWork(unitOfWork: Fiber): void {
 }
 ```
 
-以上源码本质上是采用递归的方式进行 dfs, 假设有以下  组件结构:
+以上源码本质上是采用递归的方式进行 dfs, 假设有以下组件结构:
 
 ```jsx
 class App extends React.Component {

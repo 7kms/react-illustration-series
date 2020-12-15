@@ -1,8 +1,8 @@
 ---
-title: 重要对象
+title: 高频对象
 ---
 
-# React 应用中的重要对象
+# React 应用中的高频对象
 
 在 React 应用中, 有很多特定的对象或数据结构. 了解这些内部的设计, 可以更容易理解 react 运行原理. 本章主要列举从 react 启动到渲染过程出现频率较高, 影响范围较大的对象, 它们贯穿整个 react 运行时.
 
@@ -245,7 +245,7 @@ export type Fiber = {|
 - `fiber.ref`: 指向在`ReactElement`组件上设置的 ref(`string`类型的`ref`除外, 这种类型的`ref`已经不推荐使用, `reconciler`阶段会`将string`类型的`ref`转换成一个`function`类型).
 - `fiber.pendingProps`: 输入属性, 从父节点传入的 props,也就是即将使用的 props
 - `fiber.memoizedProps`: 输出属性, 最终渲染所使用的 props.
-- `fiber.updateQueue`: 存储`state`更新的队列, 当前节点的`state`改动之后, 都会创建一个`update`对象添加到这个队列中.
+- `fiber.updateQueue`: 存储`state`更新的队列, `class`类型节点的`state`改动之后, 都会创建一个`update`对象添加到这个队列中.
 - `fiber.memoizedState`:内存状态或输出状态, 最终渲染所使用的 state.
 - `fiber.dependencies`: 该 fiber 节点所依赖的(contexts, events)等, 在`context`机制章节详细说明.
 - `fiber.mode`: 二进制位 Bitfield,继承至父节点,影响本 fiber 节点及其子树中所有节点. 与 react 应用的运行模式有关(有 ConcurrentMode, BlockingMode, NoMode 等选项).
