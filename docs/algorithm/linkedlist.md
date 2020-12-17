@@ -62,7 +62,7 @@ function LinkedList() {
     let current = this.head;
     while (current) {
       const tempNode = current.next;
-      // 重新设置next指针
+      // 重新设置next指针, 使其指向前一个节点
       current.next = prev;
       // 游标后移
       prev = current;
@@ -78,7 +78,7 @@ function LinkedList() {
 
 在 react 中, 链表的使用非常高频, 主要集中在`fiber`和`hook`对象的属性中.
 
-### fiber
+### fiber 对象
 
 在[react 高频对象](../main/object-structure.md#Fiber)中对`fiber`对象的属性做了说明, 这里列举出 4 个链表属性.
 
@@ -88,27 +88,144 @@ function LinkedList() {
    - `fiber.firstEffect`: 指向副作用链表中的第一个 fiber 节点.
    - `fiber.lastEffect`: 指向副作用链表中的最后一个 fiber 节点.
 
-   ![](../../snapshots/linkedlist/effects.png)
+   <img src="../../snapshots/linkedlist/effects.png" width="600">
 
    注意: 此处只表示出链表的结构示意图, 在`fiber 树构造`章节中会对上图的结构进行详细解读.
 
 2. `updateQueue`链表(链式队列): 存储将要更新的状态, 构成该队列的元素是`update`对象
 
-   - `fiber.updateQueue`: 存储`state`更新的队列(链式队列), `class`类型节点的`state`改动之后, 都会创建一个`update`对象添加到这个队列中.
+   - `fiber.updateQueue.pending`: 存储`state`更新的队列(链式队列), `class`类型节点的`state`改动之后, 都会创建一个`update`对象添加到这个队列中. 由于此队列是一个环形队列, 为了方便添加新元素和快速拿到队首元素, 所以`pending`指针指向了队列中最后一个元素.
 
    ![](../../snapshots/data-structure/updatequeue.png)
 
    注意: 此处只表示出链表的结构示意图, 在`状态组件(class 与 function)`章节中会对上图的结构进行详细解读.
 
-### hook
+### Hook 对象
 
 在[react 高频对象](../main/object-structure.md#Hook)中对`Hook`对象的属性做了说明, `Hook`对象具备`.next`属性, 所以`Hook`对象本身就是链表中的一个节点.
 
-此外`hook.queue`又构成了一个链表, 将`hook`链表与`hook.queue`链表同时表示在图中, 得到的结构如下:
+此外`hook.queue.pending`也构成了一个链表, 将`hook`链表与`hook.queue.pending`链表同时表示在图中, 得到的结构如下:
 
 ![](../../snapshots/data-structure/fiber-hook.png)
 
 注意: 此处只表示出链表的结构示意图, 在`hook 原理`章节中会对上图的结构进行详细解读.
+
+### 链表合并
+
+在`react`中, 发起更新之后, 会通过`链表合并`的方式来决定组件的最终状态. 这个过程发生在`reconciler`阶段, 分别涉及到`class`组件和`function`组件.
+
+具体场景:
+
+1. `class`组件中
+
+   - 在`class`组件中调用`setState`, 会创建`update`对象并添加到`fiber.updateQueue.shared.pending`链式队列([源码地址](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactUpdateQueue.old.js#L198-L230)).
+
+     ```js
+     export function enqueueUpdate<State>(fiber: Fiber, update: Update<State>) {
+       const updateQueue = fiber.updateQueue;
+       // ...
+       const sharedQueue: SharedQueue<State> = (updateQueue: any).shared;
+       // 将新的update对象添加到fiber.updateQueue.shared.pending链表上
+       const pending = sharedQueue.pending;
+       if (pending === null) {
+         update.next = update;
+       } else {
+         update.next = pending.next;
+         pending.next = update;
+       }
+       sharedQueue.pending = update;
+     }
+     ```
+
+     由于`fiber.updateQueue.shared.pending`是一个环形链表, 所以`fiber.updateQueue.shared.pending`永远指向末尾元素(保证快速添加新元素)
+
+     ![](../../snapshots/linkedlist/fiber.updatequeue.png)
+
+   - 在`fiber`树构建阶段(或`reconciler`阶段), 会把`fiber.updateQueue.shared.pending`合并到`fiber.updateQueue.firstBaseUpdate`队列上([源码地址](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactUpdateQueue.old.js#L394-L572)).
+
+     ```js
+     export function processUpdateQueue<State>(
+       workInProgress: Fiber,
+       props: any,
+       instance: any,
+       renderLanes: Lanes,
+     ): void {
+       // This is always non-null on a ClassComponent or HostRoot
+       const queue: UpdateQueue<State> = (workInProgress.updateQueue: any);
+       let firstBaseUpdate = queue.firstBaseUpdate;
+       let lastBaseUpdate = queue.lastBaseUpdate;
+       // Check if there are pending updates. If so, transfer them to the base queue.
+       let pendingQueue = queue.shared.pending;
+       if (pendingQueue !== null) {
+         queue.shared.pending = null;
+         // The pending queue is circular. Disconnect the pointer between first
+         // and last so that it's non-circular.
+         const lastPendingUpdate = pendingQueue;
+         const firstPendingUpdate = lastPendingUpdate.next;
+         lastPendingUpdate.next = null;
+         // Append pending updates to base queue
+         if (lastBaseUpdate === null) {
+           firstBaseUpdate = firstPendingUpdate;
+         } else {
+           lastBaseUpdate.next = firstPendingUpdate;
+         }
+         lastBaseUpdate = lastPendingUpdate;
+       }
+     }
+     ```
+
+     ![](../../snapshots/linkedlist/fiber.updatequeue-merge-before.png)
+
+     ![](../../snapshots/linkedlist/fiber.updatequeue-merge-after.png)
+
+2) `function`组件中
+   - 在`function`组件中使用`Hook`对象(`useState`), 并改变`Hook`对象的值(内部会调用`dispatchAction`), 此时也会创建`update(hook)`对象并添加到`hook.queue.pending`链式队列(源码地址](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberHooks.old.js#L1645-L1682)).
+   - `hook.queue.pending`也是一个环形链表(与`fiber.updateQueue.shared.pending`的结构很相似)
+     ```js
+     function dispatchAction<S, A>(
+       fiber: Fiber,
+       queue: UpdateQueue<S, A>,
+       action: A,
+     ) {
+       // ... 省略部分代码
+       const pending = queue.pending;
+       if (pending === null) {
+         // This is the first update. Create a circular list.
+         update.next = update;
+       } else {
+         update.next = pending.next;
+         pending.next = update;
+       }
+       queue.pending = update;
+     }
+     ```
+   - 在`fiber`树构建阶段(或`reconciler`阶段), 会将`hook.queue.pending`合并到`hook.baseQueue`队列上([源码地址](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberHooks.old.js#L672-L694)).
+
+
+        ```js
+          function updateReducer<S, I, A>(
+            reducer: (S, A) => S,
+            initialArg: I,
+            init?: I => S,
+          ): [S, Dispatch<A>] {
+            // ... 省略部分代码
+            if (pendingQueue !== null) {
+              if (baseQueue !== null) {
+                // 在这里进行队列的合并
+                const baseFirst = baseQueue.next;
+                const pendingFirst = pendingQueue.next;
+                baseQueue.next = pendingFirst;
+                pendingQueue.next = baseFirst;
+              }
+              current.baseQueue = baseQueue = pendingQueue;
+              queue.pending = null;
+            }
+          }
+        ```
+
+        ![](../../snapshots/linkedlist/hook.baseQueue-merge-before.png)
+
+        ![](../../snapshots/linkedlist/hook.baseQueue-merge-after.png)
 
 ## 总结
 
