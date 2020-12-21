@@ -112,7 +112,7 @@ function LinkedList() {
 
 ### 链表合并
 
-在`react`中, 发起更新之后, 会通过`链表合并`的方式来决定组件的最终状态. 这个过程发生在`reconciler`阶段, 分别涉及到`class`组件和`function`组件.
+在`react`中, 发起更新之后, 会通过`链表合并`的方式把等待(`pending`状态)更新的队列(`updateQueue`)合并到基础队列(`class`组件:`fiber.updateQueue.firstBaseUpdate`;`function`组件: `hook.baseQueue`), 最后通过遍历`baseQueue`筛选出优先级足够的`update`对象, 组合成最终的组件状态(`state`). 这个过程发生在`reconciler`阶段, 分别涉及到`class`组件和`function`组件.
 
 具体场景:
 
@@ -178,8 +178,8 @@ function LinkedList() {
 
      ![](../../snapshots/linkedlist/fiber.updatequeue-merge-after.png)
 
-2) `function`组件中
-   - 在`function`组件中使用`Hook`对象(`useState`), 并改变`Hook`对象的值(内部会调用`dispatchAction`), 此时也会创建`update(hook)`对象并添加到`hook.queue.pending`链式队列(源码地址](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberHooks.old.js#L1645-L1682)).
+2. `function`组件中
+   - 在`function`组件中使用`Hook`对象(`useState`), 并改变`Hook`对象的值(内部会调用`dispatchAction`), 此时也会创建`update(hook)`对象并添加到`hook.queue.pending`链式队列([源码地址](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberHooks.old.js#L1645-L1682)).
    - `hook.queue.pending`也是一个环形链表(与`fiber.updateQueue.shared.pending`的结构很相似)
      ```js
      function dispatchAction<S, A>(

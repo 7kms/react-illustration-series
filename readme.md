@@ -64,7 +64,7 @@ react@17 到目前(2020 年 11 月 30 日)共有 2 个版本的发布([`react@17
 - [堆排序](./docs/algorithm/heapsort.md)
 - [深度优先遍历](./docs/algorithm/dfs.md)
 - [链表操作](./docs/algorithm/linkedlist.md)
-- [栈存储](./docs/algorithm/stack.md)
+- [栈操作](./docs/algorithm/stack.md)
 - [diff 算法](./docs/algorithm/diff.md)
 
 ## 历史版本
