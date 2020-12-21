@@ -32,14 +32,13 @@ react@17 到目前(2020 年 11 月 30 日)共有 2 个版本的发布([`react@17
 ### 基本概念
 
 - [宏观包结构](./docs/main/macro-structure.md)
+- [两大工作循环](./docs/main/workloop.md)
 - [高频对象](./docs/main/object-structure.md)
 
 ### 运行核心
 
 - [启动模式](./docs/main/bootstrap.md)
-- 工作循环
 - reconciler 工作空间
-- reconciler 执行上下文
 - 优先级管理 lanes
 - scheduler 调度机制
 - fiber 树构造(创建)
@@ -50,8 +49,10 @@ react@17 到目前(2020 年 11 月 30 日)共有 2 个版本的发布([`react@17
 
 ### 数据管理
 
-- 状态组件(class 与 function)
-- hook 原理
+- 状态组件(`class`)
+- 状态组件(`function`)
+- hook 原理(`useState`)
+- hook 原理(`useEffect`)
 - context 原理
 
 ### 交互
