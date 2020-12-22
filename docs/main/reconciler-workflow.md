@@ -8,7 +8,7 @@ title: reconciler 运作流程
 
 通过前文[宏观包结构](./macro-structure.md)和[两大工作循环](./workloop.md)中的介绍, 对`react-reconciler`包有一定了解.
 
-此处先归纳一下`react-reconciler`包的主要作用, 将主要功能分为 4 个板块:
+此处先归纳一下`react-reconciler`包的主要作用, 将主要功能分为 4 个方面:
 
 1. 输入: 暴露`api`函数(如: `scheduleUpdataOnFiber`), 供给其他包(如`react`包)调用.
 2. 注册调度任务: 与调度中心(`Scheduler`包)交互, 注册调度任务`task`, 等待调度.

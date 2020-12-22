@@ -38,7 +38,7 @@ react@17 到目前(2020 年 11 月 30 日)共有 2 个版本的发布([`react@17
 ### 运行核心
 
 - [reconciler 运作流程](./docs/main/reconciler-workflow.md)
-- [启动模式](./docs/main/bootstrap.md)
+- [启动过程](./docs/main/bootstrap.md)
 - 优先级管理 lanes
 - scheduler 调度机制
 - fiber 树构造(首次创建)
