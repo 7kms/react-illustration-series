@@ -21,7 +21,7 @@ title: 位运算
 | 位运算            | 用法     | 描述                                                                        |
 | ----------------- | -------- | --------------------------------------------------------------------------- |
 | 按位与(`&`)       | `a & b`  | 对于每一个比特位,两个操作数都为 1 时, 结果为 1, 否则为 0                    |
-| 按位或(`|`)       | `a | b`  | 对于每一个比特位,两个操作数都为 0 时, 结果为 0, 否则为 1                    |
+| 按位或(`\|`)      | `a \| b` | 对于每一个比特位,两个操作数都为 0 时, 结果为 0, 否则为 1                    |
 | 按位异或(`^`)     | `a ^ b`  | 对于每一个比特位,两个操作数相同时, 结果为 1, 否则为 0                       |
 | 按位非(`~`)       | `~ a`    | 反转操作数的比特位, 即 0 变成 1, 1 变成 0                                   |
 | 左移(`<<`)        | `a << b` | 将 a 的二进制形式向左移 b (< 32) 比特位, 右边用 0 填充                      |
@@ -121,7 +121,7 @@ console.log(A === B); // true
 
 ### 优先级管理 lanes
 
-lanes 是`17.x`版本中开始引入的重要概念, 代替了`16.x`版本中的`expirationTime`, 作为`fiber`对象的一个属性(位于`react-reconciler`包), 主要控制 fiber 树在构造过程中的优先级(这里只介绍位运算的应用, 对于 lanes 的深入分析在`优先级管理 lanes`章节深入解读).
+lanes 是`17.x`版本中开始引入的重要概念, 代替了`16.x`版本中的`expirationTime`, 作为`fiber`对象的一个属性(位于`react-reconciler`包), 主要控制 fiber 树在构造过程中的优先级(这里只介绍位运算的应用, 对于 lanes 的深入分析在[`优先级管理`](../main/priority.md)章节深入解读).
 
 变量定义:
 
@@ -139,6 +139,11 @@ export const NoLane: Lane = /*                          */ 0b0000000000000000000
 export const SyncLane: Lane = /*                        */ 0b0000000000000000000000000000001;
 export const SyncBatchedLane: Lane = /*                 */ 0b0000000000000000000000000000010;
 
+export const InputDiscreteHydrationLane: Lane = /*      */ 0b0000000000000000000000000000100;
+const InputDiscreteLanes: Lanes = /*                    */ 0b0000000000000000000000000011000;
+
+const InputContinuousHydrationLane: Lane = /*           */ 0b0000000000000000000000000100000;
+const InputContinuousLanes: Lanes = /*                  */ 0b0000000000000000000000011000000;
 // ...
 // ...
 
@@ -168,14 +173,49 @@ function getHighestPriorityLanes(lanes: Lanes | Lane): Lanes {
     return_highestLanePriority = SyncBatchedLanePriority;
     return SyncBatchedLane;
   }
-
   // ...
   // ... 省略其他代码
   return lanes;
 }
 ```
 
-在方法定义中, 也是通过位掩码的特性来判断二进制变量之间的关系.
+在方法定义中, 也是通过位掩码的特性来判断二进制形式变量之间的关系. 除了常规的位掩码操作外, 特别说明其中 2 个技巧性强的函数:
+
+1. `getHighestPriorityLane`: 分离出最高优先级
+
+```js
+function getHighestPriorityLane(lanes: Lanes) {
+  return lanes & -lanes;
+}
+```
+
+通过`lanes & -lanes`可以分离出所有比特位中最右边的 1, 具体来讲:
+
+- 假设 `lanes(InputDiscreteLanes) = 0b0000000000000000000000000011000`
+- 那么 `-lanes = 0b1111111111111111111111111101000`
+- 所以 `lanes & -lanes = 0b0000000000000000000000000001000`
+- 相比最初的 InputDiscreteLanes, 分离出来了`最右边的1`
+- 通过 lanes 的定义, 数字越小的优先级越高, 所以此方法可以获取`最高优先级的lane`
+-
+
+2. `getLowestPriorityLane`: 分离出最低优先级
+
+```js
+function getLowestPriorityLane(lanes: Lanes): Lane {
+  // This finds the most significant non-zero bit.
+  const index = 31 - clz32(lanes);
+  return index < 0 ? NoLanes : 1 << index;
+}
+```
+
+`clz32(lanes)`返回一个数字在转换成 32 无符号整形数字的二进制形式后, 前导 0 的个数([MDN 上的解释](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Math/clz32))
+
+- 假设 `lanes(InputDiscreteLanes) = 0b0000000000000000000000000011000`
+- 那么 `clz32(lanes) = 27`, 由于 InputDiscreteLanes 在源码中被书写成了 31 位, 虽然在字面上前导 0 是 26 个, 但是转成标准 32 位后是 27 个
+- `index = 31 - clz32(lanes) = 4`
+- 最后 `1 << index = 0b0000000000000000000000000010000`
+- 相比最初的 InputDiscreteLanes, 分离出来了`最左边的1`
+- 通过 lanes 的定义, 数字越小的优先级越高, 所以此方法可以获取最低优先级的 lane
 
 ### 执行上下文 ExecutionContext
 
