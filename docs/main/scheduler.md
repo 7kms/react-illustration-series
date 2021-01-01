@@ -14,7 +14,7 @@ title: 调度原理
 
 了解上述基础知识之后, 再谈`scheduler`原理, 其实就是在大的框架下去添加实现细节, 相对较为容易. 下面就正式进入主题.
 
-## 内部实现
+## 调度实现
 
 `调度中心`最核心的代码, 在[SchedulerHostConfig.default.js](https://github.com/facebook/react/blob/v17.0.1/packages/scheduler/src/forks/SchedulerHostConfig.default.js)中.
 
@@ -83,10 +83,7 @@ cancelHostCallback = function() {
 
 此处需要注意: `MessageChannel`在浏览器事件循环中属于`宏任务`, 所以调度中心永远是`异步执行`回调函数.
 
-> 1. `Legacy`模式下在请求回调(执行`requestHostCallback`)之后, 会很快取消回调(执行`cancelHostCallback`). 最终不会通过`调度中心`来执行回调, 所以表现为同步执行.
-> 2. `Blocking`和`Concurrent`模式都会通过`调度中心`来执行回调, 所以表现为异步执行.
-
-2. 时间切片(`time slicing`)相关: 执行时间分割, 让出主线程(把控制权归还浏览器, 浏览器可以处理用户输入, UI 绘制等紧急任务).
+1. 时间切片(`time slicing`)相关: 执行时间分割, 让出主线程(把控制权归还浏览器, 浏览器可以处理用户输入, UI 绘制等紧急任务).
 
 - [getCurrentTime](https://github.com/facebook/react/blob/v17.0.1/packages/scheduler/src/forks/SchedulerHostConfig.default.js#L22-L24): 获取当前时间
 - [shouldYieldToHost](https://github.com/facebook/react/blob/v17.0.1/packages/scheduler/src/forks/SchedulerHostConfig.default.js#L129-L152): 是否让出主线程
@@ -354,11 +351,62 @@ function workLoop(hasTimeRemaining, initialTime) {
 }
 ```
 
-`workLoop`就是一个大循环, 虽然代码也不多, 但是非常精髓, 在此处实现了`时间切片(time slicing)`和`fiber树的可中断渲染`.
+`workLoop`就是一个大循环, 虽然代码也不多, 但是非常精髓, 在此处实现了`时间切片(time slicing)`和`fiber树的可中断渲染`. 这 2 大特性的实现, 都集中于这个`while`循环.
 
-1. 时间切片(time slicing)
-   时间切片的实现, 其实就是`while`循环的退出条件, 只要循环退出, 立马让出主线程.
+每一次`while`循环的退出就是一个时间切片, 深入分析`while`循环的退出条件:
 
-## 调度入口
+1. 队列被完全清空: 这种情况就是很正常的情况, 一气呵成, 没有遇到任何阻碍.
+2. 执行超时: 在消费`taskQueue`时, 在执行`task.callback`之前, 都会检测是否超时, 所以超时检测是以`task`为单位.
+   - 如果某个`task.callback`执行时间太长(如: `fiber树`很大, 或逻辑很重)也会造成超时
+   - 所以在执行`task.callback`过程中, 也需要一种机制检测是否超时, 如果超时了就立刻暂停`task.callback`的执行.
 
-### 限频节流
+`时间切片`原理: 消费任务队列的过程中, 可以消费`1~n`个 task, 甚至清空整个 queue. 但是在每一次具体执行`task.callback`之前都要进行超时检测, 如果超时可以立即退出循环并等待下一次调用.
+
+`可中断渲染`原理: 在时间切片的基础之上, 如果单个`task.callback`执行时间就很长(假设 200ms). 就需要`task.callback`自己能够检测是否超时, 所以在 fiber 树构造过程中, 每构造完成一个单元, 都会检测一次超时([源码链接](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L1637-L1639)), 如遇超时就退出`fiber树构造循环`, 并返回一个新的回调函数(就是此处的`continuationCallback`)并等待下一次回调继续未完成的`fiber树构造`.
+
+## 节流防抖
+
+通过上文的分析, 已经覆盖了`scheduler`包中的核心原理. 现在再次回到`react-reconciler`包中, 在调度过程中的关键路径中, 我们还需要理解一些细节.
+
+在[reconciler 运作流程](./reconciler-workflow.md)中总结的 4 个阶段中, `注册调度任务`属于第 2 个阶段, 核心逻辑位于`ensureRootIsScheduled`函数中.
+现在我们已经理解了`调度原理`, 再次分析`ensureRootIsScheduled`([源码地址](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L674-L736)):
+
+```js
+// ... 省略部分无关代码
+function ensureRootIsScheduled(root: FiberRoot, currentTime: number) {
+  // 前半部分: 判断是否需要注册新的调度
+  const existingCallbackNode = root.callbackNode;
+  const nextLanes = getNextLanes(
+    root,
+    root === workInProgressRoot ? workInProgressRootRenderLanes : NoLanes,
+  );
+  const newCallbackPriority = returnNextLanesPriority();
+  if (nextLanes === NoLanes) {
+    return;
+  }
+  // 节流防抖
+  if (existingCallbackNode !== null) {
+    const existingCallbackPriority = root.callbackPriority;
+    if (existingCallbackPriority === newCallbackPriority) {
+      return;
+    }
+    cancelCallback(existingCallbackNode);
+  }
+  // 后半部分: 注册调度任务 省略代码...
+
+  // 更新标记
+  root.callbackPriority = newCallbackPriority;
+  root.callbackNode = newCallbackNode;
+}
+```
+
+正常情况下, `ensureRootIsScheduled`函数会与`scheduler`包通信, 最后注册一个`task`并等待回调.
+
+1. 在`task`注册完成之后, 会设置`fiberRoot`对象上的属性(`fiberRoot`是 react 运行时中的重要全局对象, 可参考[React 应用的启动过程](./bootstrap.md#创建全局对象)), 代表现在已经处于调度进行中
+2. 再次进入`ensureRootIsScheduled`时(比如连续 2 次`setState`, 第 2 次`setState`同样会触发`reconciler运作流程`中的调度阶段), 如果发现处于调度中, 则需要一些节流和防抖措施, 进而保证调度性能.
+   1. 节流(判断条件: `existingCallbackPriority === newCallbackPriority`, 新旧更新的优先级相同, 如连续多次执行`setState`), 则无需注册新`task`, 直接退出调用.
+   2. 防抖(判断条件: `existingCallbackPriority !== newCallbackPriority`, 新旧更新的优先级不同), 则取消旧`task`, 重新注册新`task`.
+
+## 总结
+
+本节主要分析了`scheduler`包中`调度原理`, 也就是`React两大工作循环`中的`任务调度循环`. 并介绍了`时间切片`和`可中断渲染`等特性在`任务调度循环`中的实现. `scheduler`包是`React`运行时的心脏, 为了提升调度性能, 注册`task`之前, 在`react-reconciler`包中做了节流和防抖等措施.
