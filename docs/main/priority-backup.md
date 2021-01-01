@@ -301,7 +301,11 @@ function ensureRootIsScheduled(root: FiberRoot, currentTime: number) {
 1.  前半部分: 确定是否需要注册新的调度(如果无需新的调度, 会退出函数)
 2.  后半部分: 注册调度任务
 
-在前半部分中: - 函数`getNextLanes`返回了需要调度的车道(`nextLanes`) - 函数`returnNextLanesPriority`返回了需要调度的车道(`nextLanes`)中, 所占用的最高的优先级. - 函数`lanePriorityToSchedulerPriority`把`lanePriority`转换成`SchedulerPriority`
+在前半部分中:
+
+- 函数`getNextLanes`返回了需要调度的车道(`nextLanes`)
+- 函数`returnNextLanesPriority`返回了需要调度的车道(`nextLanes`)中, 所占用的最高的优先级.
+- 函数`lanePriorityToSchedulerPriority`把`lanePriority`转换成`SchedulerPriority`
 
 后半部分调用`scheduleSyncCallback 或 scheduleCallback`:
 
