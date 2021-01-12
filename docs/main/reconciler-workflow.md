@@ -11,9 +11,9 @@ title: reconciler 运作流程
 此处先归纳一下`react-reconciler`包的主要作用, 将主要功能分为 4 个方面:
 
 1. 输入: 暴露`api`函数(如: `scheduleUpdataOnFiber`), 供给其他包(如`react`包)调用.
-2. 注册调度任务: 与调度中心(`Scheduler`包)交互, 注册调度任务`task`, 等待调度.
-3. 执行任务回调: 实现`fiber构造`.
-4. 输出: 与渲染器(`react-dom`)交互, 将`fiber`树输出为`DOM`节点.
+2. 注册调度任务: 与调度中心(`scheduler`包)交互, 注册调度任务`task`, 等待任务回调.
+3. 执行任务回调: 在内存中构造出`fiber树`, 同时与与渲染器(`react-dom`)交互, 在内存中创建出与`fiber`对应的`DOM`节点.
+4. 输出: 与渲染器(`react-dom`)交互, 渲染`DOM`节点.
 
 以上功能源码都集中在[ReactFiberWorkLoop.js](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberWorkLoop.old.js)中. 现在将这些功能(从输入到输出)串联起来, 用下图表示:
 

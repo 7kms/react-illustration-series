@@ -311,7 +311,7 @@ export function createHostRootFiber(tag: RootTag): Fiber {
 
 #### fiber.updateQueue
 
-注意在在创建`HostRootFiber`的过程中调用了`initializeUpdateQueue`, 之后创建了`HostRootFiber.updateQueue`.
+注意在在创建`HostRootFiber`的过程中调用了`initializeUpdateQueue`, 之后创建了`HostRootFiber.updateQueue`.`updateQueue`队列记录了该 fiber 节点的更新状态, 是实现组件更新的关键属性(在`状态组件class`章节中会详细解读).
 
 ```js
 export function initializeUpdateQueue<State>(fiber: Fiber): void {
@@ -328,11 +328,7 @@ export function initializeUpdateQueue<State>(fiber: Fiber): void {
 }
 ```
 
-在[高频对象](./object-structure.md)章节中, 介绍过`fiber.updateQueue`属性, 以及[`updateQueue`对象](./object-structure.md#Update 与 UpdateQueue 对象)的数据结构.
-
-`updateQueue`队列记录了该 fiber 节点的更新状态, 是实现组件更新的关键属性(在`状态组件class`章节中会详细解读).
-
-由于`HostRootFiber`节点是`fiber`树的根节点, 此处的`updateQueue`比较特殊, 先记录下此刻`updateQueue`的属性值如下:
+在[高频对象](./object-structure.md)章节中, 介绍过`fiber.updateQueue`属性, 以及[`updateQueue`对象](./object-structure.md#Update)的数据结构.由于`HostRootFiber`节点是`fiber`树的根节点, 此处的`updateQueue`比较特殊, 先记录下此刻`updateQueue`的属性值如下(在`fiber树构造`章节中再进行介绍):
 
 ![](../../snapshots/bootstrap/update-queue.png)
 
@@ -340,7 +336,7 @@ export function initializeUpdateQueue<State>(fiber: Fiber): void {
 
 将此刻内存中各个对象的引用情况表示出来:
 
-1. lagacy
+1. legacy
 
 ![](../../snapshots/bootstrap/process-legacy.png)
 
@@ -360,7 +356,7 @@ export function initializeUpdateQueue<State>(fiber: Fiber): void {
 
 ## 调用更新入口
 
-1. lagacy
+1. legacy
    回到`legacyRenderSubtreeIntoContainer`函数中有:
 
 ```js
@@ -385,7 +381,7 @@ ReactDOMRoot.prototype.render = ReactDOMBlockingRoot.prototype.render = function
 
 相同点:
 
-1. 3 种模式在调用更新时都会执行`updateContainer`,由`updateContainer`来引导更新
+1. 3 种模式在调用更新时都会执行`updateContainer`. `updateContainer`函数串联了`react-dom`与`react-reconciler`, 之后的逻辑进入了`react-reconciler`包.
 
 不同点:
 
@@ -402,8 +398,8 @@ export function updateContainer(
   parentComponent: ?React$Component<any, any>,
   callback: ?Function,
 ): Lane {
-  // 1. 计算本次更新的优先级
   const current = container.current;
+  // 1. 获取当前时间戳, 计算本次更新的优先级
   const eventTime = requestEventTime();
   const lane = requestUpdateLane(current);
 
@@ -422,7 +418,7 @@ export function updateContainer(
 }
 ```
 
-`updateContainer`函数位于`react-reconciler`包中, 是暴露出的`api`函数供`react-dom`包调用. 此处暂时不深入分析`updateContainer`函数的具体功能, 需要关注其最后调用了`scheduleUpdateOnFiber`.
+`updateContainer`函数位于`react-reconciler`包中, 它串联了`react-dom`与`react-reconciler`. 此处暂时不深入分析`updateContainer`函数的具体功能, 需要关注其最后调用了`scheduleUpdateOnFiber`.
 
 在前文[`reconciler 运作流程`](./reconciler-workflow.md)中, 重点分析过`scheduleUpdateOnFiber`是`输入`阶段的入口函数.
 
@@ -436,12 +432,10 @@ react 中最广为人知的可中断渲染(render 可以中断, 部分生命周�
 
 对于`可中断渲染`的宣传最早来自[2017 年 Lin Clark 的演讲](http://conf2017.reactjs.org/speakers/lin). 演讲中阐述了未来 react 会应用 fiber 架构, `reconciliation可中断`等(13:15 秒). 在[`v16.1.0`](https://github.com/facebook/react/blob/master/CHANGELOG.md#1610-november-9-2017)中应用了 fiber.
 
-在最新稳定版[`v17.0.1`](https://github.com/facebook/react/blob/master/CHANGELOG.md#1701-october-22-2020)中, `可中断渲染`虽然实现, 但是并没有暴露出 api. 只能[安装实验版本](https://zh-hans.reactjs.org/docs/concurrent-mode-adoption.html#installation)才能体验该特性.
+在最新稳定版[`v17.0.1`](https://github.com/facebook/react/blob/master/CHANGELOG.md#1701-october-22-2020)中, `可中断渲染`虽然实现, 但是并没有在稳定版暴露出 api. 只能[安装实验版本](https://zh-hans.reactjs.org/docs/concurrent-mode-adoption.html#installation)才能体验该特性.
 
-但是很多开发人员都认为自己使用的`react`就是可中断渲染(都认为不安全的生命周期会执行多次, 误区很大), 大概率也是受到了各类宣传文章的影响.
-
-前端大环境还是比较浮躁的, 在当下, 应该静下心来脚踏实地的学习.
+但是不少开发人员认为稳定版本的`react`已经是可中断渲染(其实是有误区的), 大概率也是受到了各类宣传文章的影响. 前端大环境还是比较浮躁的, 在当下, 更需要静下心来学习.
 
 ## 总结
 
-本章节介绍了`react`应用的 3 种启动方式. 分析了启动后创建了 3 个关键对象, 并绘制了对象在内存中的引用关系. 启动过程最后调用了`react-reconciler`包中的`schedulerUpdateOnFiber`函数, 与`reconciler`运作流程中的`输入`阶段相衔接.
+本章节介绍了`react`应用的 3 种启动方式. 分析了启动后创建了 3 个关键对象, 并绘制了对象在内存中的引用关系. 启动过程最后调用`updateContainer`进入`react-reconciler`包,进而调用`schedulerUpdateOnFiber`函数, 与`reconciler运作流程`中的`输入`阶段相衔接.

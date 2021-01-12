@@ -83,7 +83,7 @@ cancelHostCallback = function() {
 
 此处需要注意: `MessageChannel`在浏览器事件循环中属于`宏任务`, 所以调度中心永远是`异步执行`回调函数.
 
-1. 时间切片(`time slicing`)相关: 执行时间分割, 让出主线程(把控制权归还浏览器, 浏览器可以处理用户输入, UI 绘制等紧急任务).
+2. 时间切片(`time slicing`)相关: 执行时间分割, 让出主线程(把控制权归还浏览器, 浏览器可以处理用户输入, UI 绘制等紧急任务).
 
 - [getCurrentTime](https://github.com/facebook/react/blob/v17.0.1/packages/scheduler/src/forks/SchedulerHostConfig.default.js#L22-L24): 获取当前时间
 - [shouldYieldToHost](https://github.com/facebook/react/blob/v17.0.1/packages/scheduler/src/forks/SchedulerHostConfig.default.js#L129-L152): 是否让出主线程
@@ -404,7 +404,7 @@ function ensureRootIsScheduled(root: FiberRoot, currentTime: number) {
 
 1. 在`task`注册完成之后, 会设置`fiberRoot`对象上的属性(`fiberRoot`是 react 运行时中的重要全局对象, 可参考[React 应用的启动过程](./bootstrap.md#创建全局对象)), 代表现在已经处于调度进行中
 2. 再次进入`ensureRootIsScheduled`时(比如连续 2 次`setState`, 第 2 次`setState`同样会触发`reconciler运作流程`中的调度阶段), 如果发现处于调度中, 则需要一些节流和防抖措施, 进而保证调度性能.
-   1. 节流(判断条件: `existingCallbackPriority === newCallbackPriority`, 新旧更新的优先级相同, 如连续多次执行`setState`), 则无需注册新`task`, 直接退出调用.
+   1. 节流(判断条件: `existingCallbackPriority === newCallbackPriority`, 新旧更新的优先级相同, 如连续多次执行`setState`), 则无需注册新`task`(继续沿用上一个优先级相同的`task`), 直接退出调用.
    2. 防抖(判断条件: `existingCallbackPriority !== newCallbackPriority`, 新旧更新的优先级不同), 则取消旧`task`, 重新注册新`task`.
 
 ## 总结

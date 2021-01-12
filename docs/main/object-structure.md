@@ -185,7 +185,7 @@ class App_Content extends react_default.a.Component {
 先看数据结构, 其 type 类型的定义在[`ReactInternalTypes.js`](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactInternalTypes.js#L47-L174)中:
 
 ```js
-// 一个Fiber是工作在一个即将渲染或者已经渲染的组件之上, 一个组件可能对应多个fiber(current和WorkInProgress)
+// 一个Fiber对象代表一个即将渲染或者已经渲染的组件(ReactElement), 一个组件可能对应多个fiber(current和WorkInProgress)
 // 单个属性的解释在后文(在注释中无法添加超链接)
 export type Fiber = {|
   tag: WorkTag,
