@@ -42,7 +42,7 @@ react@17 到目前(2020 年 11 月 30 日)共有 2 个版本的发布([`react@17
 - [优先级管理](./docs/main/priority.md)
 - [scheduler 调度原理](./docs/main/scheduler.md)
 - [fiber 树构造(基础准备)](./docs/main/fibertree-prepare.md)
-- fiber 树构造(初次创建)
+- [fiber 树构造(初次创建)](./docs/main/fibertree-create.md)
 - fiber 树构造(对比更新)
 - fiber 树渲染
 - 异常处理

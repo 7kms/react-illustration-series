@@ -22,7 +22,7 @@ title: fiber 树构造(基础准备)
 
 由于`fiber 树构造`源码量比较大, 本系列根据`React`运行的`内存状态`, 分为 2 种情况来说明:
 
-1. 初次创建: 在`React`应用首次启动时, 界面还没有渲染, 此时并不会进入对比过程, 相当于直接构造一颗全新的树.
+1. 初次创建: 在`React`应用首次启动时, 界面还没有渲染, 此时并不会进入对比过程, 相当于直接构造一棵全新的树.
 2. 对比更新: `React`应用启动后, 界面已经渲染. 如果再次发生更新, 创建`新fiber`之前需要和`旧fiber`进行对比. 最后构造的 fiber 树有可能是全新的, 也可能是部分更新的.
 
 无论是`初次创建`还是`对比更新`, 基础概念都是通用的, 本节将介绍这些基础知识, 为正式进入`fiber树构造`做准备.
@@ -164,7 +164,7 @@ export function scheduleUpdateOnFiber(
 在上文我们梳理了`ReactElement, Fiber, DOM三者的关系`, `fiber树`的构造过程, 就是把`ReactElement`转换成`fiber树`的过程. 在这个过程中, 内存里会同时存在 2 棵`fiber树`:
 
 - 其一: 代表当前界面的`fiber`树(已经被展示出来, 挂载到`fiberRoot.current`上). 如果是初次构造(`初始化渲染`), 页面还没有渲染, 此时界面对应的 fiber 树为空(`fiberRoot.current = null`).
-- 其二: 正在构造的`fiber`树(即将展示出来, 挂载到`HostRootFiber.alternate`上, 其节点称为`workInProgress`). 当构造完成之后, 重新渲染页面, 最后切换`fiberRoot.current = workInProgress`, 使得`fiberRoot.current`从新指向代表当前界面的`fiber`树.
+- 其二: 正在构造的`fiber`树(即将展示出来, 挂载到`HostRootFiber.alternate`上, 正在构造的节点称为`workInProgress`). 当构造完成之后, 重新渲染页面, 最后切换`fiberRoot.current = workInProgress`, 使得`fiberRoot.current`重新指向代表当前界面的`fiber`树.
 
 此处涉及到 2 个全局对象`fiberRoot`和`HostRootFiber`, 在[React 应用的启动过程](./bootstrap.md)中有详细的说明.
 
@@ -529,7 +529,7 @@ function prepareFreshStack(root: FiberRoot, lanes: Lanes) {
   }
   // 重置全局变量
   workInProgressRoot = root;
-  workInProgress = createWorkInProgress(root.current, null);
+  workInProgress = createWorkInProgress(root.current, null); // 给HostRootFiber对象创建一个alternate, 并将其设置成全局 workInProgress
   workInProgressRootRenderLanes = subtreeRenderLanes = workInProgressRootIncludedLanes = lanes;
   workInProgressRootExitStatus = RootIncomplete;
   workInProgressRootFatalError = null;
@@ -538,6 +538,8 @@ function prepareFreshStack(root: FiberRoot, lanes: Lanes) {
   workInProgressRootPingedLanes = NoLanes;
 }
 ```
+
+注意其中的`createWorkInProgress(root.current, null)`, 其参数`root.current`即`HostRootFiber`, 作用是给`HostRootFiber`创建一个`alternate`副本.`workInProgress`指针指向这个副本(即`workInProgress = HostRootFiber.alternate`), 在上文`double buffering`中分析过, `HostRootFiber.alternate`是`正在构造的fiber树`的根节点.
 
 ## 总结
 
