@@ -44,7 +44,7 @@ react@17 到目前(2020 年 11 月 30 日)共有 2 个版本的发布([`react@17
 - [fiber 树构造(基础准备)](./docs/main/fibertree-prepare.md)
 - [fiber 树构造(初次创建)](./docs/main/fibertree-create.md)
 - fiber 树构造(对比更新)
-- fiber 树渲染
+- [fiber 树渲染](./docs/main/fibertree-commit.md)(缺图)
 - 异常处理
 
 ### 数据管理
