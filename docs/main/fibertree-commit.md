@@ -30,9 +30,11 @@ title: fiber 树渲染
 
 1. 初次构造
 
-![](../../snapshots/fibertree-commit/tree1.png)
+![](../../snapshots/fibertree-create/fibertree-beforecommit.png)
 
 2. 对比更新
+
+图暂缺, 只是为了说明无论是初次构造还是对比更新,在 commit 阶段实际处理的只有副作用队列和 dom 对象.
 
 ## commitRoot
 
@@ -120,7 +122,7 @@ function commitRootImpl(root, renderPriorityLevel) {
   if (rootDoesHavePassiveEffects) {
     // 有被动作用(使用useEffect), 保存一些全局变量
   } else {
-    // 分解副作用队列链表, 辅助垃圾回收. Deletion标记的节点会立即回收, 其他标记节点在下一次对比更新时, 如果不能复用才会回收
+    // 分解副作用队列链表, 辅助垃圾回收
     // 如果有被动作用(使用useEffect), 会把分解操作放在flushPassiveEffects函数中
     nextEffect = firstEffect;
     while (nextEffect !== null) {
@@ -145,7 +147,7 @@ function commitRootImpl(root, renderPriorityLevel) {
 }
 ```
 
-`commitRootImpl`函数中, 可以根据是否执行渲染相关函数, 把整个`commitRootImpl`分为 3 段(分别是`渲染前`, `渲染`, `渲染后`)
+`commitRootImpl`函数中, 可以根据是否调用渲染, 把整个`commitRootImpl`分为 3 段(分别是`渲染前`, `渲染`, `渲染后`).
 
 ### 渲染前
 
@@ -153,9 +155,12 @@ function commitRootImpl(root, renderPriorityLevel) {
 
 1. 设置全局状态(如: 更新`fiberRoot`上的属性)
 2. 重置全局变量(如: `workInProgressRoot`, `workInProgress`等)
-3. 再次更新副作用队列
-   - 默认情况下 fiber 节点的副作用队列是不包括自身的
-   - 如果根节点有副作用, 则将根节点添加到副作用队列的末尾
+3. 再次更新副作用队列: 只针对根节点`fiberRoot.finishedWork`
+   - 默认情况下根节点的副作用队列是不包括自身的, 如果根节点有副作用, 则将根节点添加到副作用队列的末尾
+   - 注意只是延长了副作用队列, 但是`fiberRoot.lastEffect`指针并没有改变.
+   比如首次构造时, 根节点拥有`Snapshot`标记:
+
+![](../../snapshots/fibertree-commit/fiber-effectlist.png)
 
 ### 渲染
 
@@ -175,7 +180,18 @@ function commitRootImpl(root, renderPriorityLevel) {
 1. 处理副作用队列. (步骤 1,2,3 都会处理, 只是处理节点的标识`fiber.flags`不同).
 2. 调用渲染器, 输出最终结果. (在步骤 2: `commitMutationEffects`中执行).
 
-所以`commitRootImpl`是处理`fiberRoot.finishedWork`这棵即将被渲染的`fiber`树, 理论上无需关心这棵`fiber`树是如何产生的(可以是`首次构造`产生, 也可以是`对比更新`产生)
+所以`commitRootImpl`是处理`fiberRoot.finishedWork`这棵即将被渲染的`fiber`树, 理论上无需关心这棵`fiber`树是如何产生的(可以是`首次构造`产生, 也可以是`对比更新`产生). 为了清晰简便, 在下文的所有图示都使用`初次创建的fiber树结构`来进行演示.
+
+这 3 个函数处理的对象是`副作用队列`和`DOM对象`.
+
+所以无论`fiber树`结构有多么复杂, 到了`commitRoot`阶段, 实际起作用的只有 2 个节点:
+
+- `副作用队列`所在节点: 根节点, 即`HostRootFiber`节点.
+- `DOM对象`所在节点: 从上至下首个`HostComponent`类型的`fiber`节点, 此节点 `fiber.stateNode`实际上指向最新的 DOM 树.
+
+下图为了清晰, 省略了一些无关引用, 只留下`commitRoot`阶段实际会用到的`fiber`节点:
+
+![](../../snapshots/fibertree-commit/fiber-noredundant.png)
 
 #### commitBeforeMutationEffects
 
@@ -311,7 +327,7 @@ function commitMutationEffects(
       case Placement: {
         // 新增节点
         commitPlacement(nextEffect);
-        nextEffect.flags &= ~Placement;
+        nextEffect.flags &= ~Placement; // 注意Placement标记会被清除
         break;
       }
       case PlacementAndUpdate: {
@@ -349,6 +365,8 @@ function commitMutationEffects(
 最终会调用`appendChild, commitUpdate, removeChild`这些`react-dom`包中的函数. 它们是[`HostConfig`协议](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/README.md#practical-examples)([源码在 ReactDOMHostConfig.js 中](https://github.com/facebook/react/blob/v17.0.1/packages/react-dom/src/client/ReactDOMHostConfig.js))中规定的标准函数, 在渲染器`react-dom`包中进行实现. 这些函数就是直接操作 DOM, 所以执行之后, 界面也会得到更新.
 
 注意: `commitMutationEffects`执行之后, 在`commitRootImpl`函数中切换当前`fiber`树(`root.current = finishedWork`),保证`fiberRoot.current`指向代表当前界面的`fiber树`.
+
+![](../../snapshots/fibertree-commit/fiber-switch.png)
 
 #### commitLayoutEffects
 
@@ -441,6 +459,8 @@ function commitLifeCycles(
    - 由于副作用队列是一个链表, 由于单个`fiber`对象的引用关系, 无法被`gc回收`.
    - 将链表全部拆开, 当`fiber`对象不再使用的时候, 可以被`gc回收`.
 
+![](../../snapshots/fibertree-commit/clear-effectlist.png)
+
 2. 检测更新
    - 在整个渲染过程中, 有可能产生新的`update`(比如在`componentDidMount`函数中, 再次调用`setState()`).
    - 如果是常规(异步)任务, 不用特殊处理, 调用`ensureRootIsScheduled`确保任务已经注册到调度中心即可.
@@ -451,7 +471,7 @@ function commitLifeCycles(
 if (rootDoesHavePassiveEffects) {
   // 有被动作用(使用useEffect), 保存一些全局变量
 } else {
-  // 分解副作用队列链表, 辅助垃圾回收. Deletion标记的节点会立即回收, 其他标记节点在下一次对比更新时, 如果不能复用才会回收
+  // 分解副作用队列链表, 辅助垃圾回收.
   // 如果有被动作用(使用useEffect), 会把分解操作放在flushPassiveEffects函数中
   nextEffect = firstEffect;
   while (nextEffect !== null) {

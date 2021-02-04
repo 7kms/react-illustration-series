@@ -229,8 +229,23 @@ export function createUpdate(eventTime: number, lane: Lane): Update<*> {
    }
    ```
 2. 发起组件更新: 假设在 class 组件中调用`setState`([源码](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberClassComponent.old.js#L193-L288))
-   `js const classComponentUpdater = { isMounted, enqueueSetState(inst, payload, callback) { const fiber = getInstance(inst); const eventTime = requestEventTime(); // 根据当前时间, 创建一个update优先级 const lane = requestUpdateLane(fiber); // lane被用于创建update对象 const update = createUpdate(eventTime, lane); update.payload = payload; enqueueUpdate(fiber, update); scheduleUpdateOnFiber(fiber, lane, eventTime); } }`
-   可以看到, 无论是`应用初始化`或者`发起组件更新`, 创建`update.lane`的逻辑都是一样的, 都是根据当前时间, 创建一个 update 优先级.
+
+```js
+const classComponentUpdater = {
+  isMounted,
+  enqueueSetState(inst, payload, callback) {
+    const fiber = getInstance(inst);
+    const eventTime = requestEventTime(); // 根据当前时间, 创建一个update优先级
+    const lane = requestUpdateLane(fiber); // lane被用于创建update对象
+    const update = createUpdate(eventTime, lane);
+    update.payload = payload;
+    enqueueUpdate(fiber, update);
+    scheduleUpdateOnFiber(fiber, lane, eventTime);
+  },
+};
+```
+
+可以看到, 无论是`应用初始化`或者`发起组件更新`, 创建`update.lane`的逻辑都是一样的, 都是根据当前时间, 创建一个 update 优先级.
 
 [requestUpdateLane](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L392-L493):
 

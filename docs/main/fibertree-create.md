@@ -146,7 +146,15 @@ function performSyncWorkOnRoot(root) {
     // 2. 从root节点开始, 至上而下更新
     exitStatus = renderRootSync(root, lanes);
   }
-  // .. 后面的内容, 暂时不讨论, 省略
+
+  // 将最新的fiber树挂载到root.finishedWork节点上
+  const finishedWork: Fiber = (root.current.alternate: any);
+  root.finishedWork = finishedWork;
+  root.finishedLanes = lanes;
+  // 进入commit阶段
+  commitRoot(root);
+
+  // ...后面的内容本节不讨论
 }
 ```
 
@@ -618,7 +626,7 @@ function completeWork(
 
 ![](../../snapshots/fibertree-create/unitofwork7.1.png)
 
-第 2 次循环:
+第 3 次循环:
 
 1. 执行`completeWork`函数: 创建`fiber(div)`节点对应的`DOM`实例, 并`append`子树节点的`DOM`实例
 2. 上移副作用队列:
@@ -627,7 +635,7 @@ function completeWork(
 
 ![](../../snapshots/fibertree-create/unitofwork7.2.png)
 
-第 3 次循环:
+第 4 次循环:
 
 1. 执行`completeWork`函数: class 类型的节点不做处理
 2. 上移副作用队列:
@@ -638,7 +646,7 @@ function completeWork(
 
 ![](../../snapshots/fibertree-create/unitofwork7.3.png)
 
-第 4 次循环:
+第 5 次循环:
 
 1. 执行`completeWork`函数: 对于`HostRoot`类型的节点, 初次构造时设置[workInProgress.flags |= Snapshot](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberCompleteWork.old.js#L693)
 2. 向上回溯: 由于父节点为空, 无需进入处理副作用队列的逻辑. 最后设置`workInProgress=null`, 并退出`completeUnitOfWork`
@@ -647,6 +655,10 @@ function completeWork(
 
 到此整个`fiber树构造循环`已经执行完毕, 拥有一棵完整的`fiber树`, 并且在`fiber树`的根节点上挂载了副作用队列, 副作用队列的顺序是层级越深子节点越靠前.
 
+最后在进入`commitRoot`前, 会把最新的`fiber树`挂载到`fiberRoot.finishedWork`上. 这时整个 fiber 树的内存结构如下(注意`fiberRoot.finishedWork`和`fiberRoot.current`指针,在`commitRoot`阶段会进行处理):
+
+![](../../snapshots/fibertree-create/fibertree-beforecommit.png)
+
 ## 总结
 
-本节演示了初次创建`fiber树`的全部过程, 跟踪了创建过程中内存引用的变化情况. `fiber树构造循环`负责构造新的`fiber`树, 构造过程中同时标记`fiber.flags`, 最终把所有被标记的`fiber`节点收集到一个副作用队列中, 这个副作用队列被挂载到根节点上(`HostRootFiber.alternate.firstEffect`). 此时的`fiber树`还在内存当中, 等待`commitRoot`阶段进行渲染.
+本节演示了初次创建`fiber树`的全部过程, 跟踪了创建过程中内存引用的变化情况. `fiber树构造循环`负责构造新的`fiber`树, 构造过程中同时标记`fiber.flags`, 最终把所有被标记的`fiber`节点收集到一个副作用队列中, 这个副作用队列被挂载到根节点上(`HostRootFiber.alternate.firstEffect`). 此时的`fiber树`和与之对应的`DOM节点`都还在内存当中, 等待`commitRoot`阶段进行渲染.
