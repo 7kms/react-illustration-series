@@ -158,7 +158,7 @@ function commitRootImpl(root, renderPriorityLevel) {
 3. 再次更新副作用队列: 只针对根节点`fiberRoot.finishedWork`
    - 默认情况下根节点的副作用队列是不包括自身的, 如果根节点有副作用, 则将根节点添加到副作用队列的末尾
    - 注意只是延长了副作用队列, 但是`fiberRoot.lastEffect`指针并没有改变.
-   比如首次构造时, 根节点拥有`Snapshot`标记:
+     比如首次构造时, 根节点拥有`Snapshot`标记:
 
 ![](../../snapshots/fibertree-commit/fiber-effectlist.png)
 
@@ -315,7 +315,7 @@ function commitMutationEffects(
   if (flags & Ref) {
     const current = nextEffect.alternate;
     if (current !== null) {
-      // 先清空ref, 在commitRoot的第三阶段(dom变更后),在重新赋值
+      // 先清空ref, 在commitRoot的第三阶段(dom变更后), 再重新赋值
       commitDetachRef(current);
     }
   }
@@ -495,4 +495,4 @@ flushSyncCallbackQueue();
 
 ## 总结
 
-本节分析了`fiber 树渲染`的处理过程, 从宏观上看`fiber 树渲染`位于`reconciler 运作流程`中的输出阶段, 使得整个`reconciler 运作流程`能够形成一个完整的闭环(从输入到输出). 本节根据源码, 具体从`渲染前, 渲染, 渲染后`三个点分解了`commitRootImpl`函数. 其中最核心的`渲染`逻辑又分为了 3 个阶段, 这 3 个阶段共同处理了副作用队列中被标记的`fiber`节点, 并通过渲染器`react-dom`把最新的 DOM 对象渲染到界面上.
+本节分析了`fiber 树渲染`的处理过程, 从宏观上看`fiber 树渲染`位于`reconciler 运作流程`中的输出阶段, 是整个`reconciler 运作流程`的链路中最后一环(从输入到输出). 本节根据源码, 具体从`渲染前, 渲染, 渲染后`三个方面分解了`commitRootImpl`函数. 其中最核心的`渲染`逻辑又分为了 3 个阶段, 这 3 个阶段共同处理了副作用队列中被标记的`fiber`节点, 并通过渲染器`react-dom`把最新的 DOM 对象渲染到界面上.

@@ -340,7 +340,7 @@ export function scheduleUpdateOnFiber(
 
 这里包含了一个热点问题(`setState到底是同步还是异步`)的标准答案:
 
-- 如果逻辑进入`flushSyncCallbackQueue`(`executionContext === NoContext`), 则会主动取消调度, 并刷新回调, 进入`fiber树`构造过程. `setState`表现出来的就是同步
+- 如果逻辑进入`flushSyncCallbackQueue`(`executionContext === NoContext`), 则会主动取消调度, 并刷新回调, 立即进入`fiber树`构造过程. 当执行`setState`下一行代码时, `fiber树`已经重新渲染了, 故`setState`体现为同步.
 - 正常情况下, 不会取消`schedule调度`. 由于`schedule调度`是通过`MessageChannel`触发(宏任务), 故体现为异步.
 
 #### `渲染`优先级(renderLanes)

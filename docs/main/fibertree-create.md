@@ -127,9 +127,9 @@ export function scheduleUpdateOnFiber(
 
 可以看到, 在`Legacy`模式下且首次渲染时, 有 2 个函数[markUpdateLaneFromFiberToRoot](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L625-L667)和[performSyncWorkOnRoot](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L965-L1045).
 
-其中`markUpdateLaneFromFiberToRoot(fiber, lane)`函数在`fiber树构造(对比更新)`中才会发挥作用, 因为在`初次创建`时并没有形成`fiber树`, 所以核心代码并没有执行, 最后直接返回了`FiberRoot`对象.
+其中`markUpdateLaneFromFiberToRoot(fiber, lane)`函数在`fiber树构造(对比更新)`中才会发挥作用, 因为在`初次创建`时并没有与当前页面所对应的`fiber树`, 所以核心代码并没有执行, 最后直接返回了`FiberRoot`对象.
 
-`performSyncWorkOnRoot`看起来源码很多, 初次创建中真正用到的就 2 个函数:
+`performSyncWorkOnRoot`看起来源码很多, `初次创建`中真正用到的就 2 个函数:
 
 ```js
 function performSyncWorkOnRoot(root) {
@@ -158,7 +158,7 @@ function performSyncWorkOnRoot(root) {
 }
 ```
 
-其中`getNextLanes`返回本次 render 的渲染优先级(详见[fiber 树构造(基础准备)](./fibertree-prepare.md#优先级))
+其中`getNextLanes`返回本次 render 的渲染优先级(详见[fiber 树构造(基础准备)](./fibertree-prepare.md#优先级)中`优先级`相关小节)
 
 [renderRootSync](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L1490-L1553)
 
@@ -180,7 +180,7 @@ function renderRootSync(root: FiberRoot, lanes: Lanes) {
     }
   } while (true);
   executionContext = prevExecutionContext;
-  // 重置全局变量, 表明没有render结束
+  // 重置全局变量, 表明render结束
   workInProgressRoot = null;
   workInProgressRootRenderLanes = NoLanes;
   return workInProgressRootExitStatus;
@@ -654,6 +654,8 @@ function completeWork(
 ![](../../snapshots/fibertree-create/unitofwork7.4.png)
 
 到此整个`fiber树构造循环`已经执行完毕, 拥有一棵完整的`fiber树`, 并且在`fiber树`的根节点上挂载了副作用队列, 副作用队列的顺序是层级越深子节点越靠前.
+
+`renderRootSync`函数退出之前, 会重置`workInProgressRoot = null`, 表明没有正在进行中的`render`.
 
 最后在进入`commitRoot`前, 会把最新的`fiber树`挂载到`fiberRoot.finishedWork`上. 这时整个 fiber 树的内存结构如下(注意`fiberRoot.finishedWork`和`fiberRoot.current`指针,在`commitRoot`阶段会进行处理):
 
