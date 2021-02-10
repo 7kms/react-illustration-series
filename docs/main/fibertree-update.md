@@ -12,37 +12,31 @@ title: fiber 树构造(对比更新)
 
 ```js
 class App extends React.Component {
+  state = {
+    list: ['A', 'B', 'C'],
+  };
+  onChange = () => {
+    this.setState({ list: ['B', 'X', 'Y'] });
+  };
   componentDidMount() {
     console.log(`App Mount`);
   }
   render() {
     return (
-      <div className="app">
+      <>
         <header>
           <h1>title</h1>
           <h2>title2</h2>
         </header>
-        <Content />
-      </div>
+        <button onClick={this.onChange}>change</button>
+        <div className="content">
+          {this.state.list.map(item => (
+            <p key={item}>{item}</p>
+          ))}
+        </div>
+      </>
     );
   }
-}
-
-function Content() {
-  const [list, setList] = useState(['A', 'B', 'C']);
-  const onClick = useCallback(() => {
-    setList(['B', 'X', 'Y']);
-  }, []);
-  return (
-    <>
-      <button onClick={onClick}>change</button>
-      <div className="content">
-        {list.map(item => (
-          <p key={item}>{item}</p>
-        ))}
-      </div>
-    </>
-  );
 }
 export default App;
 ```
@@ -53,7 +47,7 @@ export default App;
 
 ## 更新入口
 
-前文[reconciler 运作流程](./reconciler-workflow.md#输入)中总结的 4 个阶段(从输入到输出), 其中承接输入的函数只有`scheduleUpdateOnFiber`[源码地址](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L517-L619).在`react-reconciler`对外暴露的 api 函数中, 只要涉及到需要改变 fiber 的操作(无论是`首次渲染`或`对比更新`), 最后都会间接调用`scheduleUpdateOnFiber`, `scheduleUpdateOnFiber`函数是输入链路中的`必经之路`.
+前文[reconciler 运作流程](./reconciler-workflow.md#输入)中总结的 4 个阶段(从输入到输出), 其中承接输入的函数只有`scheduleUpdateOnFiber`([源码地址](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L517-L619)).在`react-reconciler`对外暴露的 api 函数中, 只要涉及到需要改变 fiber 的操作(无论是`首次渲染`或`对比更新`), 最后都会间接调用`scheduleUpdateOnFiber`, `scheduleUpdateOnFiber`函数是输入链路中的`必经之路`.
 
 ### 3 种更新方式
 
@@ -266,7 +260,7 @@ function renderRootSync(root: FiberRoot, lanes: Lanes) {
 注意:
 
 - `fiberRoot.current`指向与当前页面对应的`fiber树`, `workInProgress`指针指向正在构造的`fiber树`.
-- 刷新栈帧会调用`createWorkInProgress`, 使得`workInProgress.child = current.child`. 所以在进入`循环构造`之前, `HostRootFiber`与`HostRootFiber.alternate`共用一个`child`(这里是`fiber(<App/>)`)
+- 刷新栈帧会调用`createWorkInProgress()`, 使得`workInProgress.flags和workInProgress.effects`都已经被重置. 且`workInProgress.child = current.child`. 所以在进入`循环构造`之前, `HostRootFiber`与`HostRootFiber.alternate`共用一个`child`(这里是`fiber(<App/>)`).
 
 ### 循环构造
 
@@ -379,7 +373,7 @@ function beginWork(
 
 与`初次创建`不同, 在`对比更新`过程中, 如果是`老节点`, 那么`current !== null`, 需要进行对比, 然后决定是否复用老节点及其子树(即`bailout`逻辑).
 
-1. `!includesSomeLane(renderLanes, updateLanes)`这个判断分支, 包含了`渲染优先级`和`update优先级`的比较, 详情可以回顾[fiber 树构造(基础准备)](./fibertree-prepare.md#优先级)中`优先级`相关解读.
+1. `!includesSomeLane(renderLanes, updateLanes)`这个判断分支, 包含了`渲染优先级`和`update优先级`的比较(详情可以回顾[fiber 树构造(基础准备)](./fibertree-prepare.md#优先级)中`优先级`相关解读), 如果当前节点无需更新, 则会进入`bailout`逻辑.
 2. 最后会调用`bailoutOnAlreadyFinishedWork`(`bail out`英文短语翻译为`解救, 纾困`):
    - 如果同时满足`!includesSomeLane(renderLanes, workInProgress.childLanes)`, 表明该 fiber 节点及其子树都无需更新, 可直接进入回溯阶段(`completeUnitofWork`)
    - 如果不满足`!includesSomeLane(renderLanes, workInProgress.childLanes)`, 意味着子节点需要更新, `clone`并返回子节点.
@@ -426,13 +420,182 @@ function bailoutOnAlreadyFinishedWork(
 
 ### 回溯阶段 completeWork
 
-`completeUnitOfWork(unitOfWork)`([源码地址](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L1670-L1802)), 处理 `beginWork` 阶段已经创建出来的 `fiber` 节点, 核心逻辑:
+`completeUnitOfWork(unitOfWork)函数`([源码地址](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L1670-L1802))在`初次创建`和`对比更新`逻辑一致, 都是处理`beginWork` 阶段已经创建出来的 `fiber` 节点, 最后创建(更新)DOM 对象, 并上移副作用队列.
 
-1.  调用`completeWork`
-    - 给`fiber`节点(tag=HostComponent, HostText)创建 DOM 实例, 设置`fiber.stateNode`局部状态(如`tag=HostComponent, HostText`节点: fiber.stateNode 指向这个 DOM 实例).
-    - 为 DOM 节点设置属性, 绑定事件(这里先说明有这个步骤, 详细的事件处理流程, 在`合成事件原理`中详细说明).
-    - 设置`fiber.flags`标记
-2.  把当前 `fiber` 对象的副作用队列(`firstEffect`和`lastEffect`)添加到父节点的副作用队列之后, 更新父节点的`firstEffect`和`lastEffect`指针.
-3.  识别`beginWork`阶段设置的`fiber.flags`, 判断当前 `fiber` 是否有副作用(增,删,改), 如果有, 需要将当前 `fiber` 加入到父节点的`effects`队列, 等待`commit`阶段处理.
+在这里我们重点关注`completeWork`函数中, `current !== null`的情况:
+
+```js
+// ...省略无关代码
+function completeWork(
+  current: Fiber | null,
+  workInProgress: Fiber,
+  renderLanes: Lanes,
+): Fiber | null {
+  const newProps = workInProgress.pendingProps;
+  switch (workInProgress.tag) {
+    case HostComponent: {
+      // 非文本节点
+      popHostContext(workInProgress);
+      const rootContainerInstance = getRootHostContainer();
+      const type = workInProgress.type;
+      if (current !== null && workInProgress.stateNode != null) {
+        updateHostComponent(
+          current,
+          workInProgress,
+          type,
+          newProps,
+          rootContainerInstance,
+        );
+        if (current.ref !== workInProgress.ref) {
+          markRef(workInProgress);
+        }
+      } else {
+        // ...省略无关代码
+        const instance = createInstance(
+          type,
+          newProps,
+          rootContainerInstance,
+          currentHostContext,
+          workInProgress,
+        );
+        appendAllChildren(instance, workInProgress, false, false);
+        workInProgress.stateNode = instance;
+      }
+      return null;
+    }
+    case HostText: {
+      // 文本节点
+      const newText = newProps;
+      if (current && workInProgress.stateNode != null) {
+        const oldText = current.memoizedProps;
+        updateHostText(current, workInProgress, oldText, newText);
+      } else {
+        // ...省略无关代码
+        workInProgress.stateNode = createTextInstance(
+          newText,
+          rootContainerInstance,
+          currentHostContext,
+          workInProgress,
+        );
+      }
+      return null;
+    }
+  }
+}
+```
+
+可以看到在更新过程中, 如果 DOM 属性有变化, 不会再次新建 DOM 对象, 而是设置`fiber.flags |= Update`, 等待`commit`阶段处理([源码链接](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberCompleteWork.old.js#L197-L248)).
+
+```js
+updateHostComponent = function(
+  current: Fiber,
+  workInProgress: Fiber,
+  type: Type,
+  newProps: Props,
+  rootContainerInstance: Container,
+) {
+  const oldProps = current.memoizedProps;
+  if (oldProps === newProps) {
+    return;
+  }
+  const instance: Instance = workInProgress.stateNode;
+  const currentHostContext = getHostContext();
+  const updatePayload = prepareUpdate(
+    instance,
+    type,
+    oldProps,
+    newProps,
+    rootContainerInstance,
+    currentHostContext,
+  );
+  workInProgress.updateQueue = (updatePayload: any);
+  // 如果有属性变动, 设置fiber.flags |= Update, 等待`commit`阶段的处理
+  if (updatePayload) {
+    markUpdate(workInProgress);
+  }
+};
+updateHostText = function(
+  current: Fiber,
+  workInProgress: Fiber,
+  oldText: string,
+  newText: string,
+) {
+  // 如果有属性变动, 设置fiber.flags |= Update, 等待`commit`阶段的处理
+  if (oldText !== newText) {
+    markUpdate(workInProgress);
+  }
+};
+```
 
 ### 过程图解
+
+针对本节的示例代码, 将整个`fiber`树构造过程表示出来:
+
+构造前:
+
+在上文已经说明, 进入循环构造前会调用`prepareFreshStack`刷新栈帧, 在进入`fiber树构造`循环之前, 保持这这个初始化状态:
+
+`performUnitOfWork`第 1 次调用(只执行`beginWork`):
+
+- 执行前: `workInProgress`指向`HostRootFiber.alternate`对象, 此时`current = workInProgress.alternate`指向当前页面对应的`fiber`树.
+- 执行过程: - 因为`current !== null`且当前节点`fiber.lanes`不在`渲染优先级`范围内, 故进入`bailoutOnAlreadyFinishedWork`逻辑 - 又因为`fiber.childLanes`处于`渲染优先级`范围内, 证明`child`节点需要更新, 克隆`workInProgress.child`节点. - `clone`之后, `新fiber`节点会丢弃`旧fiber`上的标志位(`flags`)和副作用(`effects`), 其他属性会继续保留.
+- 执行后: 返回被`clone`的下级节点`fiber(<App/>)`, 移动`workInProgress`指针指向子节点`fiber(<App/>)`
+
+`performUnitOfWork`第 2 次调用(只执行`beginWork`):
+
+- 执行前: `workInProgress`指针指向`fiber(<App/>)`节点, 且`current = workInProgress.alternate`有效
+- 执行过程: - 当前节点`fiber.lanes`处于`渲染优先级`范围内, 会进入`updateClassComponent()`函数 - 在`updateClassComponent()`函数中, 调用`reconcilerChildren()`生成下级子节点.
+- 执行后: 返回下级节点`fiber(header)`, 移动`workInProgress`指针指向子节点`fiber(header)`
+
+`performUnitOfWork`第 3 次调用(执行`beginWork`和`completeUnitOfWork`):
+
+- `beginWork`执行前: `workInProgress`指针指向`fiber(header)`节点, 且`current = workInProgress.alternate`有效
+- `beginWork`执行过程: - 因为`current !== null`且当前节点`fiber.lanes`不在`渲染优先级`范围内, 故进入`bailoutOnAlreadyFinishedWork`逻辑 - 又因为`fiber.childLanes`不在`渲染优先级`范围内, 证明`child`节点也不需要更新.
+- `beginWork`执行后: 因为完全满足`bailout`逻辑, 返回`null`. 所以进入`completeUnitOfWork(unitOfWork)`函数, 传入的参数`unitOfWork`实际上就是`workInProgress`(此时指向`fiber(header)`节点)
+
+* `completeUnitOfWork`执行前: `workInProgress`指针指向`fiber(header)`节点
+* `completeUnitOfWork`执行过程: 以`fiber(header)`为起点, 向上回溯
+
+第 1 次循环:
+
+1.  执行`completeWork`函数
+    - 因为`fiber(header).stateNode != null`, 所以无需再次创建 DOM 对象. 只需要进一步调用`updateHostComponent()`记录 DOM 属性改动情况
+    - 在`updateHostComponent()`函数中, 又因为`oldProps === newProps`, 所以无需记录改动情况, 直接返回
+2.  上移副作用队列: 由于本节点`fiber(header)`没有副作用(`fiber.flags = 0`), 所以执行之后副作用队列没有实质变化(目前为空).
+3.  向上回溯: 由于还有兄弟节点, 把`workInProgress`指针指向下一个兄弟节点`fiber(button)`, 退出`completeUnitOfWork`.
+
+`performUnitOfWork`第 4 次调用(执行`beginWork`和`completeUnitOfWork`):
+
+- `beginWork`执行过程: 与第 3 次调用中复用`fiber(header)`节点的逻辑一致, 此处的`fiber(button)`节点及其子节点也无需更新
+- `completeUnitOfWork`执行过程: 以`fiber(button)`为起点, 向上回溯
+
+第 1 次循环:
+
+1.  执行`completeWork`函数
+    - 因为`fiber(header).stateNode != null`, 所以无需再次创建 DOM 对象. 只需要进一步调用`updateHostComponent()`记录 DOM 属性改动情况
+    - 在`updateHostComponent()`函数中, 又因为`oldProps === newProps`, 所以无需记录改动情况, 直接返回
+2.  上移副作用队列: 由于本节点`fiber(header)`没有副作用(`fiber.flags = 0`), 所以执行之后副作用队列没有实质变化(目前为空).
+3.  向上回溯: 由于还有兄弟节点, 把`workInProgress`指针指向下一个兄弟节点`fiber(div)`, 退出`completeUnitOfWork`.
+
+`performUnitOfWork`第 5 次调用(执行`beginWork`):
+
+- 执行前: `workInProgress`指针指向`fiber(div)`节点, 且`current = workInProgress.alternate`有效
+- 执行过程: - 当前节点`fiber.lanes`处于`渲染优先级`范围内, 会进入`updateFunction()`函数 - 在`updateFunction()`函数中, 调用`reconcilerChildren()`生成下级子节点. - 需要注意的是, 下级子节点是一个可迭代数组, 会把`fiber.child.sbling`一起构造出来, 同时根据需要设置`fiber.flags`.(具体实现方式请参考[React 算法之调和算法](../algorithm/diff.md))
+- 执行后: 返回下级节点`fiber(p)`, 移动`workInProgress`指针指向子节点`fiber(p)`
+
+`performUnitOfWork`第 6 次调用(执行`beginWork`和`completeUnitOfWork`):
+
+- `beginWork`执行前: `workInProgress`指针指向`fiber(p)`节点, 且`current = workInProgress.alternate`有效
+- `beginWork`执行过程: - 当前节点`fiber.lanes`处于`渲染优先级`范围内, 会进入`updateHostComponent()`函数 - 本示例中`p`的子节点是一个[直接文本节点](https://github.com/facebook/react/blob/8e5adfbd7e605bda9c5e96c10e015b3dc0df688e/packages/react-dom/src/client/ReactDOMHostConfig.js#L350-L361),设置[nextChildren = null](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberBeginWork.old.js#L1147)(源码注释的解释是不用在开辟内存去创建一个文本节点, 同时还能减少向下遍历). - 由于`nextChildren = null`, 经过`reconcilerChildren`阶段处理后, 返回值也是`null`
+- `beginWork`执行后: 由于下级节点为`null`, 所以进入`completeUnitOfWork(unitOfWork)`函数, 传入的参数`unitOfWork`实际上就是`workInProgress`(此时指向`fiber(p)`节点)
+
+* `completeUnitOfWork`执行前: `workInProgress`指针指向`fiber(p)`节点
+* `completeUnitOfWork`执行过程: 以`fiber(p)`为起点, 向上回溯
+
+第 1 次循环:
+
+1.  执行`completeWork`函数
+    - 因为`fiber(p).stateNode != null`, 所以无需再次创建 DOM 对象. 只需要进一步调用`updateHostComponent()`记录 DOM 属性改动情况
+    - 在`updateHostComponent()`函数中, 又因为`oldProps !== newProps`, 所以打上`update`标记
+2.  上移副作用队列: 本节点`fiber(<Content/>)`的`flags`标志位有改动(`completedWork.flags > PerformedWork`), 将本节点添加到父节点(`fiber(div)`)的副作用队列之后(`firstEffect`和`lastEffect`属性分别指向副作用队列的首部和尾部).
+3.  向上回溯: 由于还有兄弟节点, 把`workInProgress`指针指向下一个兄弟节点`fiber(div)`, 退出`completeUnitOfWork`.
