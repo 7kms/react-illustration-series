@@ -34,7 +34,7 @@ title: fiber 树渲染
 
 2. 对比更新
 
-图暂缺, 只是为了说明无论是初次构造还是对比更新,在 commit 阶段实际处理的只有副作用队列和 dom 对象.
+![](../../snapshots/fibertree-update/fibertree-beforecommit.png)
 
 ## commitRoot
 
