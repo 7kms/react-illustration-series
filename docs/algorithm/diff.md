@@ -6,115 +6,205 @@ title: 调和算法
 
 ## 概念
 
-调和函数的作用:
+调和函数([源码](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactChildFiber.old.js#L1274-L1410))的作用:
 
-1. 给新增和删除的`fiber`节点设置`effectTag`(打上副作用标记)
-2. 如果是需要删除的`fiber`, 除了自身打上`effectTag`之外, 还要将其添加到父节点的`effects`链表中(因为该节点会脱离`fiber`树, 不会再进入`completeWork`阶段. 所以在`beginWork`阶段就要将其添加到父节点的`effects`链表中).
+1. 给新增,移动,和删除节点设置`fiber.falgs`(新增, 移动: `Placement`, 删除: `Deletion`)
+2. 如果是需要删除的`fiber`, [除了自身打上`Deletion`之外, 还要将其添加到父节点的`effects`链表中](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactChildFiber.old.js#L275-L294)(正常副作用队列的处理是在`completeWork`函数, 但是该节点(被删除)会脱离`fiber`树, 不会再进入`completeWork`阶段, 所以在`beginWork`阶段提前加入副作用队列).
 
 ## 特性
 
-算法复杂度低, 比较整个树形结构, 可以把时间复杂度缩短到 O(n)
+算法复杂度低, 从上至下比较整个树形结构, 时间复杂度被缩短到 O(n)
 
-## 基本使用
+## 基本原理
+
+1. 比较对象: `fiber`对象与`ReactElement`对象相比较.
+   - 注意: 此处有一个误区, 并不是两棵 fiber 树相比较, 而是`旧fiber`对象与`新ReactElement`对象向比较, 结果生成新的`fiber子节点`.
+   - 可以理解为输入`ReactElement`, 经过`reconcilerChildren()`之后, 输出`fiber`.
+2. 比较方案:
+   - 单节点比较
+   - 可迭代节点比较
 
 ### 单节点比较
 
-1. 调用`reconcileSingleElement`
-   - 比较`oldfiber.key`和`reactElement.key`(单节点通常不显式设置 key, react 内部会设置成 null)
-     - 如 key 相同, 进一步比较`fiber.elementType`与`newChild.type`.
-       - 如 type 相同, 调用`useFiber`, 创建`oldFiber.alternate`,并返回
-       - 如 type 不同, 调用`createFiber`创建新的`fiber`
-     - 如 key 不同, 给`oldFiber`打上`Deletion`标记, 并创建新的`fiber`
-
-### 多节点(数组类型, [Symbol.iterator]=fn,[@@iterator]=fn)
-
-1. 进入第一次循环`newChildren: Array<*>`
-   - 调用`updateSlot`(与`oldChildren`中相同`index`的`fiber`进行比较), 返回该槽位对应的`fiber`
-     - 如 key 相同, 进一步比较`fiber.elementType`与`newChild.type`.
-       - 如 type 相同, 调用`useFiber`进行 clone, 创建出`oldFiber.alternate`,并返回
-       - 如 type 不同, 调用`createFiber`创建新的`fiber`
-     - 如 key 不同, 则返回`null`
-   - 调用`placeChild`
-     - 设置`newFiber.index`
-     - 如`newFiber`是新增节点或者是移动节点,则设置`newFiber.effectTag = Placement`
-2. 如果`oldFiber === null`,则表示`newIdx`之后都为新增节点, 进入第二次循环`newChildren: Array<*>`
-   - 调用`createChild`和`placeChild`.创建新节点并设置`newFiber.effectTag = Placement`
-3. 将所有`oldFiber`以 key 为键,添加到一个`Map`中
-4. 进入第三次循环`newChildren: Array<*>`
-   - 调用`updateFromMap`,从 map 中寻找`key`相同的`fiber`进行创建`newFiber`
-     - 调用`placeChild`
-5. 为`Map`中的旧节点设置删除标记`childToDelete.effectTag = Deletion`
-
-注意:
-
-虽然有三次循环, 但指针都是`newIdx`, 时间复杂度是线性 O(n)
-
-## 代码演示
-
-有如下示例:
-
-```jsx
-import React, { useState } from 'react';
-
-export default () => {
-  const [list, setList] = useState([
-    { key: 'a', value: 'A' },
-    { key: 'a', value: 'B' },
-    { key: 'a', value: 'C' },
-    { key: 'a', value: 'D' },
-  ]);
-  return (
-    <>
-      <div className="wrap">
-        {list.map(item => (
-          <div key={item.key}>{item.value}</div>
-        ))}
-      </div>
-      <button
-        onClick={() => {
-          setList([
-            { key: 'a', value: 'A' },
-            { key: 'e', value: 'E' },
-            { key: 'd', value: 'D' },
-            { key: 'f', value: 'F' },
-            { key: 'c', value: 'C' },
-          ]);
-        }}
-      >
-        change
-      </button>
-    </>
-  );
-};
-```
-
-针对`div.wrap`节点展开讨论, 在点击`change`按钮之后, 更改`list`. `reconcileChildren`执行前后对比如下:
-
-![](../../snapshots/update/before-reconcileChildren.png)
-
-![](../../snapshots/update/after-reconcileChildren.png)
-
-1. 新增节点和移动节点
-   - 新增节点 E,F 都打上了`Placement`标记
-   - C 节点不是新增节点,但是由于位置的移动,也打上了`Placement`标记
-2. 删除节点
-   - B 节点为删除节点,被打上了`Deletion`标记, 并且添加到父节点的副作用队列当中
-
-具体比较过程:
-
-1. 由于子节点是可迭代类型, 会调用`reconcileChildrenArray`.
-
-进入调和函数之前, 先明确一下比较对象.是`fiber`对象和`pendingProps.children`对象(这里是`reactElement`对象,也有可能是字符串)进行比较,最终目的是为了生成`workInProgress.child`
-
-![](../../snapshots/update/reconcileChildrenArray-01.png)
-
-2. 第一次循环
-
-![](../../snapshots/update/reconcileChildrenArray-02.png)
-
-对应代码:
+单节点的逻辑比较简明, 先直接看[源码](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactChildFiber.old.js#L1135-L1233):
 
 ```js
+// 只保留主杆逻辑
+function reconcileSingleElement(
+  returnFiber: Fiber,
+  currentFirstChild: Fiber | null,
+  element: ReactElement,
+  lanes: Lanes,
+): Fiber {
+  const key = element.key;
+  let child = currentFirstChild;
+
+  while (child !== null) {
+    // currentFirstChild !== null, 表明是对比更新阶段
+    if (child.key === key) {
+      // 1. key相同, 进一步判断 child.elementType === element.type
+      switch (child.tag) {
+        // 只看核心逻辑
+        default: {
+          if (child.elementType === element.type) {
+            // 1.1 已经匹配上了, 如果有兄弟节点, 需要给兄弟节点打上Deletion标记
+            deleteRemainingChildren(returnFiber, child.sibling);
+            // 1.2 构造fiber节点, 新的fiber对象会复用current.stateNode, 即可复用DOM对象
+            const existing = useFiber(child, element.props);
+            existing.ref = coerceRef(returnFiber, child, element);
+            existing.return = returnFiber;
+            return existing;
+          }
+          break;
+        }
+      }
+      // Didn't match. 给当前节点点打上Deletion标记
+      deleteRemainingChildren(returnFiber, child);
+      break;
+    } else {
+      // 2. key不相同, 匹配失败, 给当前节点打上Deletion标记
+      deleteChild(returnFiber, child);
+    }
+    child = child.sibling;
+  }
+
+  {
+    // ...省略部分代码, 只看核心逻辑
+  }
+
+  // 新建节点
+  const created = createFiberFromElement(element, returnFiber.mode, lanes);
+  created.ref = coerceRef(returnFiber, currentFirstChild, element);
+  created.return = returnFiber;
+  return created;
+}
+```
+
+1. 如果是新增节点, 直接新建 fiber, 没有多余的逻辑
+2. 如果是对比更新
+   - 如果`key`和`type`都相同(即: `ReactElement.key` === `Fiber.key` 且 `Fiber.elementType === ReactElement.type`), 则复用
+   - 否则新建
+
+注意: 复用过程是调用`useFiber(child, element.props)`创建`新的fiber`对象, 这个`新fiber对象.stateNode = currentFirstChild.stateNode`, 即`stateNode`属性得到了复用, 故 DOM 节点得到了复用.
+
+### 可迭代节点比较(数组类型, [Symbol.iterator]=fn,[@@iterator]=fn)
+
+可迭代节点比较, 在[源码中](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactChildFiber.old.js#L1346-L1362)被分为了 2 个部分:
+
+```js
+function reconcileChildFibers(
+  returnFiber: Fiber,
+  currentFirstChild: Fiber | null,
+  newChild: any,
+  lanes: Lanes,
+): Fiber | null {
+  if (isArray(newChild)) {
+    return reconcileChildrenArray(
+      returnFiber,
+      currentFirstChild,
+      newChild,
+      lanes,
+    );
+  }
+  if (getIteratorFn(newChild)) {
+    return reconcileChildrenIterator(
+      returnFiber,
+      currentFirstChild,
+      newChild,
+      lanes,
+    );
+  }
+}
+```
+
+其中`reconcileChildrenArray函数`(针对数组类型)和`reconcileChildrenIterator`(针对可迭代类型)的核心逻辑几乎一致, 下文将分析[`reconcileChildrenArray()`函数](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactChildFiber.old.js#L771-L924). 如果是新增节点, 所有的比较逻辑都无法命中, 只有`对比更新`过程, 才有实际作用, 所以下文重点分析`对比更新`的情况.
+
+```js
+function reconcileChildrenArray(
+  returnFiber: Fiber,
+  currentFirstChild: Fiber | null,
+  newChildren: Array<*>,
+  lanes: Lanes,
+): Fiber | null {
+  let resultingFirstChild: Fiber | null = null;
+  let previousNewFiber: Fiber | null = null;
+
+  let oldFiber = currentFirstChild;
+  let lastPlacedIndex = 0;
+  let newIdx = 0;
+  let nextOldFiber = null;
+  // 1. 第一次循环: 遍历最长公共序列(key相同), 公共序列的节点都视为可复用
+  for (; oldFiber !== null && newIdx < newChildren.length; newIdx++) {
+    // 后文分析
+  }
+
+  if (newIdx === newChildren.length) {
+    // 如果newChildren序列被遍历完, 那么oldFiber序列中剩余节点都视为删除(打上Deletion标记)
+    deleteRemainingChildren(returnFiber, oldFiber);
+    return resultingFirstChild;
+  }
+
+  if (oldFiber === null) {
+    // 如果oldFiber序列被遍遍历完, 那么newChildren序列中剩余节点都视为新增(打上Placement标记)
+    for (; newIdx < newChildren.length; newIdx++) {
+      // 后文分析
+    }
+    return resultingFirstChild;
+  }
+
+  // ==================分割线==================
+  const existingChildren = mapRemainingChildren(returnFiber, oldFiber);
+
+  // 2. 第二次循环: 遍历剩余非公共序列, 优先复用oldFiber序列中的节点
+  for (; newIdx < newChildren.length; newIdx++) {}
+
+  if (shouldTrackSideEffects) {
+    // newChildren已经遍历完, 那么oldFiber序列中剩余节点都视为删除(打上Deletion标记)
+    existingChildren.forEach(child => deleteChild(returnFiber, child));
+  }
+
+  return resultingFirstChild;
+}
+```
+
+`reconcileChildrenArray`函数源码看似很长, 梳理其主杆之后, 其实非常清晰.
+
+通过形参, 首先明确比较对象是`currentFirstChild: Fiber | null`和`newChildren: Array<*>`:
+
+- `currentFirstChild`: 是一个`fiber`节点, 通过`fiber.sibling`可以将兄弟节点全部遍历出来. 所以可以将`currentFirstChild`理解为链表头部, 它代表一个序列, 源码中被记为`oldFiber`.
+- `newChildren`: 是一个数组, 其中包含了若干个`ReactElement`对象. 所以`newChildren`也代表一个序列.
+
+所以`reconcileChildrenArray`实际就是 2 个序列之间的比较(`链表oldFiber`和`数组newChildren`), 最后返回合理的`fiber`序列.
+
+上述代码中, 以注释分割线为界限, 整个核心逻辑分为 2 步骤:
+
+1. 第一次循环: 遍历最长`公共`序列(key 相同), 公共序列的节点都视为可复用
+   1. 如果`newChildren序列`被遍历完, 那么`oldFiber序列`中剩余节点都视为删除(打上`Deletion`标记)
+   2. 如果`oldFiber序列`被遍遍历完, 那么`newChildren序列`中剩余节点都视为新增(打上`Placement`标记)
+2. 第二次循环: 遍历剩余`非公共`序列, 优先复用 oldFiber 序列中的节点
+
+假设有如下图所示 2 个初始化序列:
+
+![](../../snapshots/diff/before-traverse.png)
+
+接下来第一次循环, 会遍历公共序列`A,B`, 生成的 fiber 节点`fiber(A), fiber(B)`可以复用.
+
+![](../../snapshots/diff/traverse1.png)
+
+最后第二次循环, 会遍历剩余序列`E,C,X,Y`:
+
+- 生成的 fiber 节点`fiber(E), fiber(C)`可以复用. 其中`fiber(C)`节点发生了位移(打上`Placement`标记).
+- `fiber(X), fiber(Y)`是新增(打上`Placement`标记).
+- 同时`oldFiber`序列中的`fiber(D)`节点确定被删除(打上`Deletion`标记).
+
+![](../../snapshots/diff/traverse2.png)
+
+整个主杆逻辑就介绍完了, 接下来贴上完整源码
+
+> 第一次循环
+
+```js
+// 1. 第一次循环: 遍历最长公共序列(key相同), 公共序列的节点都视为可复用
 for (; oldFiber !== null && newIdx < newChildren.length; newIdx++) {
   if (oldFiber.index > newIdx) {
     nextOldFiber = oldFiber;
@@ -128,10 +218,11 @@ for (; oldFiber !== null && newIdx < newChildren.length; newIdx++) {
     returnFiber,
     oldFiber,
     newChildren[newIdx],
-    expirationTime,
+    lanes,
   );
-  // 如newFiber为空, 跳出循环
+
   if (newFiber === null) {
+    // 如果返回null, 表明key不同. 无法满足公共序列条件, 退出循环
     if (oldFiber === null) {
       oldFiber = nextOldFiber;
     }
@@ -143,10 +234,12 @@ for (; oldFiber !== null && newIdx < newChildren.length; newIdx++) {
       deleteChild(returnFiber, oldFiber);
     }
   }
-  // 1. 设置newFiber.index = newIndex
-  // 2. 给newFiber打Placement标记(新增节点或新旧index不同才会标记Placement)
-  // 3. 返回: 新增或移动返回lastPlacedIndex, 原地不动返回oldIndex
+
+  // lastPlacedIndex 记录被移动的节点索引
+  // 如果当前节点可复用, 则要判断位置是否移动.
   lastPlacedIndex = placeChild(newFiber, lastPlacedIndex, newIdx);
+
+  // 更新resultingFirstChild结果序列
   if (previousNewFiber === null) {
     resultingFirstChild = newFiber;
   } else {
@@ -157,68 +250,30 @@ for (; oldFiber !== null && newIdx < newChildren.length; newIdx++) {
 }
 ```
 
-2. 第二次循环
-
-> 针对第一次循环完成之后, newChildren 还未完全遍历, 表明 newIdx 之后都是新增节点. 后续节点都走新增流程
-
-对应代码:
+> 第二次循环
 
 ```js
-if (oldFiber === null) {
-  for (; newIdx < newChildren.length; newIdx++) {
-    const newFiber = createChild(
-      returnFiber,
-      newChildren[newIdx],
-      expirationTime,
-    );
-    if (newFiber === null) {
-      continue;
-    }
-    lastPlacedIndex = placeChild(newFiber, lastPlacedIndex, newIdx);
-    if (previousNewFiber === null) {
-      // TODO: Move out of the loop. This only happens for the first run.
-      resultingFirstChild = newFiber;
-    } else {
-      previousNewFiber.sibling = newFiber;
-    }
-    previousNewFiber = newFiber;
-  }
-  return resultingFirstChild;
-}
-```
-
-由于本例子是有节点移动的情况, 所以第一次循环并不会完全执行就会跳出, 故不会进入到第二次循环.
-
-3. 第三次循环
-
-![](../../snapshots/update/reconcileChildrenArray-03.png)
-
-对应代码:
-
-```js
-// Add all children to a key map for quick lookups.
+// 1. 将第一次循环后, oldFiber剩余序列加入到一个map中. 目的是为了第二次循环能顺利的找到可复用节点
 const existingChildren = mapRemainingChildren(returnFiber, oldFiber);
 
-// Keep scanning and use the map to restore deleted items as moves.
+// 2. 第二次循环: 遍历剩余非公共序列, 优先复用oldFiber序列中的节点
 for (; newIdx < newChildren.length; newIdx++) {
   const newFiber = updateFromMap(
     existingChildren,
     returnFiber,
     newIdx,
     newChildren[newIdx],
-    expirationTime,
+    lanes,
   );
   if (newFiber !== null) {
     if (shouldTrackSideEffects) {
       if (newFiber.alternate !== null) {
-        // The new fiber is a work in progress, but if there exists a
-        // current, that means that we reused the fiber. We need to delete
-        // it from the child list so that we don't add it to the deletion
-        // list.
+        // 如果newFiber是通过复用创建的, 则清理map中对应的老节点
         existingChildren.delete(newFiber.key === null ? newIdx : newFiber.key);
       }
     }
     lastPlacedIndex = placeChild(newFiber, lastPlacedIndex, newIdx);
+    // 更新resultingFirstChild结果序列
     if (previousNewFiber === null) {
       resultingFirstChild = newFiber;
     } else {
@@ -229,16 +284,10 @@ for (; newIdx < newChildren.length; newIdx++) {
 }
 ```
 
-4. 标记删除的节点
+### 结果
 
-![](../../snapshots/update/reconcileChildrenArray-04.png)
+无论是单节点还是可迭代节点的比较, 最终的目的都是生成下级子节点. 并在`reconcilerChildren`过程中, 给一些有副作用的节点(新增, 删除, 移动位置等)打上副作用标记, 等待 commit 阶段(参考[fiber 树渲染](../main/commit.md))的处理.
 
-对应代码:
+## 总结
 
-```js
-if (shouldTrackSideEffects) {
-  // Any existing children that weren't consumed above were deleted. We need
-  // to add them to the deletion list.
-  existingChildren.forEach(child => deleteChild(returnFiber, child));
-}
-```
+本节介绍了 React 源码中, `fiber构造循环`阶段用于生成下级子节点的`reconcilerChildren`函数(函数中的算法被称为调和算法), 并演示了`可迭代节点比较`的图解示例. 该算法十分巧妙, 其核心逻辑把`newChildren序列`分为 2 步遍历, 先遍历公共序列, 再遍历非公共部分, 同时复用`oldFiber`序列中的节点.
