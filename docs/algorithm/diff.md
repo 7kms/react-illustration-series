@@ -145,7 +145,7 @@ function reconcileChildrenArray(
   }
 
   if (oldFiber === null) {
-    // 如果oldFiber序列被遍遍历完, 那么newChildren序列中剩余节点都视为新增(打上Placement标记)
+    // 如果oldFiber序列被遍历完, 那么newChildren序列中剩余节点都视为新增(打上Placement标记)
     for (; newIdx < newChildren.length; newIdx++) {
       // 后文分析
     }
@@ -180,7 +180,7 @@ function reconcileChildrenArray(
 
 1. 第一次循环: 遍历最长`公共`序列(key 相同), 公共序列的节点都视为可复用
    1. 如果`newChildren序列`被遍历完, 那么`oldFiber序列`中剩余节点都视为删除(打上`Deletion`标记)
-   2. 如果`oldFiber序列`被遍遍历完, 那么`newChildren序列`中剩余节点都视为新增(打上`Placement`标记)
+   2. 如果`oldFiber序列`被遍历完, 那么`newChildren序列`中剩余节点都视为新增(打上`Placement`标记)
 2. 第二次循环: 遍历剩余`非公共`序列, 优先复用 oldFiber 序列中的节点
 
 假设有如下图所示 2 个初始化序列:

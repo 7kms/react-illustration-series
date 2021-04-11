@@ -74,7 +74,7 @@ export type ReactElement = {|
 
 对于`ReactElement`来讲, `ReactComponent`仅仅是诸多`type`类型中的一种.
 
-对于开发者来讲, `ReactComponent`使用非常高频(在 class 组件和 function 组件章节中详细解读), 在本节只是先证明它只是一种特殊的`ReactElement`.
+对于开发者来讲, `ReactComponent`使用非常高频(在状态组件章节中详细解读), 在本节只是先证明它只是一种特殊的`ReactElement`.
 
 这里用一个简单的示例, 通过查看编译后的代码来说明
 
@@ -120,7 +120,7 @@ class App_App extends react_default.a.Component {
       } /*#__PURE__*/,
       react_default.a.createElement('header', null, 'header') /*#__PURE__*/,
 
-      // 此处直接将Content传入, 是一个引用传递
+      // 此处直接将Content传入, 是一个指针传递
       react_default.a.createElement(App_Content, null) /*#__PURE__*/,
       react_default.a.createElement('footer', null, 'footer'),
     );
@@ -164,7 +164,7 @@ class App_Content extends react_default.a.Component {
 
 注意:
 
-- `class`和`function`类型的组件,其子节点是在 render 之后(`reconciler`阶段)才生成的(随后"同时"生成出`fiber`树, 在 fiber 树构建章节中详细解读). 此处只是单独表示`ReactElement`的数据结构.
+- `class`和`function`类型的组件,其子节点是在 render 之后(`reconciler`阶段)才生成的. 此处只是单独表示`ReactElement`的数据结构.
 - 父级对象和子级对象之间是通过`props.children`属性进行关联的(与 fiber 树不同).
 - `ReactElement`虽然不能算是一个严格的树, 也不能算是一个严格的链表. 它的生成过程是至顶向下的, 是所有组件节点的总和.
 - `ReactElement`树(暂且用树来表述)和`fiber`树是以`props.children`为单位`先后交替`生成的(在 fiber 树构建章节详细解读), 当`ReactElement`树构造完毕, fiber 树也随后构造完毕.
@@ -201,8 +201,8 @@ export type Fiber = {|
     | null
     | (((handle: mixed) => void) & { _stringRef: ?string, ... })
     | RefObject,
-  pendingProps: any, // 用于输入的props, 从父节点传入的props,也就是即将使用的props
-  memoizedProps: any, // 用于输出的props, 最终渲染所使用的props
+  pendingProps: any, // 从`ReactElement`对象传入的 props. 用于和`fiber.memoizedProps`比较可以得出属性是否变动
+  memoizedProps: any, // 上一次生成子节点时用到的属性, 生成子节点之后保持在内存中
   updateQueue: mixed, // 存储state更新的队列, 当前节点的state改动之后, 都会创建一个update对象添加到这个队列中.
   memoizedState: any, // 用于输出的state, 最终渲染所使用的state
   dependencies: Dependencies | null, // 该fiber节点所依赖的(contexts, events)等
@@ -243,10 +243,10 @@ export type Fiber = {|
 - `fiber.sibling`: 指向下一个兄弟节点.
 - `fiber.index`: fiber 在兄弟节点中的索引, 如果是单节点默认为 0.
 - `fiber.ref`: 指向在`ReactElement`组件上设置的 ref(`string`类型的`ref`除外, 这种类型的`ref`已经不推荐使用, `reconciler`阶段会`将string`类型的`ref`转换成一个`function`类型).
-- `fiber.pendingProps`: 输入属性, 从父节点传入的 props,也就是即将使用的 props
-- `fiber.memoizedProps`: 输出属性, 最终渲染所使用的 props.
-- `fiber.updateQueue`: 存储`state`更新的队列, `class`类型节点的`state`改动之后, 都会创建一个`update`对象添加到这个队列中.
-- `fiber.memoizedState`:内存状态或输出状态, 最终渲染所使用的 state.
+- `fiber.pendingProps`: 输入属性, 从`ReactElement`对象传入的 props. 用于和`fiber.memoizedProps`比较可以得出属性是否变动.
+- `fiber.memoizedProps`: 上一次生成子节点时用到的属性, 生成子节点之后保持在内存中. 向下生成子节点之前叫做`pendingProps`, 生成子节点之后会把`pendingProps`赋值给`memoizedProps`用于下一次比较.`pendingProps`和`memoizedProps`比较可以得出属性是否变动.
+- `fiber.updateQueue`: 存储`update更新对象`的队列, 每一次发起更新, 都需要在该队列上创建一个`update对象`.
+- `fiber.memoizedState`: 上一次生成子节点之后保持在内存中的局部状态.
 - `fiber.dependencies`: 该 fiber 节点所依赖的(contexts, events)等, 在`context`机制章节详细说明.
 - `fiber.mode`: 二进制位 Bitfield,继承至父节点,影响本 fiber 节点及其子树中所有节点. 与 react 应用的运行模式有关(有 ConcurrentMode, BlockingMode, NoMode 等选项).
 - `fiber.flags`: 标志位, 副作用标记(在 16.x 版本中叫做`effectTag`, 相应[pr](https://github.com/facebook/react/pull/19755)), 在[`ReactFiberFlags.js`](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberFlags.js#L10-L41)中定义了所有的标志位. `reconciler`阶段会将所有拥有`flags`标记的节点添加到副作用链表中, 等待 commit 阶段的处理.

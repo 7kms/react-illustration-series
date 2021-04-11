@@ -110,7 +110,7 @@ title: 优先级管理
 3. 每一种车道(`Lane/Lanes`)都有对应的优先级, 所以源码中定义了 18 种优先级([LanePriority](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberLane.js#L12-L30)).
 4. 占有低位比特位的`Lane`变量对应的优先级越高
    - 最高优先级为`SyncLanePriority`对应的车道为`SyncLane = 0b0000000000000000000000000000001`.
-   - 最高优先级为`OffscreenLanePriority`对应的车道为`OffscreenLane = 0b1000000000000000000000000000000`.
+   - 最低优先级为`OffscreenLanePriority`对应的车道为`OffscreenLane = 0b1000000000000000000000000000000`.
 
 ## 优先级区别和联系
 
@@ -139,6 +139,8 @@ export const NoLanePriority: LanePriority = 0;
 ```
 
 与`fiber`构造过程相关的优先级(如`fiber.updateQueue`,`fiber.lanes`)都使用`LanePriority`.
+
+由于本节重点介绍优先级体系以及它们的转换关系, 关于`Lane(车道模型)`在`fiber树构造`时的具体使用, 在[fiber 树构造(基础准备)](./fibertree-prepare.md#优先级)一文中的`优先级`小节详细解读.
 
 ### SchedulerPriority
 
