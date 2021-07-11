@@ -72,7 +72,7 @@ const buildMinHeap = arr => {
   if(arr.length < 2) {
     return arr;
   }
-  const startIndex = Math.floor(arr.length / 2 -1);
+  const startIndex = Math.floor(arr.length / 2 - 1);
   for (let i = startIndex; i >= 0; i--) {
     siftDown(arr, i, arr.length - 1);
   }
