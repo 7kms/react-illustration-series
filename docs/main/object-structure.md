@@ -24,7 +24,7 @@ ReactDOM.render(<App />, document.getElementById('root'));
 
 可以简单的认为, 包括`<App/>`及其所有子节点都是`ReactElement`对象(在 render 之后才会生成子节点, 后文详细解读), 每个`ReactElement`对象的区别在于 type 不同.
 
-### [`ReactElement`对象](https://github.com/facebook/react/blob/v17.0.1/packages/react/src/ReactElement.js#L126-L146)
+### [ReactElement 对象](https://github.com/facebook/react/blob/v17.0.1/packages/react/src/ReactElement.js#L126-L146)
 
 > 其 type 定义在[`shared`包中](https://github.com/facebook/react/blob/v17.0.1/packages/shared/ReactElementType.js#L15).
 
@@ -70,7 +70,7 @@ export type ReactElement = {|
 
 在`v17.0.1`中, [定义了 20 种](https://github.com/facebook/react/blob/v17.0.1/packages/shared/ReactSymbols.js#L16-L37)内部节点类型. 根据运行时环境不同, 分别采用 16 进制的字面量和`Symbol`进行表示.
 
-### [`ReactComponent`](https://github.com/facebook/react/blob/v17.0.1/packages/react/src/ReactBaseClasses.js#L20-L30)对象
+### [ReactComponent](https://github.com/facebook/react/blob/v17.0.1/packages/react/src/ReactBaseClasses.js#L20-L30)对象
 
 对于`ReactElement`来讲, `ReactComponent`仅仅是诸多`type`类型中的一种.
 

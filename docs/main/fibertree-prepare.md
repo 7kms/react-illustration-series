@@ -218,10 +218,8 @@ export function createUpdate(eventTime: number, lane: Lane): Update<*> {
    ): Lane {
      const current = container.current;
      const eventTime = requestEventTime();
-     // 根据当前时间, 创建一个update优先级
-     const lane = requestUpdateLane(current);
-     // lane被用于创建update对象
-     const update = createUpdate(eventTime, lane);
+     const lane = requestUpdateLane(current); // 根据当前时间, 创建一个update优先级
+     const update = createUpdate(eventTime, lane); // lane被用于创建update对象
      update.payload = { element };
      enqueueUpdate(current, update);
      scheduleUpdateOnFiber(current, lane, eventTime);
@@ -323,10 +321,9 @@ export function scheduleUpdateOnFiber(
     ) {
       performSyncWorkOnRoot(root);
     } else {
-      ensureRootIsScheduled(root, eventTime);
+      ensureRootIsScheduled(root, eventTime); // 注册回调任务
       if (executionContext === NoContext) {
-        // 取消schedule调度 ,主动刷新回调队列,
-        flushSyncCallbackQueue();
+        flushSyncCallbackQueue(); // 取消schedule调度 ,主动刷新回调队列,
       }
     }
   } else {
