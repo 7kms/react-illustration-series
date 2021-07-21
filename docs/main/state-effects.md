@@ -6,7 +6,7 @@ title: 状态与副作用
 
 在前文我们已经分析了`fiber树`从`构造`到`渲染`的关键过程. 本节我们站在`fiber`对象的视角, 考虑一个具体的`fiber`节点如何影响最终的渲染.
 
-回顾[fiber 数据结构](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactInternalTypes.js#L47-L174, 并结合前文`fiber树构造`系列的解读, 我们注意到`fiber`众多属性中, 有 2 类属性十分关键:
+回顾[fiber 数据结构](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactInternalTypes.js#L47-L174), 并结合前文`fiber树构造`系列的解读, 我们注意到`fiber`众多属性中, 有 2 类属性十分关键:
 
 1. `fiber`节点的自身状态: 在`renderRootSync[Concurrent]`阶段, 为子节点提供确定的输入数据, 直接影响子节点的生成.
 
@@ -158,9 +158,19 @@ function App() {
 1. 状态相关: `fiber树构造`阶段.
    1. `useState`在`fiber树构造`阶段(`renderRootSync[Concurrent]`)执行, 可以修改`Hook.memoizedState`.
 2. 副作用相关: `fiber树渲染`阶段.
-   1. `useEffect`在`fiber树渲染`阶段(`commitBeforeMutationEffects->commitBeforeMutationEffectOnFiber`)执行(注意是异步执行, [链接](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L2290-L2295)).
-   2. `useLayoutEffect`在`fiber树渲染`阶段(`commitLayoutEffects->commitLayoutEffectOnFiber->commitHookEffectListMount`)执行([链接](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberCommitWork.old.js#L481)).
+   1. `useEffect`在`fiber树渲染`阶段(`commitRoot->commitBeforeMutationEffects->commitBeforeMutationEffectOnFiber`)执行(注意是异步执行, [链接](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L2290-L2295)).
+   2. `useLayoutEffect`在`fiber树渲染`阶段(`commitRoot->commitLayoutEffects->commitLayoutEffectOnFiber->commitHookEffectListMount`)执行(同步执行, [链接](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberCommitWork.old.js#L481)).
+
+### 细节与误区
+
+这里有 2 个细节:
+
+1. `useEffect(function(){}, [])`中的函数是[异步执行](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L2290-L2295), 因为它经过了调度中心(具体实现可以回顾[调度原理](./scheduler.md)).
+2. `useLayoutEffect`和`Class组件`中的`componentDidMount,componentDidUpdate`从调用时机上来讲是等价的, 因为他们都在`commitRoot->commitLayoutEffects`函数中被调用.
+   - 误区: 很多开发者使用`useEffect`来代替`componentDidMount,componentDidUpdate`是不准确的, 应该采用`useLayoutEffect`来代替.
+
+为了验证上述结论, 可以查看[codesandbox 中的例子](https://codesandbox.io/s/fervent-napier-1ysb5).
 
 ## 总结
 
-本节从`fiber`视角出发, 总结了`fiber`节点中可以影响最终渲染结果的 2 类属性(`状态`和`副作用`).并且归纳了`class`和`function`组件中, 直接或间接更改`fiber`属性的常用方式.
+本节从`fiber`视角出发, 总结了`fiber`节点中可以影响最终渲染结果的 2 类属性(`状态`和`副作用`).并且归纳了`class`和`function`组件中, 直接或间接更改`fiber`属性的常用方式. 最后从`fiber树构造和渲染`的角度对`class的生命周期函数`与`function的Hooks函数`进行了比较.
