@@ -10,7 +10,7 @@ title: 状态与副作用
 
 1. `fiber`节点的自身状态: 在`renderRootSync[Concurrent]`阶段, 为子节点提供确定的输入数据, 直接影响子节点的生成.
 
-2. `fiber`节点的副作用: 在`commitRoot`阶段, 副作用将会被(同步/异步)执行.
+2. `fiber`节点的副作用: 在`commitRoot`阶段, 如果`fiber`被标记有副作用, 则副作用相关函数会被(同步/异步)调用.
 
 ```js
 export type Fiber = {|
@@ -167,7 +167,7 @@ function App() {
 
 1. `useEffect(function(){}, [])`中的函数是[异步执行](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L2290-L2295), 因为它经过了调度中心(具体实现可以回顾[调度原理](./scheduler.md)).
 2. `useLayoutEffect`和`Class组件`中的`componentDidMount,componentDidUpdate`从调用时机上来讲是等价的, 因为他们都在`commitRoot->commitLayoutEffects`函数中被调用.
-   - 误区: 很多开发者使用`useEffect`来代替`componentDidMount,componentDidUpdate`是不准确的, 应该采用`useLayoutEffect`来代替.
+   - 误区: 虽然官网文档推荐尽可能使用标准的 `useEffect` 以避免阻塞视觉更新 , 所以很多开发者使用`useEffect`来代替`componentDidMount,componentDidUpdate`是不准确的, 如果完全类比, `useLayoutEffect`比`useEffect`更符合`componentDidMount,componentDidUpdate`的定义.
 
 为了验证上述结论, 可以查看[codesandbox 中的例子](https://codesandbox.io/s/fervent-napier-1ysb5).
 

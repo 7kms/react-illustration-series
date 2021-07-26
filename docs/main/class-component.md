@@ -2,7 +2,9 @@
 title: class组件
 ---
 
-# 状态组件
+# class 组件
+
+在前文[状态与副作用](./state-effects.md)中, 总结了`class组件, function组件`如何通过`api`改变`fiber`对象的`状态`和`副作用`.
 
 ## 概念
 

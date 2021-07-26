@@ -57,10 +57,10 @@
 ### 数据管理
 
 - [状态与副作用](./docs/main/state-effects.md)
-- [class 组件](./docs/main/class-component.md)
-- hook 原理(概览)
-- hook 原理(状态:`useState`)
-- hook 原理(副作用:`useEffect`)
+- [hook 原理(概览)](./docs/main/hook-summary.md)
+- [hook 原理(状态)](./docs/main/hook-state.md)
+- [hook 原理(副作用)](./docs/main/hook-effect.md)
+- 状态合并原理
 - context 原理
 
 ### 交互
