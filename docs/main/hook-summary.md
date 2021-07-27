@@ -80,15 +80,15 @@ export type Hook = {|
 
 1. `hook.memoizedState`: 保持在内存中的局部状态.
 2. `hook.baseState`: `hook.baseQueue`中所有`update`对象合并之后的状态.
-3. `hook.baseQueue`: `hook.queue`是一个全量的`update`队列, 其中符合本次渲染的`update对象`会被提取到`hook.baseQueue`中, 等待本次渲染更新.
-4. `hook.queue`: 存储`update更新对象`的链式队列(是一个环形链表), 每一次发起更新, 根据发起更新的优先级创建一个`update对象`, 无论优先级高低, 都会将该`update对象`添加到`hook.queue`队列.
+3. `hook.baseQueue`: 存储`update对象`的环形链表, 只包括高于本次渲染优先级的`update对象`.
+4. `hook.queue`: 存储`update对象`的环形链表, 包括所有优先级的`update对象`.
 5. `hook.next`: `next`指针, 指向链表中的下一个`hook`.
 
 所以`Hook`是一个链表, 单个`Hook`拥有自己的状态`hook.memoizedState`和自己的更新队列`hook.queue`(有关 Hook 状态的分析, 在`Hook原理(状态)`章节中解读).
 
-![](../../snapshots/hooks/hook-linkedlist.png)
+![](../../snapshots/hook-summary/hook-linkedlist.png)
 
-注意: 其中`hook.queue`与`fiber.updateQueue`虽然都是`update链式队列`, 尽管`update对象`的数据结构与处理方式都高度相似, 但是这 2 个队列中的`update对象`是完全独立的. `hook.queue`只作用于`hook对象`的状态维护, 切勿与`fiber.updateQueue`混淆.
+注意: 其中`hook.queue`与`fiber.updateQueue`虽然都是`update环形链表`, 尽管`update对象`的数据结构与处理方式都高度相似, 但是这 2 个队列中的`update对象`是完全独立的. `hook.queue`只作用于`hook对象`的状态维护, 切勿与`fiber.updateQueue`混淆.
 
 ## Hook 分类
 
@@ -112,15 +112,15 @@ export type HookType =
   | 'useOpaqueIdentifier';
 ```
 
-首先, 官网上已经将其分为了 2 个类别, 状态`Hook`(`State Hook`), 和副作用`Hook`(`Effect Hook`).
+官网上已经将其分为了 2 个类别, 状态`Hook`(`State Hook`), 和副作用`Hook`(`Effect Hook`).
 
-这里我们可以结合前文[状态与副作用](./state-effects.md)对`状态与副作用`的解读, 从`fiber`的视角去理解`状态Hook`与`副作用Hook`的区别.
+这里我们可以结合前文[状态与副作用](./state-effects.md), 从`fiber`的视角去理解`状态Hook`与`副作用Hook`的区别.
 
 ### 状态 Hook
 
-狭义上讲, `useState`可以在`function组件`添加内部的`state`, 且`useState`实际上是`useReducer`的简易封装, 是一个最特殊(简单)的`useReducer`. 所以将`useState`和`useReducer`称为`状态Hook`.
+狭义上讲, `useState, useReducer`可以在`function组件`添加内部的`state`, 且`useState`实际上是`useReducer`的简易封装, 是一个最特殊(简单)的`useReducer`. 所以将`useState, useReducer`称为`状态Hook`.
 
-广义上讲, 能够在`function组件`中实现数据持久化的`Hook`, 且不产生副作用, 都可以理解为`状态Hook`. 这就包括了`useState, useReducer, useContext, useRef, useCallback, useMemo, useImperativeHandle`.
+广义上讲, 只要能实现数据持久化`且没有副作用`的`Hook`, 均可以视为`状态Hook`, 所以还包括`useContext, useRef, useCallback, useMemo`等. 这类`Hook`内部没有使用`useState/useReduer`, 但是它们也能实现多次`render`时, 保持其初始值不变(即数据持久化)且没有任何`副作用`.
 
 得益于[双缓冲技术(double buffering)](./fibertree-prepare.md#双缓冲技术), 在多次`render`时, 以`fiber`为载体, 保证复用同一个`Hook`对象, 进而实现数据持久化. 具体实现细节, 在`Hook原理(状态)`章节中讨论.
 
@@ -128,7 +128,7 @@ export type HookType =
 
 回到`fiber`视角, `状态Hook`实现了维护`fiber.memoizedState`, 那么`副作用Hook`则实现了维护`fiber.flags`. (通过前文`fiber树构造`系列的解读, 我们知道在`performUnitOfWork->completeWork`阶段, 所有存在副作用的`fiber`节点, 都会被添加到父节点的`副作用队列`后, 最后在`commitRoot`阶段处理这些`副作用节点`.)
 
-`副作用Hook`的作用不仅仅只是维护`fiber.flags`, 他还能维护`副作用回调`(类似于`class组件`的生命周期回调), 比如:
+`副作用Hook`的作用不仅仅只是更改`fiber.flags`, 他还提供了`副作用回调`(类似于`class组件`的生命周期回调), 比如:
 
 ```js
 // 使用useEffect时, 需要传入一个副作用回调函数.
@@ -138,13 +138,13 @@ useEffect(() => {
 }, []);
 ```
 
-在`react`内部, `useEffect, useLayoutEffect`就是典型的`副作用Hook`. 其他比如`自定义Hook`, 如果要实现有`副作用`, 那必须直接或间接的调用`useEffect`. 有关`useEffect`具体实现细节, 在`Hook原理(副作用)`章节中讨论.
+在`react`内部, `useEffect`就是最标准的`副作用Hook`. 其他比如`useLayoutEffect`以及`自定义Hook`, 如果要实现`副作用`, 必须直接或间接的调用`useEffect`.
+
+有关`useEffect`具体实现细节, 在`Hook原理(副作用)`章节中讨论.
 
 ### 组合 Hook
 
-> 注: 官网并无`组合Hook`的说法, 本文是为了更明确分类
-
-顾名思义, `组合Hook`是由上述 2 种 Hook 的组合而成, 在`副作用Hook`的`回调函数`中发起`状态更新`.
+虽然官网并无`组合Hook`的说法, 但事实上大多数`Hook`(包括自定义`Hook`)都是由上述 2 种 `Hook`组合而成, 同时拥有这 2 种 Hook 的特性.
 
 - 在`react`内部有`useDeferredValue, useTransition, useMutableSource, useOpaqueIdentifier`等.
 - 平时开发中, `自定义Hook`大部分都是组合 Hook.
@@ -174,7 +174,7 @@ function useFriendStatus(friendID) {
 
 ## 从 Fiber 到 Hook
 
-从`fiber树构造循环`来看, 不同的`fiber`类型, 只需要调用不同的`处理函数`, 其结果都是为了`生成子节点`. 所以在[performUnitOfWork->beginWork](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberBeginWork.old.js#L3340-L3354)函数中, 调用了多种处理函数, 至于处理函数内部用了什么其他技术它并不用关心(比如`updateFunctionComponent`内部使用了`Hook对象`, `updateClassComponent`内部使用了`class实例`).
+从`fiber树构造循环`来看, 不同的`fiber`类型, 只需要调用不同的`处理函数`返回`fiber子节点`. 所以在[performUnitOfWork->beginWork](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberBeginWork.old.js#L3340-L3354)函数中, 调用了多种`处理函数`. 从调用方来讲, 无需关心`处理函数`的内部实现(比如`updateFunctionComponent`内部使用了`Hook对象`, `updateClassComponent`内部使用了`class实例`).
 
 本节讨论`Hook`, 所以列出其中的[updateFunctionComponent](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberBeginWork.old.js#L702-L783)函数:
 
@@ -233,11 +233,11 @@ function updateFunctionComponent(
 }
 ```
 
-在`updateFunctionComponent`函数中调用了[renderWithHooks](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberHooks.old.js#L342-L476), 位于[ReactFiberHooks](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberHooks.old.js)中, 至此`fiber`与`Hook`产生了关联.
+在`updateFunctionComponent`函数中调用了[renderWithHooks](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberHooks.old.js#L342-L476)(位于[ReactFiberHooks](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberHooks.old.js)) , 至此`Fiber`与`Hook`产生了关联.
 
 ### 全局变量
 
-在进入`renderWithHooks`函数前, 有必要理解[ReactFiberHooks](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberHooks.old.js)头部定义的全局变量(源码中均有英文注释):
+在分析`renderWithHooks`函数前, 有必要理解[ReactFiberHooks](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberHooks.old.js)头部定义的全局变量(源码中均有英文注释):
 
 ```js
 // 渲染优先级
@@ -260,35 +260,18 @@ let didScheduleRenderPhaseUpdateDuringThisPass: boolean = false;
 
 // 在本次function的执行过程中, 重新发起更新的最大次数
 const RE_RENDER_LIMIT = 25;
-
-// react-dev-tool读取, 当前正在执行的hook类型(如: useState, useEffect等)
-let currentHookNameInDev: ?HookType = null;
-// 在DEV环境下,该list保证hooks的顺序与首次render时一致
-let hookTypesDev: Array<HookType> | null = null;
-let hookTypesUpdateIndexDev: number = -1;
-// 在DEV环境下, 且开启了hot reload时, 此变量标识是否忽略Hooks的变化依赖. 当为true时, Hooks将总会被重新创建
-let ignorePreviousDependencies: boolean = false;
 ```
 
-1. 标识`function`对应的`fiber`:
-   - `currentlyRenderingFiber`(等价于`workInProgress`)
-2. 标识`function`中使用到的`Hook`:
-   - `currentHook`: 链表结构, 指向 `fiber(current).memoizedState`
-   - `workInProgressHook`: 链表结构, 指向 `fiber(workInProgress).memoizedState`
-3. 标识`渲染时更新`(在`function`执行过程中发起了更新):
-   - `didScheduleRenderPhaseUpdate`: 标识是否再次发起了更新, 只有 function 被完全执行之后才会重置
-   - `didScheduleRenderPhaseUpdateDuringThisPass`: 标识是否再次发起了更新, 每一次调用 function 都会被重置
-4. dev 环境下标识`Hook`类型:
-   - `currentHookNameInDev`: 当前正在执行的`hook`类型(如: `useState`, `useEffect`等).
-   - `hookTypesDev`: 数组类型, 该`list`保证`hooks`的顺序与首次 render 时一致.
-   - `hookTypesUpdateIndexDev`:`Hook`类型与首次`render`不一致的索引.
-   - `ignorePreviousDependencies`: 开启了`hot reload`时, 此变量标识是否忽略`Hooks`的变化依赖. 当为`true`时, `Hooks`将总会被重新创建.
+每个变量的解释, 可以对照源码中的英文注释, 其中最重要的有:
 
-这些变量在运行时(执行`function`时), 辅助实现`Hook构造, Hook更新, Hook挂载到fiber`等重要功能.
+1. `currentlyRenderingFiber`: 当前正在构造的 fiber, 等同于 workInProgress
+2. `currentHook 与 workInProgressHook`: 分别指向`current.memoizedState`和`workInProgress.memoizedState`
+
+注: 有关`current`和`workInProgress`的区别, 请回顾[双缓冲技术(double buffering)](./fibertree-prepare.md#双缓冲技术)
 
 ### renderWithHooks 函数
 
-[renderWithHooks](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberHooks.old.js#L342-L476)源码看似较长, 但是去除 dev 后保留主杆, 逻辑还是十分清晰的. 以调用`function`为分界点, 逻辑被分为 3 个部分:
+[renderWithHooks](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberHooks.old.js#L342-L476)源码看似较长, 但是去除 dev 后保留主杆, 逻辑十分清晰. 以调用`function`为分界点, 逻辑被分为 3 个部分:
 
 ```js
 // ...省略无关代码
@@ -351,32 +334,29 @@ export default function App() {
   // 2. useEffect
   useEffect(() => {
     console.log(`effect 1 created`);
-    return () => {
-      // console.log(`effect 1 destroyed`);
-    };
   });
   // 3. useState
   const [b] = useState(2);
   // 4. useEffect
   useEffect(() => {
     console.log(`effect 2 created`);
-    return () => {
-      // console.log(`effect 2 destroyed`);
-    };
   });
   return (
-    <button onClick={() => setA(a + 1)}>
-      {a} & {b}
-    </button>
+    <>
+      <button onClick={() => setA(a + 1)}>{a}</button>
+      <button>{b}</button>
+    </>
   );
 }
 ```
 
 在`function`组件中, 同时使用了`状态Hook`和`副作用Hook`.
 
-初次渲染时, 逻辑执行到`performUnitOfWork->beginWork->updateFunctionComponent`前, 内存结构如下(本节重点是`Hook`, 有关`fiber树构造`过程可回顾前文):
+初次渲染时, 逻辑执行到`performUnitOfWork->beginWork->updateFunctionComponent->renderWithHooks`前, 内存结构如下(本节重点是`Hook`, 有关`fiber树构造`过程可回顾前文):
 
-当执行`updateFunctionComponent->renderWithHooks`时, 开始调用`function`. 本例中, 在`function`内部, 共使用了 4 次`Hook api`, 依次调用`useState, useEffect, useState, useEffect`.
+![](../../snapshots/hook-summary/mount-before-renderwithhooks.png)
+
+当执行`renderWithHooks`时, 开始调用`function`. 本例中, 在`function`内部, 共使用了 4 次`Hook api`, 依次调用`useState, useEffect, useState, useEffect`.
 
 而`useState, useEffect`在`fiber`初次构造时分别对应[mountState](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberHooks.old.js#L1113-L1136)和[mountEffect->mountEffectImpl](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberHooks.old.js#L1193-L1248)
 
@@ -387,18 +367,6 @@ function mountState<S>(
   const hook = mountWorkInProgressHook();
   // ...省略部分本节不讨论
   return [hook.memoizedState, dispatch];
-}
-
-function mountEffect(
-  create: () => (() => void) | void,
-  deps: Array<mixed> | void | null,
-): void {
-  return mountEffectImpl(
-    UpdateEffect | PassiveEffect,
-    HookPassive,
-    create,
-    deps,
-  );
 }
 
 function mountEffectImpl(fiberFlags, hookFlags, create, deps): void {
@@ -440,9 +408,17 @@ function mountWorkInProgressHook(): Hook {
 
 本示例中, `function`调用之后则会创建 4 个`hook`, 这时的内存结构如下:
 
+![](../../snapshots/hook-summary/mount-after-renderwithhooks.png)
+
+可以看到: 无论`状态Hook`或`副作用Hook`都按照调用顺序存储在`fiber.memoizedState`链表中.
+
+![](../../snapshots/hook-summary/mount-fiber-memoizedstate.png)
+
 ### 顺序克隆
 
-`fiber树构造(对比更新)`阶段, 执行`updateFunctionComponent->renderWithHooks`时再次调用`function`, 调用前的内存结构如下:
+`fiber树构造(对比更新)`阶段, 执行`updateFunctionComponent->renderWithHooks`时再次调用`function`, `调用function前`的内存结构如下:
+
+![](../../snapshots/hook-summary/update-before-renderwithhooks.png)
 
 注意: 在`renderWithHooks`函数中已经设置了`workInProgress.memoizedState = null`, 等待调用`function`时重新设置.
 
@@ -516,15 +492,21 @@ function updateWorkInProgressHook(): Hook {
 }
 ```
 
-`updateWorkInProgressHook()`函数逻辑也比较清晰:
+`updateWorkInProgressHook`函数逻辑简单: 目的是为了让`currentHook`和`workInProgressHook`两个指针同时向后移动.
 
-1. `currentHook`和`workInProgressHook`同时向后移动, 指向下一个需要处理的`Hook`
-2. 正常情况下, 由于`renderWithHooks函数`设置了`workInProgress.memoizedState=null`, 所以`workInProgressHook`初始值必然为`null`.
-3. 而从`currentHook`克隆而来的`newHook.next=null`, 进而导致`workInProgressHook`链表需要完全重建.
+1. 由于`renderWithHooks函数`设置了`workInProgress.memoizedState=null`, 所以`workInProgress`初始值必然为`null`, 只能从`currentHook`克隆.
+2. 而从`currentHook`克隆而来的`newHook.next=null`, 进而导致`workInProgressHook`链表需要完全重建.
 
 所以`function`执行完成之后, 有关`Hook`的内存结构如下:
 
-可以看到`Hook`虽然经过了一次克隆, 但是内部的属性(`hook.memoizedState`等)都被保存了下来, 所以和`class组件`异曲同工, 其状态并不会丢失.
+![](../../snapshots/hook-summary/update-after-renderwithhooks.png)
+
+可以看到:
+
+1. 以双缓冲技术为基础, 将`current.memoizedState`按照顺序克隆到了`workInProgress.memoizedState`中.
+2. `Hook`经过了一次克隆, 内部的属性(`hook.memoizedState`等)都没有变动, 所以其状态并不会丢失.
+
+![](../../snapshots/hook-summary/update-fiber-memoizedstate.png)
 
 ## 总结
 

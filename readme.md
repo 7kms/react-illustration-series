@@ -58,9 +58,8 @@
 
 - [状态与副作用](./docs/main/state-effects.md)
 - [hook 原理(概览)](./docs/main/hook-summary.md)
-- [hook 原理(状态)](./docs/main/hook-state.md)
-- [hook 原理(副作用)](./docs/main/hook-effect.md)
-- 状态合并原理
+- [hook 原理(状态 Hook)](./docs/main/hook-state.md)
+- [hook 原理(副作用 Hook)](./docs/main/hook-effect.md)
 - context 原理
 
 ### 交互
