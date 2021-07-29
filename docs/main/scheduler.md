@@ -368,7 +368,7 @@ function workLoop(hasTimeRemaining, initialTime) {
 
 在时间切片的基础之上, 如果单个`task.callback`执行时间就很长(假设 200ms). 就需要`task.callback`自己能够检测是否超时, 所以在 fiber 树构造过程中, 每构造完成一个单元, 都会检测一次超时([源码链接](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L1637-L1639)), 如遇超时就退出`fiber树构造循环`, 并返回一个新的回调函数(就是此处的`continuationCallback`)并等待下一次回调继续未完成的`fiber树构造`.
 
-## 节流防抖
+## 节流防抖 {#throttle-debounce}
 
 通过上文的分析, 已经覆盖了`scheduler`包中的核心原理. 现在再次回到`react-reconciler`包中, 在调度过程中的关键路径中, 我们还需要理解一些细节.
 

@@ -178,7 +178,7 @@ export function scheduleUpdateOnFiber(
 
 ![](../../snapshots/fibertree-create/fibertreecreate2-complete.png)
 
-### 优先级
+### 优先级 {#lanes}
 
 在全局变量中有不少变量都以 Lanes 命名(如`workInProgressRootRenderLanes`,`subtreeRenderLanes`其作用见上文注释), 它们都与优先级相关.
 
@@ -186,7 +186,7 @@ export function scheduleUpdateOnFiber(
 
 在整个`react-reconciler`包中, `Lane`的应用可以分为 3 个方面:
 
-#### `update`优先级(update.lane)
+#### `update`优先级(update.lane) {#update-lane}
 
 在[React 应用中的高频对象](./object-structure.md#Update)一文中, 介绍过`update`对象, 它是一个环形链表. 对于单个`update`对象来讲, `update.lane`代表它的优先级, 称之为`update`优先级.
 

@@ -68,10 +68,10 @@ type UpdateQueue<S, A> = {|
 |};
 
 export type Hook = {|
-  memoizedState: any, // 内存状态
-  baseState: any, // 基础状态
-  baseQueue: Update<any, any> | null, // 值包含本次渲染更新的队列
-  queue: UpdateQueue<any, any> | null, // 全量的更新队列
+  memoizedState: any, // 当前状态
+  baseState: any, // 基状态
+  baseQueue: Update<any, any> | null, // 基队列
+  queue: UpdateQueue<any, any> | null, // 更新队列
   next: Hook | null, // next指针
 |};
 ```
@@ -126,9 +126,9 @@ export type HookType =
 
 ### 副作用 Hook
 
-回到`fiber`视角, `状态Hook`实现了维护`fiber.memoizedState`, 那么`副作用Hook`则实现了维护`fiber.flags`. (通过前文`fiber树构造`系列的解读, 我们知道在`performUnitOfWork->completeWork`阶段, 所有存在副作用的`fiber`节点, 都会被添加到父节点的`副作用队列`后, 最后在`commitRoot`阶段处理这些`副作用节点`.)
+回到`fiber`视角, `状态Hook`实现了状态持久化(等同于`class组件`维护`fiber.memoizedState`), 那么`副作用Hook`则会修改`fiber.flags`. (通过前文`fiber树构造`系列的解读, 我们知道在`performUnitOfWork->completeWork`阶段, 所有存在副作用的`fiber`节点, 都会被添加到父节点的`副作用队列`后, 最后在`commitRoot`阶段处理这些`副作用节点`.)
 
-`副作用Hook`的作用不仅仅只是更改`fiber.flags`, 他还提供了`副作用回调`(类似于`class组件`的生命周期回调), 比如:
+另外, `副作用Hook`还提供了`副作用回调`(类似于`class组件`的生命周期回调), 比如:
 
 ```js
 // 使用useEffect时, 需要传入一个副作用回调函数.
@@ -172,9 +172,13 @@ function useFriendStatus(friendID) {
 }
 ```
 
-## 从 Fiber 到 Hook
+## 调用 function 前
 
-从`fiber树构造循环`来看, 不同的`fiber`类型, 只需要调用不同的`处理函数`返回`fiber子节点`. 所以在[performUnitOfWork->beginWork](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberBeginWork.old.js#L3340-L3354)函数中, 调用了多种`处理函数`. 从调用方来讲, 无需关心`处理函数`的内部实现(比如`updateFunctionComponent`内部使用了`Hook对象`, `updateClassComponent`内部使用了`class实例`).
+在调用`function`之前, `react`内部还需要提前做一些准备工作.
+
+### 处理函数
+
+从`fiber树构造`的视角来看, 不同的`fiber`类型, 只需要调用不同的`处理函数`返回`fiber子节点`. 所以在[performUnitOfWork->beginWork](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberBeginWork.old.js#L3340-L3354)函数中, 调用了多种`处理函数`. 从调用方来讲, 无需关心`处理函数`的内部实现(比如`updateFunctionComponent`内部使用了`Hook对象`, `updateClassComponent`内部使用了`class实例`).
 
 本节讨论`Hook`, 所以列出其中的[updateFunctionComponent](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberBeginWork.old.js#L702-L783)函数:
 
@@ -319,7 +323,9 @@ export function renderWithHooks<Props, SecondArg>(
 3. 调用`function`后: 重置全局变量, 返回`children`.
    - 为了保证不同的`function`节点在调用时`renderWithHooks`互不影响, 所以退出时重置全局变量.
 
-## Hooks 构造
+## 调用 function
+
+### Hooks 构造
 
 在`function`中, 如果使用了`Hook api`(如: `useEffect`, `useState`), 就会创建一个与之对应的`Hook`对象, 接下来重点分析这个创建过程.
 
