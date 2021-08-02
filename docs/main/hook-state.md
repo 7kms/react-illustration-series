@@ -15,7 +15,7 @@ title: Hook 原理(状态Hook)
 
 在此基础之上, 本节将深入分析`状态Hook`的特性和实现原理.
 
-## Hook 创建
+## 创建 Hook
 
 在`fiber`初次构造阶段, [useState](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberHooks.old.js#L1787)对应源码[mountState](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberHooks.old.js#L1113-L1136), [useReducer](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberHooks.old.js#L1785)对应源码[mountReducer](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberHooks.old.js#L624-L649)
 
@@ -182,7 +182,7 @@ export default function App() {
 
 初次渲染时`count = 0`, 这时`hook`对象的内存状态如下:
 
-![](../../snapshots/fibertree-create/initial-status.png)
+![](../../snapshots/hook-state/initial-state.png)
 
 点击`button`, 通过`dispatch`函数进行更新, `dispatch`实际就是[dispatchAction](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberHooks.old.js#L1645-L1753):
 
@@ -234,6 +234,8 @@ function dispatchAction<S, A>(
 
 1. 创建`update`对象, 其中`update.lane`代表优先级(可回顾[fiber 树构造(基础准备)](./fibertree-prepare.md#update-lane)中的`update优先级`).
 2. 将`update`对象添加到`hook.queue.pending`环形链表.
+   - `环形链表`的特征: 为了方便添加新元素和快速拿到队首元素(都是`O(1)`), 所以`pending`指针指向了链表中最后一个元素.
+   - 链表的使用方式可以参考[React 算法之链表操作](../algorithm/linkedlist.md)
 3. 发起调度更新: 调用`scheduleUpdateOnFiber`, 进入`reconciler 运作流程`中的输入阶段.
 
 从调用`scheduleUpdateOnFiber`开始, 进入了`react-reconciler`包, 其中的所有逻辑可回顾[reconciler 运作流程](./reconciler-workflow.md), 本节只讨论`状态Hook`相关逻辑.
@@ -368,6 +370,7 @@ function updateReducer<S, I, A>(
    ![](../../snapshots/hook-state/after-basequeue-combine.png)
 
 3. 状态计算
+
    1. `update`优先级不够: 加入到 baseQueue 中, 等待下一次 render
    2. `update`优先级足够: 状态合并
    3. 更新属性
@@ -428,22 +431,34 @@ function dispatchAction<S, A>(
 
 在执行`updateReducer`之前, `hook.memoizedState`有如下结构(其中`update3, update4`是低优先级):
 
-    ![](../../snapshots/hook-state/async-update-before-combine.png)
+![](../../snapshots/hook-state/async-update-before-combine.png)
 
-链表拼接: 和同步更新时一致, 直接把`queue.pending`拼接到`current.baseQueue`
+链表拼接:
+
+- 和同步更新时一致, 直接把`queue.pending`拼接到`current.baseQueue`
+
 ![](../../snapshots/hook-state/async-update-after-combine.png)
 
-状态计算: - 只会提取`update1, update2`这 2 个高优先级的`update`, 所以最后`memoizedState=2` - 保留其余低优先级的`update`, 等待下一次`render` - 从第一个低优先级`update3`开始, 随后的所有`update`都会被添加到`baseQueue`, 由于`update2`已经是高优先级, 会设置`update2.lane=NoLane`将优先级升级到最高(红色表示). - 而`baseState`代表第一个低优先级`update3`之前的`state`, 在本例中, `baseState=1`
+状态计算:
 
-    ![](../../snapshots/hook-state/async-update-state-compute.png)
+- 只会提取`update1, update2`这 2 个高优先级的`update`, 所以最后`memoizedState=2`
+- 保留其余低优先级的`update`, 等待下一次`render`
+- 从第一个低优先级`update3`开始, 随后的所有`update`都会被添加到`baseQueue`, 由于`update2`已经是高优先级, 会设置`update2.lane=NoLane`将优先级升级到最高(红色表示).
+- 而`baseState`代表第一个低优先级`update3`之前的`state`, 在本例中, `baseState=1`
+
+![](../../snapshots/hook-state/async-update-state-compute.png)
 
 `function`节点被处理完后, 高优先级的`update`, 会率先被使用(`memoizedState=2`). 一段时间后, 低优先级`update3, update4`符合渲染, 这种情况下再次执行`updateReducer`重复之前的步骤.
 
-链表拼接: 由于`queue.pending = null`, 故拼接前后没有实质变化
-  
+链表拼接:
+
+- 由于`queue.pending = null`, 故拼接前后没有实质变化
+
 ![](../../snapshots/hook-state/async-final-combine.png)
 
-状态计算: 现在所有`update.lane`都符合`渲染优先级`, 所以最后的内存结构与同步更新一致(`memoizedState=4,baseState=4`).
+状态计算:
+
+- 现在所有`update.lane`都符合`渲染优先级`, 所以最后的内存结构与同步更新一致(`memoizedState=4,baseState=4`).
 
 ![](../../snapshots/hook-state/async-final-compute.png)
 
