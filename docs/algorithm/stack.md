@@ -90,7 +90,7 @@ const test = () => {
 
 ## React 当中的使用场景
 
-### Context 状态管理
+### Context 状态管理 {#context}
 
 在`fiber`树创建过程中, 如果使用了[`Context api`](https://zh-hans.reactjs.org/docs/context.html#reactcreatecontext)(具体来说是使用`Context.Provider`, `Class.contextType`, `Context.Consumer`等`api`), `react`内部会维护一个`栈`来保存提供者(`Context.Provider`)的状态, 供给消费者(`Context.Consumer`)使用.
 

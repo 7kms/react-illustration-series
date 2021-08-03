@@ -60,7 +60,7 @@
 - [hook 原理(概览)](./docs/main/hook-summary.md)
 - [hook 原理(状态 Hook)](./docs/main/hook-state.md)
 - [hook 原理(副作用 Hook)](./docs/main/hook-effect.md)
-- context 原理
+- [context 原理](./docs/main/context.md)
 
 ### 交互
 

@@ -224,6 +224,8 @@ function markUpdateLaneFromFiberToRoot(
 }
 ```
 
+### markUpdateLaneFromFiberToRoot
+
 下图表示了`markUpdateLaneFromFiberToRoot`的具体作用:
 
 - 以`sourceFiber`为起点, 设置起点的`fiber.lanes`
@@ -379,7 +381,7 @@ function beginWork(
 }
 ```
 
-#### `bailout`逻辑
+#### `bailout`逻辑 {#bailout}
 
 > `bail out`英文短语翻译为`解救, 纾困`, 在源码中, `bailout`用于判断子树节点是否完全复用, 如果可以复用, 则会略过 fiber 树构造.
 
