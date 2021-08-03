@@ -507,3 +507,31 @@ function updateEffectImpl(fiberFlags, hookFlags, create, deps): void {
 ### 处理 Effect 回调
 
 新的`hook`以及新的`effect`创建完成之后, 余下逻辑与初次渲染完全一致. 处理 Effect 回调时也会根据`effect.tag`进行判断: 只有`effect.tag`包含`HookHasEffect`时才会调用`effect.destroy`和`effect.create()`
+
+## 组件销毁
+
+当`function`组件被销毁时, `fiber`节点必然会被打上`Deletion`标记, 即`fiber.flags |= Deletion`. 带有`Deletion`标记的`fiber`在[commitMutationEffects](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L2302-L2383)被处理:
+
+```js
+// ...省略无关代码
+function commitMutationEffects(
+  root: FiberRoot,
+  renderPriorityLevel: ReactPriorityLevel,
+) {
+  while (nextEffect !== null) {
+    const primaryFlags = flags & (Placement | Update | Deletion | Hydrating);
+    switch (primaryFlags) {
+      case Deletion: {
+        commitDeletion(root, nextEffect, renderPriorityLevel);
+        break;
+      }
+    }
+  }
+}
+```
+
+在`commitDeletion`函数之后, 继续调用`unmountHostComponents->commitUnmount`, 在[commitUnmount](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberCommitWork.old.js#L866-L963)中, 执行`effect.destroy()`, 结束整个闭环.
+
+## 总结
+
+本节分析了`副作用Hook`从创建到销毁的全部过程, 在`react`内部, 依靠`fiber.flags`和`effect.tag`实现了对`effect`的精准识别. 在`commitRoot`阶段, 对不同类型的`effect`进行处理, 先后调用`effect.destroy()`和`effect.create()`.
