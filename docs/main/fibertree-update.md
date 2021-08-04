@@ -57,7 +57,7 @@ export default App;
 
 ## 更新入口
 
-前文[reconciler 运作流程](./reconciler-workflow.md#输入)中总结的 4 个阶段(从输入到输出), 其中承接输入的函数只有`scheduleUpdateOnFiber`([源码地址](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L517-L619)).在`react-reconciler`对外暴露的 api 函数中, 只要涉及到需要改变 fiber 的操作(无论是`首次渲染`或`对比更新`), 最后都会间接调用`scheduleUpdateOnFiber`, `scheduleUpdateOnFiber`函数是输入链路中的`必经之路`.
+前文[reconciler 运作流程](./reconciler-workflow.md#输入)中总结的 4 个阶段(从输入到输出), 其中承接输入的函数只有`scheduleUpdateOnFiber`([源码地址](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L517-L619)).在`react-reconciler`对外暴露的 api 函数中, 只要涉及到需要改变 fiber 的操作(无论是`首次渲染`或`对比更新`), 最后都会间接调用`scheduleUpdateOnFiber`, `scheduleUpdateOnFiber`函数是输入链路中的`必经之路`.
 
 ### 3 种更新方式
 
@@ -71,7 +71,7 @@ export default App;
 
 #### setState
 
-在`Component`对象的原型上挂载有`setState`([源码链接](https://github.com/facebook/react/blob/v17.0.1/packages/react/src/ReactBaseClasses.js#L57-L66)):
+在`Component`对象的原型上挂载有`setState`([源码链接](https://github.com/facebook/react/blob/v17.0.2/packages/react/src/ReactBaseClasses.js#L57-L66)):
 
 ```js
 Component.prototype.setState = function(partialState, callback) {
@@ -79,7 +79,7 @@ Component.prototype.setState = function(partialState, callback) {
 };
 ```
 
-在[fiber 树构造(初次创建)](./fibertree-create.md)中的`beginWork`阶段, class 类型的组件初始化完成之后, `this.updater`对象如下([源码链接](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberClassComponent.old.js#L193-L225)):
+在[fiber 树构造(初次创建)](./fibertree-create.md)中的`beginWork`阶段, class 类型的组件初始化完成之后, `this.updater`对象如下([源码链接](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberClassComponent.old.js#L193-L225)):
 
 ```js
 const classComponentUpdater = {
@@ -107,7 +107,7 @@ const classComponentUpdater = {
 
 > 此处只是为了对比`dispatchAction`和`setState`. 有关`hook`原理的深入分析, 在`hook 原理`章节中详细讨论.
 
-在`function类型`组件中, 如果使用`hook(useState)`, 则可以通过`hook api`暴露出的`dispatchAction`([源码链接](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberHooks.old.js#L1645-L1753))来更新
+在`function类型`组件中, 如果使用`hook(useState)`, 则可以通过`hook api`暴露出的`dispatchAction`([源码链接](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberHooks.old.js#L1645-L1753))来更新
 
 ```js
 function dispatchAction<S, A>(
@@ -161,7 +161,7 @@ setInterval(tick, 1000);
 
 ## 构造阶段
 
-逻辑来到[scheduleUpdateOnFiber](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L517-L619)函数:
+逻辑来到[scheduleUpdateOnFiber](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L517-L619)函数:
 
 ```js
 // ...省略部分代码
@@ -189,7 +189,7 @@ export function scheduleUpdateOnFiber(
 
 `对比更新`与`初次渲染`的不同点:
 
-1. [markUpdateLaneFromFiberToRoot](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L625-L667)函数, 只在`对比更新`阶段才发挥出它的作用, 它找出了`fiber树`中受到本次`update`影响的所有节点, 并设置这些节点的`fiber.lanes`或`fiber.childLanes`(在`legacy`模式下为`SyncLane`)以备`fiber树构造`阶段使用.
+1. [markUpdateLaneFromFiberToRoot](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L625-L667)函数, 只在`对比更新`阶段才发挥出它的作用, 它找出了`fiber树`中受到本次`update`影响的所有节点, 并设置这些节点的`fiber.lanes`或`fiber.childLanes`(在`legacy`模式下为`SyncLane`)以备`fiber树构造`阶段使用.
 
 ```js
 function markUpdateLaneFromFiberToRoot(
@@ -236,7 +236,7 @@ function markUpdateLaneFromFiberToRoot(
 
 2. `对比更新`没有直接调用`performSyncWorkOnRoot`, 而是通过调度中心来处理, 由于本示例是在`Legacy`模式下进行, 最后会同步执行`performSyncWorkOnRoot`.(详细原理可以参考[React 调度原理(scheduler)](./scheduler.md)). 所以其调用链路`performSyncWorkOnRoot--->renderRootSync--->workLoopSync`与`初次构造`中的一致.
 
-在[renderRootSync](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L1490-L1553)中:
+在[renderRootSync](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L1490-L1553)中:
 
 ```js
 function renderRootSync(root: FiberRoot, lanes: Lanes) {
@@ -316,7 +316,7 @@ function performUnitOfWork(unitOfWork: Fiber): void {
 
 ### 探寻阶段 beginWork
 
-`beginWork(current, unitOfWork, subtreeRenderLanes)`([源码地址](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberBeginWork.old.js#L3083-L3494)).
+`beginWork(current, unitOfWork, subtreeRenderLanes)`([源码地址](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberBeginWork.old.js#L3083-L3494)).
 
 ```js
 function beginWork(
@@ -430,11 +430,11 @@ function bailoutOnAlreadyFinishedWork(
 本节只需要先了解调和函数目的:
 
 1. 给新增,移动,和删除节点设置`fiber.falgs`(新增,移动: `Placement`, 删除: `Deletion`)
-2. 如果是需要删除的`fiber`, [除了自身打上`Deletion`之外, 还要将其添加到父节点的`effects`链表中](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactChildFiber.old.js#L275-L294)(正常副作用队列的处理是在`completeWork`函数, 但是该节点(被删除)会脱离`fiber`树, 不会再进入`completeWork`阶段, 所以在`beginWork`阶段提前加入副作用队列).
+2. 如果是需要删除的`fiber`, [除了自身打上`Deletion`之外, 还要将其添加到父节点的`effects`链表中](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactChildFiber.old.js#L275-L294)(正常副作用队列的处理是在`completeWork`函数, 但是该节点(被删除)会脱离`fiber`树, 不会再进入`completeWork`阶段, 所以在`beginWork`阶段提前加入副作用队列).
 
 ### 回溯阶段 completeWork
 
-`completeUnitOfWork(unitOfWork)函数`([源码地址](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L1670-L1802))在`初次创建`和`对比更新`逻辑一致, 都是处理`beginWork` 阶段已经创建出来的 `fiber` 节点, 最后创建(更新)DOM 对象, 并上移副作用队列.
+`completeUnitOfWork(unitOfWork)函数`([源码地址](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L1670-L1802))在`初次创建`和`对比更新`逻辑一致, 都是处理`beginWork` 阶段已经创建出来的 `fiber` 节点, 最后创建(更新)DOM 对象, 并上移副作用队列.
 
 在这里我们重点关注`completeWork`函数中, `current !== null`的情况:
 
@@ -526,7 +526,7 @@ updateHostText = function(
 };
 ```
 
-可以看到在更新过程中, 如果 DOM 属性有变化, 不会再次新建 DOM 对象, 而是设置`fiber.flags |= Update`, 等待`commit`阶段处理([源码链接](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberCompleteWork.old.js#L197-L248)).
+可以看到在更新过程中, 如果 DOM 属性有变化, 不会再次新建 DOM 对象, 而是设置`fiber.flags |= Update`, 等待`commit`阶段处理([源码链接](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberCompleteWork.old.js#L197-L248)).
 
 ### 过程图解
 
@@ -584,7 +584,7 @@ updateHostText = function(
 `performUnitOfWork`第 4 次调用(执行`beginWork`和`completeUnitOfWork`):
 
 - `beginWork`执行过程: 调用`updateHostComponent`
-  - 本示例中`button`的子节点是一个[直接文本节点](https://github.com/facebook/react/blob/8e5adfbd7e605bda9c5e96c10e015b3dc0df688e/packages/react-dom/src/client/ReactDOMHostConfig.js#L350-L361),设置[nextChildren = null](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberBeginWork.old.js#L1147)(源码注释的解释是不用在开辟内存去创建一个文本节点, 同时还能减少向下遍历).
+  - 本示例中`button`的子节点是一个[直接文本节点](https://github.com/facebook/react/blob/8e5adfbd7e605bda9c5e96c10e015b3dc0df688e/packages/react-dom/src/client/ReactDOMHostConfig.js#L350-L361),设置[nextChildren = null](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberBeginWork.old.js#L1147)(源码注释的解释是不用在开辟内存去创建一个文本节点, 同时还能减少向下遍历).
   - 由于`nextChildren = null`, 经过`reconcilerChildren`阶段处理后, 返回值也是`null`
 - `beginWork`执行后: 由于下级节点为`null`, 所以进入`completeUnitOfWork(unitOfWork)`函数, 传入的参数`unitOfWork`实际上就是`workInProgress`(此时指向`fiber(button)`节点)
 

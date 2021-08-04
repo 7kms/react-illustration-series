@@ -24,9 +24,9 @@ ReactDOM.render(<App />, document.getElementById('root'));
 
 可以简单的认为, 包括`<App/>`及其所有子节点都是`ReactElement`对象(在 render 之后才会生成子节点, 后文详细解读), 每个`ReactElement`对象的区别在于 type 不同.
 
-### [ReactElement 对象](https://github.com/facebook/react/blob/v17.0.1/packages/react/src/ReactElement.js#L126-L146)
+### [ReactElement 对象](https://github.com/facebook/react/blob/v17.0.2/packages/react/src/ReactElement.js#L126-L146)
 
-> 其 type 定义在[`shared`包中](https://github.com/facebook/react/blob/v17.0.1/packages/shared/ReactElementType.js#L15).
+> 其 type 定义在[`shared`包中](https://github.com/facebook/react/blob/v17.0.2/packages/shared/ReactElementType.js#L15).
 
 所有采用`jsx`语法书写的节点, 都会被编译器转换, 最终会以`React.createElement(...)`的方式, 创建出来一个与之对应的`ReactElement`对象.
 
@@ -57,7 +57,7 @@ export type ReactElement = {|
 
 需要特别注意 2 个属性:
 
-1. `key`属性在`reconciler`阶段会用到, 目前只需要知道所有的`ReactElement`对象都有 key 属性(且[其默认值是 null](https://github.com/facebook/react/blob/v17.0.1/packages/react/src/ReactElement.js#L348-L357), 这点十分重要, 在 diff 算法中会使用到).
+1. `key`属性在`reconciler`阶段会用到, 目前只需要知道所有的`ReactElement`对象都有 key 属性(且[其默认值是 null](https://github.com/facebook/react/blob/v17.0.2/packages/react/src/ReactElement.js#L348-L357), 这点十分重要, 在 diff 算法中会使用到).
 
 2. `type`属性决定了节点的种类:
 
@@ -68,9 +68,9 @@ export type ReactElement = {|
   - 如 type 是一个`function`类型,则会调用该方法获取子节点
   - ...
 
-在`v17.0.1`中, [定义了 20 种](https://github.com/facebook/react/blob/v17.0.1/packages/shared/ReactSymbols.js#L16-L37)内部节点类型. 根据运行时环境不同, 分别采用 16 进制的字面量和`Symbol`进行表示.
+在`v17.0.2`中, [定义了 20 种](https://github.com/facebook/react/blob/v17.0.2/packages/shared/ReactSymbols.js#L16-L37)内部节点类型. 根据运行时环境不同, 分别采用 16 进制的字面量和`Symbol`进行表示.
 
-### [ReactComponent](https://github.com/facebook/react/blob/v17.0.1/packages/react/src/ReactBaseClasses.js#L20-L30)对象
+### [ReactComponent](https://github.com/facebook/react/blob/v17.0.2/packages/react/src/ReactBaseClasses.js#L20-L30)对象
 
 对于`ReactElement`来讲, `ReactComponent`仅仅是诸多`type`类型中的一种.
 
@@ -143,7 +143,7 @@ class App_Content extends react_default.a.Component {
 }
 ```
 
-上述示例演示了`ReactComponent`是诸多`ReactElement`种类中的一种情况, 但是由于`ReactComponent`是 class 类型, 自有它的特殊性(可[对照源码](https://github.com/facebook/react/blob/v17.0.1/packages/react/src/ReactBaseClasses.js), 更容易理解).
+上述示例演示了`ReactComponent`是诸多`ReactElement`种类中的一种情况, 但是由于`ReactComponent`是 class 类型, 自有它的特殊性(可[对照源码](https://github.com/facebook/react/blob/v17.0.2/packages/react/src/ReactBaseClasses.js), 更容易理解).
 
 1. `ReactComponent`是 class 类型, 继承父类`Component`, 拥有特殊的方法(`setState`,`forceUpdate`)和特殊的属性(`context`,`updater`等).
 2. 在`reconciler`阶段, 会依据`ReactElement`对象的特征, 生成对应的 fiber 节点. 当识别到`ReactElement`对象是 class 类型的时候, 会触发`ReactComponent` 对象的生命周期, 并调用其 `render`方法, 生成`ReactElement`子节点.
@@ -182,7 +182,7 @@ class App_Content extends react_default.a.Component {
 
 ### Fiber 对象
 
-先看数据结构, 其 type 类型的定义在[`ReactInternalTypes.js`](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactInternalTypes.js#L47-L174)中:
+先看数据结构, 其 type 类型的定义在[`ReactInternalTypes.js`](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactInternalTypes.js#L47-L174)中:
 
 ```js
 // 一个Fiber对象代表一个即将渲染或者已经渲染的组件(ReactElement), 一个组件可能对应多个fiber(current和WorkInProgress)
@@ -233,10 +233,10 @@ export type Fiber = {|
 
 属性解释:
 
-- `fiber.tag`: 表示 fiber 类型, 根据`ReactElement`组件的 type 进行生成, 在 react 内部共定义了[25 种 tag](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactWorkTags.js#L10-L35).
+- `fiber.tag`: 表示 fiber 类型, 根据`ReactElement`组件的 type 进行生成, 在 react 内部共定义了[25 种 tag](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactWorkTags.js#L10-L35).
 - `fiber.key`: 和`ReactElement`组件的 key 一致.
 - `fiber.elementType`: 一般来讲和`ReactElement`组件的 type 一致
-- `fiber.type`: 一般来讲和`fiber.elementType`一致. 一些特殊情形下, 比如在开发环境下为了兼容热更新(`HotReloading`), 会对`function, class, ForwardRef`类型的`ReactElement`做一定的处理, 这种情况会区别于`fiber.elementType`, 具体赋值关系可以查看[源文件](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiber.old.js#L571-L574).
+- `fiber.type`: 一般来讲和`fiber.elementType`一致. 一些特殊情形下, 比如在开发环境下为了兼容热更新(`HotReloading`), 会对`function, class, ForwardRef`类型的`ReactElement`做一定的处理, 这种情况会区别于`fiber.elementType`, 具体赋值关系可以查看[源文件](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiber.old.js#L571-L574).
 - `fiber.stateNode`: 与`fiber`关联的局部状态节点(比如: `HostComponent`类型指向与`fiber`节点对应的 dom 节点; 根节点`fiber.stateNode`指向的是`FiberRoot`; class 类型节点其`stateNode`指向的是 class 实例).
 - `fiber.return`: 指向父节点.
 - `fiber.child`: 指向第一个子节点.
@@ -249,9 +249,9 @@ export type Fiber = {|
 - `fiber.memoizedState`: 上一次生成子节点之后保持在内存中的局部状态.
 - `fiber.dependencies`: 该 fiber 节点所依赖的(contexts, events)等, 在`context`机制章节详细说明.
 - `fiber.mode`: 二进制位 Bitfield,继承至父节点,影响本 fiber 节点及其子树中所有节点. 与 react 应用的运行模式有关(有 ConcurrentMode, BlockingMode, NoMode 等选项).
-- `fiber.flags`: 标志位, 副作用标记(在 16.x 版本中叫做`effectTag`, 相应[pr](https://github.com/facebook/react/pull/19755)), 在[`ReactFiberFlags.js`](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberFlags.js#L10-L41)中定义了所有的标志位. `reconciler`阶段会将所有拥有`flags`标记的节点添加到副作用链表中, 等待 commit 阶段的处理.
-- `fiber.subtreeFlags`: 替代 16.x 版本中的 firstEffect, nextEffect. 默认未开启, 当设置了[enableNewReconciler=true](https://github.com/facebook/react/blob/v17.0.1/packages/shared/ReactFeatureFlags.js#L93) 才会启用, 本系列只跟踪稳定版的代码, 未来版本不会深入解读, [使用示例见源码](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberCompleteWork.new.js#L690-L714).
-- `fiber.deletions`: 存储将要被删除的子节点. 默认未开启, 当设置了[enableNewReconciler=true](https://github.com/facebook/react/blob/v17.0.1/packages/shared/ReactFeatureFlags.js#L93) 才会启用, 本系列只跟踪稳定版的代码, 未来版本不会深入解读, [使用示例见源码](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactChildFiber.new.js#L275-L287).
+- `fiber.flags`: 标志位, 副作用标记(在 16.x 版本中叫做`effectTag`, 相应[pr](https://github.com/facebook/react/pull/19755)), 在[`ReactFiberFlags.js`](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberFlags.js#L10-L41)中定义了所有的标志位. `reconciler`阶段会将所有拥有`flags`标记的节点添加到副作用链表中, 等待 commit 阶段的处理.
+- `fiber.subtreeFlags`: 替代 16.x 版本中的 firstEffect, nextEffect. 默认未开启, 当设置了[enableNewReconciler=true](https://github.com/facebook/react/blob/v17.0.2/packages/shared/ReactFeatureFlags.js#L93) 才会启用, 本系列只跟踪稳定版的代码, 未来版本不会深入解读, [使用示例见源码](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberCompleteWork.new.js#L690-L714).
+- `fiber.deletions`: 存储将要被删除的子节点. 默认未开启, 当设置了[enableNewReconciler=true](https://github.com/facebook/react/blob/v17.0.2/packages/shared/ReactFeatureFlags.js#L93) 才会启用, 本系列只跟踪稳定版的代码, 未来版本不会深入解读, [使用示例见源码](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactChildFiber.new.js#L275-L287).
 - `fiber.nextEffect`: 单向链表, 指向下一个有副作用的 fiber 节点.
 - `fiber.firstEffect`: 指向副作用链表中的第一个 fiber 节点.
 - `fiber.lastEffect`: 指向副作用链表中的最后一个 fiber 节点.
@@ -277,11 +277,11 @@ export type Fiber = {|
 
 在`fiber`对象中有一个属性`fiber.updateQueue`, 是一个链式队列(即使用链表实现的队列存储结构), 后文会根据场景表述成链表或队列.
 
-首先观察`Update`对象的数据结构([对照源码](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactUpdateQueue.old.js#L106-L129)):
+首先观察`Update`对象的数据结构([对照源码](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactUpdateQueue.old.js#L106-L129)):
 
 ```js
 export type Update<State> = {|
-  eventTime: number, // 发起update事件的时间(17.0.1中作为临时字段, 即将移出)
+  eventTime: number, // 发起update事件的时间(17.0.2中作为临时字段, 即将移出)
   lane: Lane, // update所属的优先级
 
   tag: 0 | 1 | 2 | 3, //
@@ -320,9 +320,9 @@ export type UpdateQueue<State> = {|
    - `pending`: 指向即将输入的`update`队列. 在`class`组件中调用`setState()`之后, 会将新的 update 对象添加到这个队列中来.
 
 3. `Update`
-   - `eventTime`: 发起`update`事件的时间(17.0.1 中作为临时字段, 即将移出)
+   - `eventTime`: 发起`update`事件的时间(17.0.2 中作为临时字段, 即将移出)
    - `lane`: `update`所属的优先级
-   - `tag`: 表示`update`种类, 共 4 种. [`UpdateState,ReplaceState,ForceUpdate,CaptureUpdate`](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactUpdateQueue.old.js#L131-L134)
+   - `tag`: 表示`update`种类, 共 4 种. [`UpdateState,ReplaceState,ForceUpdate,CaptureUpdate`](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactUpdateQueue.old.js#L131-L134)
    - `payload`: 载荷, `update`对象真正需要更新的数据, 可以设置成一个回调函数或者对象.
    - `callback`: 回调函数. `commit`完成之后会调用.
    - `next`: 指向链表中的下一个, 由于`UpdateQueue`是一个环形链表, 最后一个`update.next`指向第一个`update`对象.
@@ -337,9 +337,9 @@ export type UpdateQueue<State> = {|
 
 ### Hook 对象
 
-`Hook`用于`function`组件中, 能够保持`function`组件的状态(与`class`组件中的`state`在性质上是相同的, 都是为了保持组件的状态).在`react@16.8`以后, 官方开始推荐使用`Hook`语法, 常用的 api 有`useState`,`useEffect`,`useCallback`等, 官方一共定义了[14 种`Hook`类型](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberHooks.old.js#L111-L125).
+`Hook`用于`function`组件中, 能够保持`function`组件的状态(与`class`组件中的`state`在性质上是相同的, 都是为了保持组件的状态).在`react@16.8`以后, 官方开始推荐使用`Hook`语法, 常用的 api 有`useState`,`useEffect`,`useCallback`等, 官方一共定义了[14 种`Hook`类型](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberHooks.old.js#L111-L125).
 
-这些 api 背后都会创建一个`Hook`对象, 先观察[`Hook`对象的数据结构](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberHooks.old.js#L134-L140):
+这些 api 背后都会创建一个`Hook`对象, 先观察[`Hook`对象的数据结构](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberHooks.old.js#L134-L140):
 
 ```js
 export type Hook = {|
@@ -393,11 +393,11 @@ type UpdateQueue<S, A> = {|
 
 ## scheduler 包
 
-如[宏观结构](./macro-structure.md)中所介绍, `scheduler`包负责调度, 在内部维护一个任务队列([taskQueue](https://github.com/facebook/react/blob/v17.0.1/packages/scheduler/src/Scheduler.js#L63)). 这个队列是一个最小堆数组(详见[React 算法之堆排序](../algorithm/heapsort.md)), 其中存储了 task 对象.
+如[宏观结构](./macro-structure.md)中所介绍, `scheduler`包负责调度, 在内部维护一个任务队列([taskQueue](https://github.com/facebook/react/blob/v17.0.2/packages/scheduler/src/Scheduler.js#L63)). 这个队列是一个最小堆数组(详见[React 算法之堆排序](../algorithm/heapsort.md)), 其中存储了 task 对象.
 
 ### Task 对象
 
-`scheduler`包中, 没有为 task 对象定义 type, 其[定义是直接在 js 代码](https://github.com/facebook/react/blob/v17.0.1/packages/scheduler/src/Scheduler.js#L316-L323)中:
+`scheduler`包中, 没有为 task 对象定义 type, 其[定义是直接在 js 代码](https://github.com/facebook/react/blob/v17.0.2/packages/scheduler/src/Scheduler.js#L316-L323)中:
 
 ```js
 var newTask = {

@@ -4,7 +4,7 @@ title: 优先级管理
 
 # React 中的优先级管理
 
-> `React`内部对于`优先级`的管理, 根据功能的不同分为`LanePriority`, `SchedulerPriority`, `ReactPriorityLevel`3 种类型. 本文基于`react@17.0.1`, 梳理源码中的优先级管理体系.
+> `React`内部对于`优先级`的管理, 根据功能的不同分为`LanePriority`, `SchedulerPriority`, `ReactPriorityLevel`3 种类型. 本文基于`react@17.0.2`, 梳理源码中的优先级管理体系.
 
 `React`是一个声明式, 高效且灵活的用于构建用户界面的 JavaScript 库. React 团队一直致力于实现高效渲染, 其中有 2 个十分有名的演讲:
 
@@ -13,7 +13,7 @@ title: 优先级管理
 
 演讲中所展示的`可中断渲染`,`时间切片(time slicing)`,`异步渲染(suspense)`等特性, 在源码中得以实现都依赖于`优先级管理`.
 
-在`React@17.0.1`源码中, 一共有`2套优先级体系`和`1套转换体系`, 在深入分析之前, 再次回顾一下([reconciler 运作流程](./reconciler-workflow.md)):
+在`React@17.0.2`源码中, 一共有`2套优先级体系`和`1套转换体系`, 在深入分析之前, 再次回顾一下([reconciler 运作流程](./reconciler-workflow.md)):
 
 ![](../../snapshots/reconciler-workflow/reactfiberworkloop.png)
 
@@ -21,7 +21,7 @@ title: 优先级管理
 
 1. `fiber`优先级(`LanePriority`): 位于`react-reconciler`包, 也就是[`Lane(车道模型)`](https://github.com/facebook/react/pull/18796).
 2. 调度优先级(`SchedulerPriority`): 位于`scheduler`包.
-3. 优先级等级(`ReactPriorityLevel`) : 位于`react-reconciler`包中的[`SchedulerWithReactIntegration.js`](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/SchedulerWithReactIntegration.old.js), 负责上述 2 套优先级体系的转换.
+3. 优先级等级(`ReactPriorityLevel`) : 位于`react-reconciler`包中的[`SchedulerWithReactIntegration.js`](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/SchedulerWithReactIntegration.old.js), 负责上述 2 套优先级体系的转换.
 
 ## 预备知识
 
@@ -31,7 +31,7 @@ title: 优先级管理
 
 > 英文单词`lane`翻译成中文表示"车道, 航道"的意思, 所以很多文章都将`Lanes`模型称为`车道模型`
 
-`Lane`模型的源码在[ReactFiberLane.js](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberLane.js), 源码中大量使用了位运算(有关位运算的讲解, 可以参考[React 算法之位运算](../algorithm/bitfiled.md)).
+`Lane`模型的源码在[ReactFiberLane.js](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberLane.js), 源码中大量使用了位运算(有关位运算的讲解, 可以参考[React 算法之位运算](../algorithm/bitfiled.md)).
 
 首先引入作者对`Lane`的解释([相应的 pr](https://github.com/facebook/react/pull/18796)), 这里简单概括如下:
 
@@ -101,13 +101,13 @@ title: 优先级管理
 
       通过上述伪代码, 可以看到`Lanes`的优越性, 运用起来代码量少, 简洁高效.
 
-4. `Lanes`是一个不透明的类型, 只能在[`ReactFiberLane.js`](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberLane.js)这个模块中维护. 如果要在其他文件中使用, 只能通过`ReactFiberLane.js`中提供的工具函数来使用.
+4. `Lanes`是一个不透明的类型, 只能在[`ReactFiberLane.js`](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberLane.js)这个模块中维护. 如果要在其他文件中使用, 只能通过`ReactFiberLane.js`中提供的工具函数来使用.
 
-分析车道模型的源码([`ReactFiberLane.js`](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberLane.js)中), 可以得到如下结论:
+分析车道模型的源码([`ReactFiberLane.js`](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberLane.js)中), 可以得到如下结论:
 
 1. 可以使用的比特位一共有 31 位(为什么? 可以参考[React 算法之位运算](../algorithm/bitfiled.md)中的说明).
-2. 共定义了[18 种车道(`Lane/Lanes`)变量](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberLane.js#L74-L103), 每一个变量占有 1 个或多个比特位, 分别定义为`Lane`和`Lanes`类型.
-3. 每一种车道(`Lane/Lanes`)都有对应的优先级, 所以源码中定义了 18 种优先级([LanePriority](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberLane.js#L12-L30)).
+2. 共定义了[18 种车道(`Lane/Lanes`)变量](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberLane.js#L74-L103), 每一个变量占有 1 个或多个比特位, 分别定义为`Lane`和`Lanes`类型.
+3. 每一种车道(`Lane/Lanes`)都有对应的优先级, 所以源码中定义了 18 种优先级([LanePriority](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberLane.js#L12-L30)).
 4. 占有低位比特位的`Lane`变量对应的优先级越高
    - 最高优先级为`SyncLanePriority`对应的车道为`SyncLane = 0b0000000000000000000000000000001`.
    - 最低优先级为`OffscreenLanePriority`对应的车道为`OffscreenLane = 0b1000000000000000000000000000000`.
@@ -123,7 +123,7 @@ title: 优先级管理
 
 ### LanePriority
 
-`LanePriority`: 属于`react-reconciler`包, 定义于`ReactFiberLane.js`([见源码](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberLane.js#L46-L70)).
+`LanePriority`: 属于`react-reconciler`包, 定义于`ReactFiberLane.js`([见源码](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberLane.js#L46-L70)).
 
 ```js
 export const SyncLanePriority: LanePriority = 15;
@@ -144,7 +144,7 @@ export const NoLanePriority: LanePriority = 0;
 
 ### SchedulerPriority
 
-`SchedulerPriority`, 属于`scheduler`包, 定义于`SchedulerPriorities.js`中([见源码](https://github.com/facebook/react/blob/v17.0.1/packages/scheduler/src/SchedulerPriorities.js)).
+`SchedulerPriority`, 属于`scheduler`包, 定义于`SchedulerPriorities.js`中([见源码](https://github.com/facebook/react/blob/v17.0.2/packages/scheduler/src/SchedulerPriorities.js)).
 
 ```js
 export const NoPriority = 0;
@@ -159,7 +159,7 @@ export const IdlePriority = 5;
 
 ### ReactPriorityLevel
 
-`reactPriorityLevel`, 属于`react-reconciler`包, 定义于`SchedulerWithReactIntegration.js`中([见源码](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/SchedulerWithReactIntegration.old.js#L65-L71)).
+`reactPriorityLevel`, 属于`react-reconciler`包, 定义于`SchedulerWithReactIntegration.js`中([见源码](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/SchedulerWithReactIntegration.old.js#L65-L71)).
 
 ```js
 export const ImmediatePriority: ReactPriorityLevel = 99;
@@ -177,7 +177,7 @@ export const NoPriority: ReactPriorityLevel = 90;
 
 为了能协同调度中心(`scheduler`包)和 fiber 树构造(`react-reconciler`包)中对优先级的使用, 则需要转换`SchedulerPriority`和`LanePriority`, 转换的桥梁正是`ReactPriorityLevel`.
 
-在[`SchedulerWithReactIntegration.js`中](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/SchedulerWithReactIntegration.old.js#L93-L125), 可以互转`SchedulerPriority` 和 `ReactPriorityLevel`:
+在[`SchedulerWithReactIntegration.js`中](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/SchedulerWithReactIntegration.old.js#L93-L125), 可以互转`SchedulerPriority` 和 `ReactPriorityLevel`:
 
 ```js
 // 把 SchedulerPriority 转换成 ReactPriorityLevel
@@ -217,7 +217,7 @@ function reactPriorityToSchedulerPriority(reactPriorityLevel) {
 }
 ```
 
-在[`ReactFiberLane.js`中](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberLane.js#L196-L247), 可以互转`LanePriority` 和 `ReactPriorityLevel`:
+在[`ReactFiberLane.js`中](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberLane.js#L196-L247), 可以互转`LanePriority` 和 `ReactPriorityLevel`:
 
 ```js
 export function schedulerPriorityToLanePriority(

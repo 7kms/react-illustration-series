@@ -16,7 +16,7 @@ title: 调度原理
 
 ## 调度实现
 
-`调度中心`最核心的代码, 在[SchedulerHostConfig.default.js](https://github.com/facebook/react/blob/v17.0.1/packages/scheduler/src/forks/SchedulerHostConfig.default.js)中.
+`调度中心`最核心的代码, 在[SchedulerHostConfig.default.js](https://github.com/facebook/react/blob/v17.0.2/packages/scheduler/src/forks/SchedulerHostConfig.default.js)中.
 
 ### 内核
 
@@ -37,12 +37,12 @@ export let forceFrameRate; // 强制设置 yieldInterval (让出主线程的周�
 
 1. 调度相关: 请求或取消调度
 
-- [requestHostCallback](https://github.com/facebook/react/blob/v17.0.1/packages/scheduler/src/forks/SchedulerHostConfig.default.js#L224-L230)
-- [cancelHostCallback](https://github.com/facebook/react/blob/v17.0.1/packages/scheduler/src/forks/SchedulerHostConfig.default.js#L232-L234)
-- [requestHostTimeout](https://github.com/facebook/react/blob/v17.0.1/packages/scheduler/src/forks/SchedulerHostConfig.default.js#L236-L240)
-- [cancelHostTimeout](https://github.com/facebook/react/blob/v17.0.1/packages/scheduler/src/forks/SchedulerHostConfig.default.js#L242-L245)
+- [requestHostCallback](https://github.com/facebook/react/blob/v17.0.2/packages/scheduler/src/forks/SchedulerHostConfig.default.js#L224-L230)
+- [cancelHostCallback](https://github.com/facebook/react/blob/v17.0.2/packages/scheduler/src/forks/SchedulerHostConfig.default.js#L232-L234)
+- [requestHostTimeout](https://github.com/facebook/react/blob/v17.0.2/packages/scheduler/src/forks/SchedulerHostConfig.default.js#L236-L240)
+- [cancelHostTimeout](https://github.com/facebook/react/blob/v17.0.2/packages/scheduler/src/forks/SchedulerHostConfig.default.js#L242-L245)
 
-这 4 个函数源码很简洁, 非常好理解, 它们的目的就是请求执行(或取消)回调函数. 现在重点介绍其中的`及时回调`(`延时回调`的 2 个函数暂时属于保留 api, 17.0.1 版本其实没有用上)
+这 4 个函数源码很简洁, 非常好理解, 它们的目的就是请求执行(或取消)回调函数. 现在重点介绍其中的`及时回调`(`延时回调`的 2 个函数暂时属于保留 api, 17.0.2 版本其实没有用上)
 
 ```js
 // 接收 MessageChannel 消息
@@ -85,10 +85,10 @@ cancelHostCallback = function() {
 
 2. 时间切片(`time slicing`)相关: 执行时间分割, 让出主线程(把控制权归还浏览器, 浏览器可以处理用户输入, UI 绘制等紧急任务).
 
-- [getCurrentTime](https://github.com/facebook/react/blob/v17.0.1/packages/scheduler/src/forks/SchedulerHostConfig.default.js#L22-L24): 获取当前时间
-- [shouldYieldToHost](https://github.com/facebook/react/blob/v17.0.1/packages/scheduler/src/forks/SchedulerHostConfig.default.js#L129-L152): 是否让出主线程
-- [requestPaint](https://github.com/facebook/react/blob/v17.0.1/packages/scheduler/src/forks/SchedulerHostConfig.default.js#L154-L156): 请求绘制
-- [forceFrameRate](https://github.com/facebook/react/blob/v17.0.1/packages/scheduler/src/forks/SchedulerHostConfig.default.js#L168-L183): 强制设置 `yieldInterval`(从源码中的引用来看, 算一个保留函数, 其他地方没有用到)
+- [getCurrentTime](https://github.com/facebook/react/blob/v17.0.2/packages/scheduler/src/forks/SchedulerHostConfig.default.js#L22-L24): 获取当前时间
+- [shouldYieldToHost](https://github.com/facebook/react/blob/v17.0.2/packages/scheduler/src/forks/SchedulerHostConfig.default.js#L129-L152): 是否让出主线程
+- [requestPaint](https://github.com/facebook/react/blob/v17.0.2/packages/scheduler/src/forks/SchedulerHostConfig.default.js#L154-L156): 请求绘制
+- [forceFrameRate](https://github.com/facebook/react/blob/v17.0.2/packages/scheduler/src/forks/SchedulerHostConfig.default.js#L168-L183): 强制设置 `yieldInterval`(从源码中的引用来看, 算一个保留函数, 其他地方没有用到)
 
 ```js
 const localPerformance = performance;
@@ -148,11 +148,11 @@ forceFrameRate = function(fps) {
 注意`shouldYieldToHost`的判定条件:
 
 - `currentTime >= deadline`: 只有时间超过`deadline`之后才会让出主线程(其中`deadline = currentTime + yieldInterval`).
-  - `yieldInterval`默认是`5ms`, 只能通过`forceFrameRate`函数来修改(事实上在 v17.0.1 源码中, 并没有使用到该函数).
+  - `yieldInterval`默认是`5ms`, 只能通过`forceFrameRate`函数来修改(事实上在 v17.0.2 源码中, 并没有使用到该函数).
   - 如果一个`task`运行时间超过`5ms`, 下一个`task`执行之前, 会把控制权归还浏览器.
 - `navigator.scheduling.isInputPending()`: 这 facebook 官方贡献给 Chromium 的 api, 现在已经列入 W3C 标准([具体解释](https://engineering.fb.com/2019/04/22/developer-tools/isinputpending-api/)), 用于判断是否有输入事件(包括: input 框输入事件, 点击事件等).
 
-介绍完这 8 个内部函数, 最后浏览一下完整回调的实现[performWorkUntilDeadline](https://github.com/facebook/react/blob/v17.0.1/packages/scheduler/src/forks/SchedulerHostConfig.default.js#L185-L218)(逻辑很清晰, 在注释中解释):
+介绍完这 8 个内部函数, 最后浏览一下完整回调的实现[performWorkUntilDeadline](https://github.com/facebook/react/blob/v17.0.2/packages/scheduler/src/forks/SchedulerHostConfig.default.js#L185-L218)(逻辑很清晰, 在注释中解释):
 
 ```js
 const performWorkUntilDeadline = () => {
@@ -191,7 +191,7 @@ const performWorkUntilDeadline = () => {
 
 通过上文的分析, 我们已经知道请求和取消调度的实现原理. 调度的目的是为了消费任务, 接下来就具体分析任务队列是如何管理与实现的.
 
-在[Scheduler.js](https://github.com/facebook/react/blob/v17.0.1/packages/scheduler/src/Scheduler.js)中, 维护了一个[taskQueue](https://github.com/facebook/react/blob/v17.0.1/packages/scheduler/src/Scheduler.js#L63), 任务队列管理就是围绕这个`taskQueue`展开.
+在[Scheduler.js](https://github.com/facebook/react/blob/v17.0.2/packages/scheduler/src/Scheduler.js)中, 维护了一个[taskQueue](https://github.com/facebook/react/blob/v17.0.2/packages/scheduler/src/Scheduler.js#L63), 任务队列管理就是围绕这个`taskQueue`展开.
 
 ```js
 // Tasks are stored on a min heap
@@ -202,11 +202,11 @@ var timerQueue = [];
 注意:
 
 - `taskQueue`是一个小顶堆数组, 关于堆排序的详细解释, 可以查看[React 算法之堆排序](../algorithm/heapsort.md).
-- 源码中除了`taskQueue`队列之外还有一个`timerQueue`队列. 这个队列是预留给延时任务使用的, 在 react@17.0.1 版本里面, 从源码中的引用来看, 算一个保留功能, 没有用到.
+- 源码中除了`taskQueue`队列之外还有一个`timerQueue`队列. 这个队列是预留给延时任务使用的, 在 react@17.0.2 版本里面, 从源码中的引用来看, 算一个保留功能, 没有用到.
 
 #### 创建任务
 
-在`unstable_scheduleCallback`函数中([源码链接](https://github.com/facebook/react/blob/v17.0.1/packages/scheduler/src/Scheduler.js#L279-L359)):
+在`unstable_scheduleCallback`函数中([源码链接](https://github.com/facebook/react/blob/v17.0.2/packages/scheduler/src/Scheduler.js#L279-L359)):
 
 ```js
 // 省略部分无关代码
@@ -215,7 +215,7 @@ function unstable_scheduleCallback(priorityLevel, callback, options) {
   var currentTime = getCurrentTime();
   var startTime;
   if (typeof options === 'object' && options !== null) {
-    // 从函数调用关系来看, 在v17.0.1中,所有调用 unstable_scheduleCallback 都未传入options
+    // 从函数调用关系来看, 在v17.0.2中,所有调用 unstable_scheduleCallback 都未传入options
     // 所以省略延时任务相关的代码
   } else {
     startTime = currentTime;
@@ -251,7 +251,7 @@ function unstable_scheduleCallback(priorityLevel, callback, options) {
     sortIndex: -1,
   };
   if (startTime > currentTime) {
-    // 省略无关代码 v17.0.1中不会使用
+    // 省略无关代码 v17.0.2中不会使用
   } else {
     newTask.sortIndex = expirationTime;
     // 4. 加入任务队列
@@ -366,14 +366,14 @@ function workLoop(hasTimeRemaining, initialTime) {
 
 #### 可中断渲染原理
 
-在时间切片的基础之上, 如果单个`task.callback`执行时间就很长(假设 200ms). 就需要`task.callback`自己能够检测是否超时, 所以在 fiber 树构造过程中, 每构造完成一个单元, 都会检测一次超时([源码链接](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L1637-L1639)), 如遇超时就退出`fiber树构造循环`, 并返回一个新的回调函数(就是此处的`continuationCallback`)并等待下一次回调继续未完成的`fiber树构造`.
+在时间切片的基础之上, 如果单个`task.callback`执行时间就很长(假设 200ms). 就需要`task.callback`自己能够检测是否超时, 所以在 fiber 树构造过程中, 每构造完成一个单元, 都会检测一次超时([源码链接](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L1637-L1639)), 如遇超时就退出`fiber树构造循环`, 并返回一个新的回调函数(就是此处的`continuationCallback`)并等待下一次回调继续未完成的`fiber树构造`.
 
 ## 节流防抖 {#throttle-debounce}
 
 通过上文的分析, 已经覆盖了`scheduler`包中的核心原理. 现在再次回到`react-reconciler`包中, 在调度过程中的关键路径中, 我们还需要理解一些细节.
 
 在[reconciler 运作流程](./reconciler-workflow.md)中总结的 4 个阶段中, `注册调度任务`属于第 2 个阶段, 核心逻辑位于`ensureRootIsScheduled`函数中.
-现在我们已经理解了`调度原理`, 再次分析`ensureRootIsScheduled`([源码地址](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L674-L736)):
+现在我们已经理解了`调度原理`, 再次分析`ensureRootIsScheduled`([源码地址](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L674-L736)):
 
 ```js
 // ... 省略部分无关代码

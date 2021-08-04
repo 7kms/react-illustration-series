@@ -15,7 +15,7 @@ title: reconciler 运作流程
 3. 执行任务回调: 在内存中构造出`fiber树`, 同时与与渲染器(`react-dom`)交互, 在内存中创建出与`fiber`对应的`DOM`节点.
 4. 输出: 与渲染器(`react-dom`)交互, 渲染`DOM`节点.
 
-以上功能源码都集中在[ReactFiberWorkLoop.js](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberWorkLoop.old.js)中. 现在将这些功能(从输入到输出)串联起来, 用下图表示:
+以上功能源码都集中在[ReactFiberWorkLoop.js](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberWorkLoop.old.js)中. 现在将这些功能(从输入到输出)串联起来, 用下图表示:
 
 ![](../../snapshots/reconciler-workflow/reactfiberworkloop.png)
 
@@ -27,7 +27,7 @@ title: reconciler 运作流程
 
 ### 输入
 
-在`ReactFiberWorkLoop.js`中, 承接输入的函数只有`scheduleUpdateOnFiber`[源码地址](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L517-L619). 在`react-reconciler`对外暴露的 api 函数中, 只要涉及到需要改变 fiber 的操作(无论是`首次渲染`或`后续更新`操作), 最后都会间接调用`scheduleUpdateOnFiber`, 所以`scheduleUpdateOnFiber`函数是输入链路中的`必经之路`.
+在`ReactFiberWorkLoop.js`中, 承接输入的函数只有`scheduleUpdateOnFiber`[源码地址](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L517-L619). 在`react-reconciler`对外暴露的 api 函数中, 只要涉及到需要改变 fiber 的操作(无论是`首次渲染`或`后续更新`操作), 最后都会间接调用`scheduleUpdateOnFiber`, 所以`scheduleUpdateOnFiber`函数是输入链路中的`必经之路`.
 
 ```js
 // 唯一接收输入信号的函数
@@ -63,7 +63,7 @@ export function scheduleUpdateOnFiber(
 
 ### 注册调度任务
 
-与`输入`环节紧密相连, `scheduleUpdateOnFiber`函数之后, 立即进入`ensureRootIsScheduled`函数([源码地址](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L674-L736)):
+与`输入`环节紧密相连, `scheduleUpdateOnFiber`函数之后, 立即进入`ensureRootIsScheduled`函数([源码地址](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L674-L736)):
 
 ```js
 // ... 省略部分无关代码
@@ -122,7 +122,7 @@ function ensureRootIsScheduled(root: FiberRoot, currentTime: number) {
 
 任务回调, 实际上就是执行`performSyncWorkOnRoot`或`performConcurrentWorkOnRoot`. 简单看一下它们的源码(在`fiber树构造`章节再深入分析), 将主要逻辑剥离出来, 单个函数的代码量并不多.
 
-[performSyncWorkOnRoot](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L965-L1045):
+[performSyncWorkOnRoot](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L965-L1045):
 
 ```js
 // ... 省略部分无关代码
@@ -157,7 +157,7 @@ function performSyncWorkOnRoot(root) {
 2. 异常处理: 有可能 fiber 构造过程中出现异常
 3. 调用输出
 
-[performConcurrentWorkOnRoot](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L740-L839)
+[performConcurrentWorkOnRoot](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L740-L839)
 
 ```js
 // ... 省略部分无关代码
@@ -221,7 +221,7 @@ function performConcurrentWorkOnRoot(root) {
 
 ### 输出
 
-[`commitRoot`](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L1879-L2254):
+[`commitRoot`](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L1879-L2254):
 
 ```js
 // ... 省略部分无关代码

@@ -14,7 +14,7 @@ order: 1
 
 在正式分析源码之前, 先了解一下`react`应用的`启动模式`:
 
-在当前稳定版`react@17.0.1`源码中, 有 3 种启动方式. 先引出官网上对于[这 3 种模式的介绍](https://zh-hans.reactjs.org/docs/concurrent-mode-adoption.html#why-so-many-modes), 其基本说明如下:
+在当前稳定版`react@17.0.2`源码中, 有 3 种启动方式. 先引出官网上对于[这 3 种模式的介绍](https://zh-hans.reactjs.org/docs/concurrent-mode-adoption.html#why-so-many-modes), 其基本说明如下:
 
 1. `legacy` 模式: `ReactDOM.render(<App />, rootNode)`. 这是当前 React app 使用的方式. 这个模式可能不支持[这些新功能(concurrent 支持的所有功能)](https://zh-hans.reactjs.org/docs/concurrent-mode-patterns.html#the-three-steps).
 
@@ -45,7 +45,7 @@ order: 1
    reactDOMRoot.render(<App />); // 不支持回调
    ```
 
-注意: 虽然`17.0.1`的源码中有[`createRoot`和`createBlockingRoot`方法](https://github.com/facebook/react/blob/v17.0.1/packages/react-dom/src/client/ReactDOM.js#L202)(如果自行构建, [会默认构建`experimental`版本](https://github.com/facebook/react/blob/v17.0.1/scripts/rollup/build.js#L30-L35)), 但是稳定版的构建入口[排除掉了这两个 api](https://github.com/facebook/react/blob/v17.0.1/packages/react-dom/index.stable.js), 所以实际在`npm i react-dom`安装`17.0.1`稳定版后, 不能使用该 api.如果要想体验非`legacy`模式, 需要[显示安装实验版本](https://zh-hans.reactjs.org/docs/concurrent-mode-adoption.html#installation)(或自行构建).
+注意: 虽然`17.0.2`的源码中有[`createRoot`和`createBlockingRoot`方法](https://github.com/facebook/react/blob/v17.0.2/packages/react-dom/src/client/ReactDOM.js#L202)(如果自行构建, [会默认构建`experimental`版本](https://github.com/facebook/react/blob/v17.0.2/scripts/rollup/build.js#L30-L35)), 但是稳定版的构建入口[排除掉了这两个 api](https://github.com/facebook/react/blob/v17.0.2/packages/react-dom/index.stable.js), 所以实际在`npm i react-dom`安装`17.0.2`稳定版后, 不能使用该 api.如果要想体验非`legacy`模式, 需要[显示安装实验版本](https://zh-hans.reactjs.org/docs/concurrent-mode-adoption.html#installation)(或自行构建).
 
 ## 启动流程
 
@@ -57,16 +57,16 @@ order: 1
 
 无论`Legacy, Concurrent或Blocking`模式, react 在初始化时, 都会创建 3 个全局对象
 
-1. [`ReactDOM(Blocking)Root`对象](https://github.com/facebook/react/blob/v17.0.1/packages/react-dom/src/client/ReactDOMRoot.js#L62-L72)
+1. [`ReactDOM(Blocking)Root`对象](https://github.com/facebook/react/blob/v17.0.2/packages/react-dom/src/client/ReactDOMRoot.js#L62-L72)
 
-- 属于`react-dom`包, 该对象[暴露有`render,unmount`方法](https://github.com/facebook/react/blob/v17.0.1/packages/react-dom/src/client/ReactDOMRoot.js#L62-L104), 通过调用该实例的`render`方法, 可以引导 react 应用的启动.
+- 属于`react-dom`包, 该对象[暴露有`render,unmount`方法](https://github.com/facebook/react/blob/v17.0.2/packages/react-dom/src/client/ReactDOMRoot.js#L62-L104), 通过调用该实例的`render`方法, 可以引导 react 应用的启动.
 
-2. [`fiberRoot`对象](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberRoot.old.js#L83-L103)
+2. [`fiberRoot`对象](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberRoot.old.js#L83-L103)
 
    - 属于`react-reconciler`包, 作为`react-reconciler`在运行过程中的全局上下文, 保存 fiber 构建过程中所依赖的全局状态.
    - 其大部分实例变量用来存储`fiber 构造循环`(详见[`两大工作循环`](./workloop.md))过程的各种状态.react 应用内部, 可以根据这些实例变量的值, 控制执行逻辑.
 
-3. [`HostRootFiber`对象](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiber.old.js#L431-L449)
+3. [`HostRootFiber`对象](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiber.old.js#L431-L449)
    - 属于`react-reconciler`包, 这是 react 应用中的第一个 Fiber 对象, 是 Fiber 树的根节点, 节点的类型是`HostRoot`.
 
 这 3 个对象是 react 体系得以运行的基本保障, 一经创建大多数场景不会再销毁(除非卸载整个应用`root.unmount()`).
@@ -85,7 +85,7 @@ order: 1
 
 #### legacy 模式
 
-`legacy`模式表面上是直接调用`ReactDOM.render`, 跟踪`ReactDOM.render`后续调用`legacyRenderSubtreeIntoContainer`([源码链接](https://github.com/facebook/react/blob/v17.0.1/packages/react-dom/src/client/ReactDOMLegacy.js#L175-L222))
+`legacy`模式表面上是直接调用`ReactDOM.render`, 跟踪`ReactDOM.render`后续调用`legacyRenderSubtreeIntoContainer`([源码链接](https://github.com/facebook/react/blob/v17.0.2/packages/react-dom/src/client/ReactDOMLegacy.js#L175-L222))
 
 ```js
 function legacyRenderSubtreeIntoContainer(
@@ -389,7 +389,7 @@ ReactDOMRoot.prototype.render = ReactDOMBlockingRoot.prototype.render = function
 
 2. `concurrent`和`blocking`不会更改执行上下文, 直接调用`updateContainer`进行更新.
 
-继续跟踪[`updateContainer`函数](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberReconciler.old.js#L250-L321)
+继续跟踪[`updateContainer`函数](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberReconciler.old.js#L250-L321)
 
 ```js
 export function updateContainer(
@@ -432,7 +432,7 @@ react 中最广为人知的可中断渲染(render 可以中断, 部分生命周�
 
 对于`可中断渲染`的宣传最早来自[2017 年 Lin Clark 的演讲](http://conf2017.reactjs.org/speakers/lin). 演讲中阐述了未来 react 会应用 fiber 架构, `reconciliation可中断`等(13:15 秒). 在[`v16.1.0`](https://github.com/facebook/react/blob/master/CHANGELOG.md#1610-november-9-2017)中应用了 fiber.
 
-在最新稳定版[`v17.0.1`](https://github.com/facebook/react/blob/master/CHANGELOG.md#1701-october-22-2020)中, `可中断渲染`虽然实现, 但是并没有在稳定版暴露出 api. 只能[安装实验版本](https://zh-hans.reactjs.org/docs/concurrent-mode-adoption.html#installation)才能体验该特性.
+在最新稳定版[`v17.0.2`](https://github.com/facebook/react/blob/main/CHANGELOG.md#1702-march-22-2021)中, `可中断渲染`虽然实现, 但是并没有在稳定版暴露出 api. 只能[安装实验版本](https://zh-hans.reactjs.org/docs/concurrent-mode-adoption.html#installation)才能体验该特性.
 
 但是不少开发人员认为稳定版本的`react`已经是可中断渲染(其实是有误区的), 大概率也是受到了各类宣传文章的影响. 前端大环境还是比较浮躁的, 在当下, 更需要静下心来学习.
 

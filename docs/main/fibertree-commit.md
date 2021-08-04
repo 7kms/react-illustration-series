@@ -38,7 +38,7 @@ title: fiber 树渲染
 
 ## commitRoot
 
-整个渲染逻辑都在[commitRoot 函数中](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L1879-L2254):
+整个渲染逻辑都在[commitRoot 函数中](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L1879-L2254):
 
 ```js
 function commitRoot(root) {
@@ -362,7 +362,7 @@ function commitMutationEffects(
 2. `更新`: 函数调用栈 `commitWork` -> `commitUpdate`
 3. `删除`: 函数调用栈 `commitDeletion` -> `removeChild`
 
-最终会调用`appendChild, commitUpdate, removeChild`这些`react-dom`包中的函数. 它们是[`HostConfig`协议](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/README.md#practical-examples)([源码在 ReactDOMHostConfig.js 中](https://github.com/facebook/react/blob/v17.0.1/packages/react-dom/src/client/ReactDOMHostConfig.js))中规定的标准函数, 在渲染器`react-dom`包中进行实现. 这些函数就是直接操作 DOM, 所以执行之后, 界面也会得到更新.
+最终会调用`appendChild, commitUpdate, removeChild`这些`react-dom`包中的函数. 它们是[`HostConfig`协议](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/README.md#practical-examples)([源码在 ReactDOMHostConfig.js 中](https://github.com/facebook/react/blob/v17.0.2/packages/react-dom/src/client/ReactDOMHostConfig.js))中规定的标准函数, 在渲染器`react-dom`包中进行实现. 这些函数就是直接操作 DOM, 所以执行之后, 界面也会得到更新.
 
 注意: `commitMutationEffects`执行之后, 在`commitRootImpl`函数中切换当前`fiber`树(`root.current = finishedWork`),保证`fiberRoot.current`指向代表当前界面的`fiber树`.
 

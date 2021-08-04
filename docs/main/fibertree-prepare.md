@@ -31,11 +31,11 @@ title: fiber 树构造(基础准备)
 
 在[React 应用中的高频对象](./object-structure.md)一文中, 已经介绍了`ReactElement`和`Fiber`对象的数据结构. 这里我们梳理出`ReactElement, Fiber, DOM`这 3 种对象的关系
 
-1. [ReactElement 对象](https://github.com/facebook/react/blob/v17.0.1/packages/react/src/ReactElement.js#L126-L146)(type 定义在[shared 包中](https://github.com/facebook/react/blob/v17.0.1/packages/shared/ReactElementType.js#L15))
+1. [ReactElement 对象](https://github.com/facebook/react/blob/v17.0.2/packages/react/src/ReactElement.js#L126-L146)(type 定义在[shared 包中](https://github.com/facebook/react/blob/v17.0.2/packages/shared/ReactElementType.js#L15))
 
    - 所有采用`jsx`语法书写的节点, 都会被编译器转换, 最终会以`React.createElement(...)`的方式, 创建出来一个与之对应的`ReactElement`对象
 
-2. [fiber 对象](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiber.old.js#L116-L155)(type 类型的定义在[ReactInternalTypes.js](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactInternalTypes.js#L47-L174)中)
+2. [fiber 对象](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiber.old.js#L116-L155)(type 类型的定义在[ReactInternalTypes.js](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactInternalTypes.js#L47-L174)中)
 
    - `fiber对象`是通过`ReactElement`对象进行创建的, 多个`fiber对象`构成了一棵`fiber树`, `fiber树`是构造`DOM树`的数据模型, `fiber树`的任何改动, 最后都体现到`DOM树`.
 
@@ -57,9 +57,9 @@ title: fiber 树构造(基础准备)
 
 ## 全局变量
 
-从[React 工作循环](./workloop.md)的角度来看, 整个构造过程被包裹在`fiber树构造循环`中(对应源码位于[ReactFiberWorkLoop.js](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberWorkLoop.old.js)).
+从[React 工作循环](./workloop.md)的角度来看, 整个构造过程被包裹在`fiber树构造循环`中(对应源码位于[ReactFiberWorkLoop.js](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberWorkLoop.old.js)).
 
-在`React`运行时, `ReactFiberWorkLoop.js`闭包中的`全局变量`会随着`fiber树构造循环`的进行而变化, 现在查看其中重要的全局变量([源码链接](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L247-L367)):
+在`React`运行时, `ReactFiberWorkLoop.js`闭包中的`全局变量`会随着`fiber树构造循环`的进行而变化, 现在查看其中重要的全局变量([源码链接](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L247-L367)):
 
 ```js
 // 当前React的执行栈(执行上下文)
@@ -122,7 +122,7 @@ const CommitContext = /*                */ 0b0100000;
 
 上文回顾了`reconciler 运作流程`的 4 个阶段, 这 4 个阶段只是一个整体划分. 如果具体到每一次更新, 是有差异的. 比如说: `Legacy`模式下的所有更新, 不会经过`调度中心`(第 2 阶段),而是直接进入`fiber树构造`(第 3 阶段).
 
-事实上正是`executionContext`在操控`reconciler 运作流程`(源码体现在[scheduleUpdateOnFiber 函数](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L517-L619)).
+事实上正是`executionContext`在操控`reconciler 运作流程`(源码体现在[scheduleUpdateOnFiber 函数](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L517-L619)).
 
 ```js
 export function scheduleUpdateOnFiber(
@@ -190,7 +190,7 @@ export function scheduleUpdateOnFiber(
 
 在[React 应用中的高频对象](./object-structure.md#Update)一文中, 介绍过`update`对象, 它是一个环形链表. 对于单个`update`对象来讲, `update.lane`代表它的优先级, 称之为`update`优先级.
 
-观察其构造函数([源码链接](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactUpdateQueue.old.js#L152-L163)),其优先级是由外界传入.
+观察其构造函数([源码链接](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactUpdateQueue.old.js#L152-L163)),其优先级是由外界传入.
 
 ```js
 export function createUpdate(eventTime: number, lane: Lane): Update<*> {
@@ -208,7 +208,7 @@ export function createUpdate(eventTime: number, lane: Lane): Update<*> {
 
 在`React`体系中, 有 2 种情况会创建`update`对象:
 
-1. 应用初始化: 在`react-reconciler`包中的`updateContainer`函数中([源码](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberReconciler.old.js#L250-L321))
+1. 应用初始化: 在`react-reconciler`包中的`updateContainer`函数中([源码](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberReconciler.old.js#L250-L321))
    ```js
    export function updateContainer(
      element: ReactNodeList,
@@ -226,7 +226,7 @@ export function createUpdate(eventTime: number, lane: Lane): Update<*> {
      return lane;
    }
    ```
-2. 发起组件更新: 假设在 class 组件中调用`setState`([源码](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberClassComponent.old.js#L193-L288))
+2. 发起组件更新: 假设在 class 组件中调用`setState`([源码](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberClassComponent.old.js#L193-L288))
 
 ```js
 const classComponentUpdater = {
@@ -245,7 +245,7 @@ const classComponentUpdater = {
 
 可以看到, 无论是`应用初始化`或者`发起组件更新`, 创建`update.lane`的逻辑都是一样的, 都是根据当前时间, 创建一个 update 优先级.
 
-[requestUpdateLane](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L392-L493):
+[requestUpdateLane](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L392-L493):
 
 ```js
 export function requestUpdateLane(fiber: Fiber): Lane {
@@ -301,7 +301,7 @@ export function requestUpdateLane(fiber: Fiber): Lane {
 2. blocking 模式: 返回`SyncLane`
 3. concurrent 模式:
    - 正常情况下, 根据当前的`调度优先级`来生成一个`lane`.
-   - 特殊情况下(处于 suspense 过程中), 会优先选择`TransitionLanes`通道中的空闲通道(如果所有`TransitionLanes`通道都被占用, 就取最高优先级. [源码](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberLane.js#L548-L563)).
+   - 特殊情况下(处于 suspense 过程中), 会优先选择`TransitionLanes`通道中的空闲通道(如果所有`TransitionLanes`通道都被占用, 就取最高优先级. [源码](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberLane.js#L548-L563)).
 
 最后通过`scheduleUpdateOnFiber(current, lane, eventTime);`函数, 把`update.lane`正式带入到了`输入`阶段.
 
@@ -367,7 +367,7 @@ function performConcurrentWorkOnRoot(root) {
 }
 ```
 
-可以看到, 无论是`Legacy`还是`Concurrent`模式, 在正式`render`之前, 都会调用`getNextLanes`获取一个优先级([源码链接](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberLane.js#L249-L303)).
+可以看到, 无论是`Legacy`还是`Concurrent`模式, 在正式`render`之前, 都会调用`getNextLanes`获取一个优先级([源码链接](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberLane.js#L249-L303)).
 
 ```js
 // ...省略部分代码
@@ -447,7 +447,7 @@ function performConcurrentWorkOnRoot(root) {
 
 1. `fiber.lanes`: 代表本节点的优先级
 2. `fiber.childLanes`: 代表子节点的优先级
-   从`FiberNode`的构造函数中可以看出, `fiber.lanes`和`fiber.childLanes`的初始值都为`NoLanes`, 在`fiber树构造`过程中, 使用全局的渲染优先级(`renderLanes`)和`fiber.lanes`判断`fiber`节点是否更新([源码地址](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberBeginWork.old.js#L3121-L3296)).
+   从`FiberNode`的构造函数中可以看出, `fiber.lanes`和`fiber.childLanes`的初始值都为`NoLanes`, 在`fiber树构造`过程中, 使用全局的渲染优先级(`renderLanes`)和`fiber.lanes`判断`fiber`节点是否更新([源码地址](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberBeginWork.old.js#L3121-L3296)).
    - 如果全局的渲染优先级`renderLanes`不包括`fiber.lanes`, 证明该`fiber`节点没有更新, 可以复用.
    - 如果不能复用, 进入创建阶段.
 
@@ -504,7 +504,7 @@ function beginWork(
 
 如果从单个变量来看, 它们就是一个个的全局变量. 如果将这些全局变量组合起来, 它们代表了当前`fiber树`构造的活动记录. 通过这一组全局变量, 可以还原`fiber树`构造过程(比如时间切片的实现过程(参考[React 调度原理](./scheduler.md#内核)), `fiber树`构造过程被打断之后需要还原进度, 全靠这一组全局变量). 所以每次`fiber树`构造是一个独立的过程, 需要`独立的`一组全局变量, 在`React`内部把这一个独立的过程封装为一个栈帧`stack`(简单来说就是每次构造都需要独立的空间. 对于`栈帧`的深入理解, 请读者自行参考其他资料).
 
-所以在进行`fiber树`构造之前, 如果不需要恢复上一次构造进度, 都会刷新栈帧(源码在[prepareFreshStack 函数](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L1301-L1337))
+所以在进行`fiber树`构造之前, 如果不需要恢复上一次构造进度, 都会刷新栈帧(源码在[prepareFreshStack 函数](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L1301-L1337))
 
 ```js
 function renderRootConcurrent(root: FiberRoot, lanes: Lanes) {

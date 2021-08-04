@@ -94,7 +94,7 @@ const test = () => {
 
 在`fiber`树创建过程中, 如果使用了[`Context api`](https://zh-hans.reactjs.org/docs/context.html#reactcreatecontext)(具体来说是使用`Context.Provider`, `Class.contextType`, `Context.Consumer`等`api`), `react`内部会维护一个`栈`来保存提供者(`Context.Provider`)的状态, 供给消费者(`Context.Consumer`)使用.
 
-首先看`stack`的定义([ReactFiberStack.js](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberStack.old.js#L10-L71)中):
+首先看`stack`的定义([ReactFiberStack.js](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberStack.old.js#L10-L71)中):
 
 ```js
 export type StackCursor<T> = {| current: T |};
@@ -132,7 +132,7 @@ function push<T>(cursor: StackCursor<T>, value: T, fiber: Fiber): void {
 
 在`ReactFiberStack.js`源码中, 定义的`valueStack`作为全局变量, 用来存储所有的`StackCursor.current`(不仅仅存储`context api`相关的`StackCursor`, 在`context 原理`章节中详细解读, 本节只讨论与`contex api`相关的栈操作).
 
-注意`StackCursor`是一个泛型对象, 与`context api`相关的`StackCursor`定义在[`ReactFiberNewContext.js`](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberNewContext.old.js#L38):
+注意`StackCursor`是一个泛型对象, 与`context api`相关的`StackCursor`定义在[`ReactFiberNewContext.js`](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberNewContext.old.js#L38):
 
 ```js
 // 定义全局 valueCursor, 用于管理<Context.Provider/>组件的value
@@ -217,11 +217,11 @@ export default function App() {
 
 ### executionContext 执行上下文
 
-`executionContext`是在`ReactFiberWorkLoop.js`中定义的一个[全局变量(相对于该闭包)](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L247-L256), 且定义成二进制变量, 通过位运算来维护其状态(在[React 算法之位运算](./bitfiled.md)一文中已有介绍).
+`executionContext`是在`ReactFiberWorkLoop.js`中定义的一个[全局变量(相对于该闭包)](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L247-L256), 且定义成二进制变量, 通过位运算来维护其状态(在[React 算法之位运算](./bitfiled.md)一文中已有介绍).
 
 表面上看`executionContext`和栈并没有直接关系, 但实际在改变`executionContext`的时候, 巧妙的利用了`函数调用栈`, 实现`executionContext`状态的维护.
 
-本节主要是体现`executionContext`和`函数调用栈`之间的配合运用([具体源码](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L1117-L1207)), 这里以`batchedUpdates`和`unbatchedUpdates`为例进行分析.
+本节主要是体现`executionContext`和`函数调用栈`之间的配合运用([具体源码](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L1117-L1207)), 这里以`batchedUpdates`和`unbatchedUpdates`为例进行分析.
 
 ```js
 export function batchedUpdates<A, R>(fn: A => R, a: A): R {

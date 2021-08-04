@@ -4,7 +4,7 @@ title: 宏观包结构
 
 # React 应用的宏观包结构(web 开发)
 
-> React 工程目录的 packages 下包含 35 个包([`@17.0.1`版本](https://github.com/facebook/react/tree/v17.0.1)).
+> React 工程目录的 packages 下包含 35 个包([`@17.0.2`版本](https://github.com/facebook/react/tree/v17.0.2)).
 > 其中与`web`开发相关的核心包共有 4 个, 本系列近 20 篇文章, 以这 4 个包为线索进行展开, 深入理解 react 内部作用原理.
 
 ## 基础包结构
@@ -58,13 +58,13 @@ title: 宏观包结构
       - 循环消费任务队列, 直到队列清空.
    2. 构造器
       `react-reconciler`包, 有 3 个核心职责:
-      1. 装载渲染器, 渲染器必须实现[`HostConfig`协议](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/README.md#practical-examples)(如: `react-dom`), 保证在需要的时候, 能够正确调用渲染器的 api, 生成实际节点(如: `dom`节点).
+      1. 装载渲染器, 渲染器必须实现[`HostConfig`协议](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/README.md#practical-examples)(如: `react-dom`), 保证在需要的时候, 能够正确调用渲染器的 api, 生成实际节点(如: `dom`节点).
       2. 接收`react-dom`包(初次`render`)和`react`包(后续更新`setState`)发起的更新请求.
       3. 将`fiber`树的构造过程包装在一个回调函数中, 并将此回调函数传入到`scheduler`包等待调度.
    3. 渲染器
       `react-dom`包, 有 2 个核心职责:
       1. 引导`react`应用的启动(通过`ReactDOM.render`).
-      2. 实现[`HostConfig`协议](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/README.md#practical-examples)([源码在 ReactDOMHostConfig.js 中](https://github.com/facebook/react/blob/v17.0.1/packages/react-dom/src/client/ReactDOMHostConfig.js)), 能够将`react-reconciler`包构造出来的`fiber`树表现出来, 生成 dom 节点(浏览器中), 生成字符串(ssr).
+      2. 实现[`HostConfig`协议](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/README.md#practical-examples)([源码在 ReactDOMHostConfig.js 中](https://github.com/facebook/react/blob/v17.0.2/packages/react-dom/src/client/ReactDOMHostConfig.js)), 能够将`react-reconciler`包构造出来的`fiber`树表现出来, 生成 dom 节点(浏览器中), 生成字符串(ssr).
 
 注意:
 

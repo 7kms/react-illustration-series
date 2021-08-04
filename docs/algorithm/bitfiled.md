@@ -125,7 +125,7 @@ lanes 是`17.x`版本中开始引入的重要概念, 代替了`16.x`版本中的
 
 变量定义:
 
-首先看源码[ReactFiberLane.js](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberLane.js#L74-L103)中的定义
+首先看源码[ReactFiberLane.js](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberLane.js#L74-L103)中的定义
 
 ```js
 //类型定义
@@ -159,7 +159,7 @@ export const OffscreenLane: Lane = /*                   */ 0b1000000000000000000
 
 注意: 源码中变量只列出了 31 位, 由于 js 中位运算都会转换成`Int32`(上文已经解释), 最多为 32 位, 且最高位是符号位. 所以除去符号位, 最多只有 31 位可以参与运算.
 
-[方法定义](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberLane.js#L121-L194):
+[方法定义](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberLane.js#L121-L194):
 
 ```js
 function getHighestPriorityLanes(lanes: Lanes | Lane): Lanes {
@@ -221,7 +221,7 @@ function getLowestPriorityLane(lanes: Lanes): Lane {
 
 `ExecutionContext`定义与`react-reconciler`包中, 代表`reconciler`在运行时的上下文状态(在`reconciler 执行上下文`章节中深入解读, 此处介绍位运算的应用).
 
-[变量定义](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L247-L256):
+[变量定义](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L247-L256):
 
 ```js
 export const NoContext = /*             */ 0b0000000;
@@ -241,7 +241,7 @@ let executionContext: ExecutionContext = NoContext;
 
 注意: 和`lanes`的定义不同, `ExecutionContext`类型的变量, 在定义的时候采取的是 8 位二进制表示(因为变量的数量少, 8 位就够了, 没有必要写成 31 位).
 
-使用(由于使用的地方较多, 所以举一个[代表性强的例子](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L517-L619), `scheduleUpdateOnFiber` 函数是`react-reconciler`包对`react`包暴露出来的 api, 每一次更新都会调用, 所以比较特殊):
+使用(由于使用的地方较多, 所以举一个[代表性强的例子](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L517-L619), `scheduleUpdateOnFiber` 函数是`react-reconciler`包对`react`包暴露出来的 api, 每一次更新都会调用, 所以比较特殊):
 
 ```js
 // scheduleUpdateOnFiber函数中包含了好多关于executionContext的判断(都是使用位运算)

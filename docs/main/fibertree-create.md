@@ -58,7 +58,7 @@ export default App;
 document.getElementById('root')._reactRootContainer._internalRoot.current;
 ```
 
-然后进入`react-reconciler`包调用[updateContainer 函数](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberReconciler.old.js#L250-L321):
+然后进入`react-reconciler`包调用[updateContainer 函数](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberReconciler.old.js#L250-L321):
 
 ```js
 // ... 省略了部分代码
@@ -101,7 +101,7 @@ export function updateContainer(
 
 ![](./../../snapshots/fibertree-create/initial-status.png)
 
-在[scheduleUpdateOnFiber 函数](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L517-L619)中:
+在[scheduleUpdateOnFiber 函数](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L517-L619)中:
 
 ```js
 // ...省略部分代码
@@ -125,7 +125,7 @@ export function scheduleUpdateOnFiber(
 }
 ```
 
-可以看到, 在`Legacy`模式下且首次渲染时, 有 2 个函数[markUpdateLaneFromFiberToRoot](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L625-L667)和[performSyncWorkOnRoot](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L965-L1045).
+可以看到, 在`Legacy`模式下且首次渲染时, 有 2 个函数[markUpdateLaneFromFiberToRoot](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L625-L667)和[performSyncWorkOnRoot](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L965-L1045).
 
 其中`markUpdateLaneFromFiberToRoot(fiber, lane)`函数在`fiber树构造(对比更新)`中才会发挥作用, 因为在`初次创建`时并没有与当前页面所对应的`fiber树`, 所以核心代码并没有执行, 最后直接返回了`FiberRoot`对象.
 
@@ -160,7 +160,7 @@ function performSyncWorkOnRoot(root) {
 
 其中`getNextLanes`返回本次 render 的渲染优先级(详见[fiber 树构造(基础准备)](./fibertree-prepare.md#优先级)中`优先级`相关小节)
 
-[renderRootSync](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L1490-L1553)
+[renderRootSync](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L1490-L1553)
 
 ```js
 function renderRootSync(root: FiberRoot, lanes: Lanes) {
@@ -212,7 +212,7 @@ function workLoopConcurrent() {
 
 可以看到`workLoopConcurrent`相比于`Sync`, 会多一个停顿机制, 这个机制实现了`时间切片`和`可中断渲染`(参考[React 调度原理](./scheduler.md#时间切片原理))
 
-结合`performUnitOfWork函数`([源码地址](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L1642-L1668))
+结合`performUnitOfWork函数`([源码地址](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L1642-L1668))
 
 ```js
 // ... 省略部分无关代码
@@ -246,7 +246,7 @@ function performUnitOfWork(unitOfWork: Fiber): void {
 
 ### 探寻阶段 beginWork
 
-`beginWork(current, unitOfWork, subtreeRenderLanes)`([源码地址](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberBeginWork.old.js#L3083-L3494))针对所有的 Fiber 类型, 其中的每一个 case 处理一种 Fiber 类型. `updateXXX`函数(如: `updateHostRoot`, `updateClassComponent` 等)的主要逻辑:
+`beginWork(current, unitOfWork, subtreeRenderLanes)`([源码地址](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberBeginWork.old.js#L3083-L3494))针对所有的 Fiber 类型, 其中的每一个 case 处理一种 Fiber 类型. `updateXXX`函数(如: `updateHostRoot`, `updateClassComponent` 等)的主要逻辑:
 
 1. 根据 `ReactElement`对象创建所有的`fiber`节点, 最终构造出`fiber树形结构`(设置`return`和`sibling`指针)
 2. 设置`fiber.flags`(二进制形式变量, 用来标记 `fiber`节点 的`增,删,改`状态, 等待`completeWork阶段处理`)
@@ -322,7 +322,7 @@ function beginWork(
 
 这里列出`updateHostRoot`, `updateHostComponent`的代码, 对于其他常用 case 的分析(如`class`类型, `function`类型), 在`状态组件`章节中进行探讨.
 
-`fiber树`的根节点是`HostRootFiber`节点, 所以第一次进入`beginWork`会调用[updateHostRoot(current, workInProgress, renderLanes)](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberBeginWork.old.js#L1053-L1122)
+`fiber树`的根节点是`HostRootFiber`节点, 所以第一次进入`beginWork`会调用[updateHostRoot(current, workInProgress, renderLanes)](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberBeginWork.old.js#L1053-L1122)
 
 ```js
 // 省略与本节无关代码
@@ -349,7 +349,7 @@ function updateHostRoot(current, workInProgress, renderLanes) {
 }
 ```
 
-普通 DOM 标签类型的节点(如`div`,`span`,`p`),会进入[updateHostComponent](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberBeginWork.old.js#L1124-L1157):
+普通 DOM 标签类型的节点(如`div`,`span`,`p`),会进入[updateHostComponent](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberBeginWork.old.js#L1124-L1157):
 
 ```js
 // ...省略部分无关代码
@@ -383,7 +383,7 @@ function updateHostComponent(
 
 ### 回溯阶段 completeWork
 
-`completeUnitOfWork(unitOfWork)`([源码地址](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L1670-L1802)), 处理 `beginWork` 阶段已经创建出来的 `fiber` 节点, 核心逻辑:
+`completeUnitOfWork(unitOfWork)`([源码地址](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L1670-L1802)), 处理 `beginWork` 阶段已经创建出来的 `fiber` 节点, 核心逻辑:
 
 1.  调用`completeWork`
     - 给`fiber`节点(tag=HostComponent, HostText)创建 DOM 实例, 设置`fiber.stateNode`局部状态(如`tag=HostComponent, HostText`节点: fiber.stateNode 指向这个 DOM 实例).
@@ -458,7 +458,7 @@ function completeUnitOfWork(unitOfWork: Fiber): void {
 }
 ```
 
-接下来分析`fiber`处理函数[completeWork](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberCompleteWork.old.js#L645-L1289)
+接下来分析`fiber`处理函数[completeWork](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberCompleteWork.old.js#L645-L1289)
 
 ```js
 function completeWork(
@@ -543,7 +543,7 @@ function completeWork(
 
 - 执行前: `workInProgress`指针指向`HostRootFiber.alternate`对象, 此时`current = workInProgress.alternate`指向`fiberRoot.current`是非空的(初次构造, 只在根节点时, `current`非空).
 - 执行过程: 调用`updateHostRoot`
-  - 在`reconcilerChildren`阶段, 向下构造`次级子节点fiber(<App/>)`, 同时设置子节点(`fiber(<App/>)`)[fiber.flags |= Placement](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactChildFiber.old.js#L376-L378)
+  - 在`reconcilerChildren`阶段, 向下构造`次级子节点fiber(<App/>)`, 同时设置子节点(`fiber(<App/>)`)[fiber.flags |= Placement](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactChildFiber.old.js#L376-L378)
 - 执行后: 返回下级节点`fiber(<App/>)`, 移动`workInProgress`指针指向子节点`fiber(<App/>)`
 
 ![](../../snapshots/fibertree-create/unitofwork1.png)
@@ -552,8 +552,8 @@ function completeWork(
 
 - 执行前: `workInProgress`指针指向`fiber(<App/>)`节点, 此时`current = null`
 - 执行过程: 调用`updateClassComponent`
-  - 本示例中, class 实例存在生命周期函数`componentDidMount`, 所以会设置`fiber(<App/>)`节点[workInProgress.flags |= Update](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberClassComponent.old.js#L892-L894)
-  - 另外也会为了`React DevTools`能够识别状态组件的执行进度, 会设置[workInProgress.flags |= PerformedWork](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberBeginWork.old.js#L379)(在`commit`阶段会排除这个`flag`, 此处只是列出`workInProgress.flags`的设置场景, 不讨论`React DevTools`)
+  - 本示例中, class 实例存在生命周期函数`componentDidMount`, 所以会设置`fiber(<App/>)`节点[workInProgress.flags |= Update](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberClassComponent.old.js#L892-L894)
+  - 另外也会为了`React DevTools`能够识别状态组件的执行进度, 会设置[workInProgress.flags |= PerformedWork](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberBeginWork.old.js#L379)(在`commit`阶段会排除这个`flag`, 此处只是列出`workInProgress.flags`的设置场景, 不讨论`React DevTools`)
   - 需要注意`classInstance.render()`在本步骤执行后, 虽然返回了`render`方法中所有的`ReactElement`对象, 但是随后`reconcilerChildren`只构造`次级子节点`
   - 在`reconcilerChildren`阶段, 向下构造`次级子节点div`
 - 执行后: 返回下级节点`fiber(div)`, 移动`workInProgress`指针指向子节点`fiber(div)`
@@ -573,7 +573,7 @@ function completeWork(
 
 - `beginWork`执行前: `workInProgress`指针指向`fiber(header)`节点, 此时`current = null`
 - `beginWork`执行过程: 调用`updateHostComponent`
-  - 本示例中`header`的子节点是一个[直接文本节点](https://github.com/facebook/react/blob/8e5adfbd7e605bda9c5e96c10e015b3dc0df688e/packages/react-dom/src/client/ReactDOMHostConfig.js#L350-L361),设置[nextChildren = null](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberBeginWork.old.js#L1147)(源码注释的解释是不用在开辟内存去创建一个文本节点, 同时还能减少向下遍历).
+  - 本示例中`header`的子节点是一个[直接文本节点](https://github.com/facebook/react/blob/8e5adfbd7e605bda9c5e96c10e015b3dc0df688e/packages/react-dom/src/client/ReactDOMHostConfig.js#L350-L361),设置[nextChildren = null](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberBeginWork.old.js#L1147)(源码注释的解释是不用在开辟内存去创建一个文本节点, 同时还能减少向下遍历).
   - 由于`nextChildren = null`, 经过`reconcilerChildren`阶段处理后, 返回值也是`null`
 - `beginWork`执行后: 由于下级节点为`null`, 所以进入`completeUnitOfWork(unitOfWork)`函数, 传入的参数`unitOfWork`实际上就是`workInProgress`(此时指向`fiber(header)`节点)
 
@@ -648,7 +648,7 @@ function completeWork(
 
 第 5 次循环:
 
-1. 执行`completeWork`函数: 对于`HostRoot`类型的节点, 初次构造时设置[workInProgress.flags |= Snapshot](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberCompleteWork.old.js#L693)
+1. 执行`completeWork`函数: 对于`HostRoot`类型的节点, 初次构造时设置[workInProgress.flags |= Snapshot](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberCompleteWork.old.js#L693)
 2. 向上回溯: 由于父节点为空, 无需进入处理副作用队列的逻辑. 最后设置`workInProgress=null`, 并退出`completeUnitOfWork`
 
 ![](../../snapshots/fibertree-create/unitofwork7.4.png)

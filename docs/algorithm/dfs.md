@@ -79,7 +79,7 @@ function dfs(node) {
 
 `ReactElement`树的构造, 实际上就是各级组件`render`之后的总和. 整个过程体现在`reconciler`工作循环之中.
 
-源码位于[`ReactFiberWorkLoop.js`](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L1558)中, 此处为了简明, 已经将源码中与 dfs 无关的旁支逻辑去掉.
+源码位于[`ReactFiberWorkLoop.js`](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L1558)中, 此处为了简明, 已经将源码中与 dfs 无关的旁支逻辑去掉.
 
 ```js
 function workLoopSync() {
@@ -178,7 +178,7 @@ export default App;
 
 ### 查找 context 的消费节点
 
-当`context`改变之后, 需要找出依赖该`context`的所有子节点(详细分析会在`context原理`章节深入解读), 这里同样也是一个`DFS`, 具体源码在[ReactFiberNewContext.js](https://github.com/facebook/react/blob/v17.0.1/packages/react-reconciler/src/ReactFiberNewContext.old.js#L182-L295).
+当`context`改变之后, 需要找出依赖该`context`的所有子节点(详细分析会在`context原理`章节深入解读), 这里同样也是一个`DFS`, 具体源码在[ReactFiberNewContext.js](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberNewContext.old.js#L182-L295).
 
 将其主杆逻辑剥离出来, 可以清晰的看出采用循环递归的方式进行遍历:
 
