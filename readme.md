@@ -1,6 +1,6 @@
-# 图解 React 原理系列
+# 图解 React 源码系列
 
-> `react`原理, 基于[`react@17.x`](https://github.com/facebook/react/tree/v17.0.2)(尽可能跟随 react 版本的升级, 持续更新). 用大量配图的方式, 致力于将`react`原理表述清楚.
+> `react`源码, 基于[`react@17.0.2`](https://github.com/facebook/react/tree/v17.0.2)(尽可能跟随 react 版本的升级, 持续更新). 用大量配图的方式, 致力于将`react`原理表述清楚.
 
 ## 使用指南
 
@@ -64,7 +64,7 @@
 
 ### 交互
 
-- 合成事件原理(17.x 分支未完成, 可以参考 v16.13.1 分支中的分析)
+- [合成事件原理](./docs/main/synthetic-event.md)
 
 ### 高频算法
 

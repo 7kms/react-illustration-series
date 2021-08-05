@@ -45,7 +45,7 @@ order: 1
    reactDOMRoot.render(<App />); // 不支持回调
    ```
 
-注意: 虽然`17.0.2`的源码中有[`createRoot`和`createBlockingRoot`方法](https://github.com/facebook/react/blob/v17.0.2/packages/react-dom/src/client/ReactDOM.js#L202)(如果自行构建, [会默认构建`experimental`版本](https://github.com/facebook/react/blob/v17.0.2/scripts/rollup/build.js#L30-L35)), 但是稳定版的构建入口[排除掉了这两个 api](https://github.com/facebook/react/blob/v17.0.2/packages/react-dom/index.stable.js), 所以实际在`npm i react-dom`安装`17.0.2`稳定版后, 不能使用该 api.如果要想体验非`legacy`模式, 需要[显示安装实验版本](https://zh-hans.reactjs.org/docs/concurrent-mode-adoption.html#installation)(或自行构建).
+注意: 虽然`17.0.2`的源码中有[`createRoot`和`createBlockingRoot`方法](https://github.com/facebook/react/blob/v17.0.2/packages/react-dom/src/client/ReactDOM.js#L202)(如果自行构建, [会默认构建`experimental`版本](https://github.com/facebook/react/blob/v17.0.2/scripts/rollup/build.js#L30-L35)), 但是稳定版的构建入口[排除掉了这两个 api](https://github.com/facebook/react/blob/v17.0.2/packages/react-dom/index.stable.js), 所以实际在`npm i react-dom`安装`17.0.2`稳定版后, 不能使用该 api.如果要想体验非`legacy`模式, 需要[显示安装 alpha 版本](https://github.com/reactwg/react-18/discussions/9)(或自行构建).
 
 ## 启动流程
 
@@ -53,7 +53,7 @@ order: 1
 
 ![](../../snapshots/bootstrap/process-before.png)
 
-### 创建全局对象
+### 创建全局对象 {#create-global-obj}
 
 无论`Legacy, Concurrent或Blocking`模式, react 在初始化时, 都会创建 3 个全局对象
 
@@ -229,7 +229,7 @@ ReactDOMRoot.prototype.unmount = ReactDOMBlockingRoot.prototype.unmount = functi
 1. 调用`createRootImpl`创建`fiberRoot`对象, 并将其挂载到`this._internalRoot`上.
 2. 原型上有`render`和`umount`方法, 且内部都会调用`updateContainer`进行更新.
 
-### 创建 fiberRoot 对象
+### 创建 fiberRoot 对象 {#create-root-impl}
 
 无论哪种模式下, 在`ReactDOM(Blocking)Root`的创建过程中, 都会调用一个相同的函数`createRootImpl`, 查看后续的函数调用, 最后会创建`fiberRoot 对象`(在这个过程中, 特别注意`RootTag`的传递过程):
 
@@ -308,29 +308,6 @@ export function createHostRootFiber(tag: RootTag): Fiber {
 ```
 
 注意:`fiber`树中所节点的`mode`都会和`HostRootFiber.mode`一致(新建的 fiber 节点, 其 mode 来源于父节点),所以**HostRootFiber.mode**非常重要, 它决定了以后整个 fiber 树构建过程.
-
-#### fiber.updateQueue
-
-注意在在创建`HostRootFiber`的过程中调用了`initializeUpdateQueue`, 之后创建了`HostRootFiber.updateQueue`.`updateQueue`队列记录了该 fiber 节点的更新状态, 是实现组件更新的关键属性(在`状态组件class`章节中会详细解读).
-
-```js
-export function initializeUpdateQueue<State>(fiber: Fiber): void {
-  const queue: UpdateQueue<State> = {
-    baseState: fiber.memoizedState,
-    firstBaseUpdate: null,
-    lastBaseUpdate: null,
-    shared: {
-      pending: null,
-    },
-    effects: null,
-  };
-  fiber.updateQueue = queue;
-}
-```
-
-在[高频对象](./object-structure.md)章节中, 介绍过`fiber.updateQueue`属性, 以及[`updateQueue`对象](./object-structure.md#Update)的数据结构.由于`HostRootFiber`节点是`fiber`树的根节点, 此处的`updateQueue`比较特殊, 先记录下此刻`updateQueue`的属性值如下(在`fiber树构造`章节中再进行介绍):
-
-![](../../snapshots/bootstrap/update-queue.png)
 
 运行到这里, 3 个对象创建成功, `react`应用的初始化完毕.
 
@@ -432,7 +409,7 @@ react 中最广为人知的可中断渲染(render 可以中断, 部分生命周�
 
 对于`可中断渲染`的宣传最早来自[2017 年 Lin Clark 的演讲](http://conf2017.reactjs.org/speakers/lin). 演讲中阐述了未来 react 会应用 fiber 架构, `reconciliation可中断`等(13:15 秒). 在[`v16.1.0`](https://github.com/facebook/react/blob/master/CHANGELOG.md#1610-november-9-2017)中应用了 fiber.
 
-在最新稳定版[`v17.0.2`](https://github.com/facebook/react/blob/main/CHANGELOG.md#1702-march-22-2021)中, `可中断渲染`虽然实现, 但是并没有在稳定版暴露出 api. 只能[安装实验版本](https://zh-hans.reactjs.org/docs/concurrent-mode-adoption.html#installation)才能体验该特性.
+在最新稳定版[`v17.0.2`](https://github.com/facebook/react/blob/main/CHANGELOG.md#1702-march-22-2021)中, `可中断渲染`虽然实现, 但是并没有在稳定版暴露出 api. 只能[安装 alpha 版本](https://github.com/reactwg/react-18/discussions/9)才能体验该特性.
 
 但是不少开发人员认为稳定版本的`react`已经是可中断渲染(其实是有误区的), 大概率也是受到了各类宣传文章的影响. 前端大环境还是比较浮躁的, 在当下, 更需要静下心来学习.
 
