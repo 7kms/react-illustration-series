@@ -108,11 +108,11 @@ const AB = ABC & ~C; // 0b00000011
 
 // 属性比较
 // 1. AB当中包含B
-console.log(AB & (B === B)); // true
+console.log((AB & B) === B); // true
 // 2. AB当中不包含C
-console.log(AB & (C === 0)); // true
+console.log((AB & C) === 0); // true
 // 3. A和B相等
-console.log(A === B); // true
+console.log(A === B); // false
 ```
 
 ## React 当中的使用场景
