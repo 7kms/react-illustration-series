@@ -47,7 +47,7 @@ title: 宏观包结构
    - function 组件里面使用 hook,并发起`dispatchAction`去改变 hook 对象
    - 改变 context(其实也需要`setState`或`dispatchAction`的辅助才能改变)
 
-   以上`setState`和`dispatchAction`都由`react`包直接暴露. 所有要想 react 工作, 基本上是调用`react`包的 api 去与其他包进行交互.
+   以上`setState`和`dispatchAction`都由`react`包直接暴露. 所以要想 react 工作, 基本上是调用`react`包的 api 去与其他包进行交互.
 
 2. 内核层(core)
    整个内核部分, 由 3 部分构成:
