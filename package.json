@@ -1,11 +1,9 @@
-
 {
   "private": true,
   "name": "react-illustration-series",
   "version": "1.0.0",
   "scripts": {
     "start": "dumi dev",
-    "start2": "node /Users/tangl/projects/km7/pr/dumi/packages/dumi/bin/dumi.js dev",
     "build": "dumi build",
     "prettier": "prettier --write '**/*.{js,jsx,tsx,ts,less,md,json}'"
   },
@@ -24,7 +22,7 @@
     ]
   },
   "devDependencies": {
-    "dumi": "^1.0.7",
+    "dumi": "^1.1.28",
     "lint-staged": "^10.0.7",
     "prettier": "^1.19.1",
     "yorkie": "^2.0.0"
