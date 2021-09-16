@@ -35,7 +35,7 @@ title: 优先级管理
 
 首先引入作者对`Lane`的解释([相应的 pr](https://github.com/facebook/react/pull/18796)), 这里简单概括如下:
 
-1. `Lane`类型被定义为二进制变量, 利用了位掩码的特性, 在频繁的时候占用内存少, 计算速度快.
+1. `Lane`类型被定义为二进制变量, 利用了位掩码的特性, 在频繁运算的时候占用内存少, 计算速度快.
    - `Lane`和`Lanes`就是单数和复数的关系, 代表单个任务的定义为`Lane`, 代表多个任务的定义为`Lanes`
 2. `Lane`是对于`expirationTime`的重构, 以前使用`expirationTime`表示的字段, 都改为了`lane`
    ```js
@@ -69,7 +69,7 @@ title: 优先级管理
 
       > 在`expirationTime`模型设计之初, react 体系中还没有[Suspense 异步渲染](https://zh-hans.reactjs.org/docs/concurrent-mode-suspense.html)的概念.
       > 现在有如下场景: 有 3 个任务, 其优先级 `A > B > C`, 正常来讲只需要按照优先级顺序执行就可以了.
-      > 但是现在情况变了: A 和 C 任务是`CPU密集型`, 而 B 是`IO密集型`(Suspense 会调用远程 api, 算是 IO 任务), 即 `A(cup) > B(IO) > C(cpu)`. 此时的需求需要将任务`B`从 group 中分离出来, 先处理 cpu 任务`A和C`.
+      > 但是现在情况变了: A 和 C 任务是`CPU密集型`, 而 B 是`IO密集型`(Suspense 会调用远程 api, 算是 IO 任务), 即 `A(cpu) > B(IO) > C(cpu)`. 此时的需求需要将任务`B`从 group 中分离出来, 先处理 cpu 任务`A和C`.
 
       ```js
       // 从group中删除或增加task
