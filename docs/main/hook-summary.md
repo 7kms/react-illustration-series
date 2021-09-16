@@ -333,7 +333,7 @@ export function renderWithHooks<Props, SecondArg>(
 [![Edit hook-summary](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/hook-summary-wb7zz?fontsize=14&hidenavigation=1&theme=dark)
 
 ```jsx
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 export default function App() {
   // 1. useState
   const [a, setA] = useState(1);

@@ -163,7 +163,7 @@ dispatch({ type: 'decrement' });
 有如下代码:[![Edit hook-status](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/hook-status-vhlf8?fontsize=14&hidenavigation=1&theme=dark)
 
 ```jsx
-import { useState } from 'react';
+import React, { useState } from 'react';
 export default function App() {
   const [count, dispatch] = useState(0);
   return (
