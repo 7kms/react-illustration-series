@@ -529,7 +529,7 @@ function completeWork(
 
 可以看到在满足条件的时候也会设置`fiber.flags`, 所以设置`fiber.flags`并非只在`beginWork`阶段.
 
-### 过程图解
+## 过程图解
 
 针对本节的示例代码, 将整个`fiber`树构造过程表示出来:
 

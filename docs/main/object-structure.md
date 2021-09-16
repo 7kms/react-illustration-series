@@ -13,7 +13,7 @@ title: 高频对象
 
 ## react 包
 
-在[宏观结构](./macro-structure.md)中介绍过, 此包定义 react 组件(`ReactElement`)的必要函数, 提供一些操作`ReactElement`对象的 api.
+在[React 应用的宏观包结构](./macro-structure.md)中介绍过, 此包定义 react 组件(`ReactElement`)的必要函数, 提供一些操作`ReactElement`对象的 api.
 
 所以这个包的核心需要理解`ReactElement`对象, 假设有如下入口函数:
 

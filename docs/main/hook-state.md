@@ -462,7 +462,7 @@ function dispatchAction<S, A>(
 
 ![](../../snapshots/hook-state/async-final-compute.png)
 
-结论: 尽管`update`链表的优先级不同, 中间的`render`可能有多次, 但最终的更新结果等于`update`链表`按顺序合并`.
+> 结论: 尽管`update`链表的优先级不同, 中间的`render`可能有多次, 但最终的更新结果等于`update`链表`按顺序合并`.
 
 ## 总结
 

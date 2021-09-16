@@ -140,7 +140,7 @@ export const NoLanePriority: LanePriority = 0;
 
 与`fiber`构造过程相关的优先级(如`fiber.updateQueue`,`fiber.lanes`)都使用`LanePriority`.
 
-由于本节重点介绍优先级体系以及它们的转换关系, 关于`Lane(车道模型)`在`fiber树构造`时的具体使用, 在[fiber 树构造(基础准备)](./fibertree-prepare.md#优先级)一文中的`优先级`小节详细解读.
+由于本节重点介绍优先级体系以及它们的转换关系, 关于`Lane(车道模型)`在`fiber树构造`时的具体使用, 在`fiber 树构造`章节详细解读.
 
 ### SchedulerPriority
 
