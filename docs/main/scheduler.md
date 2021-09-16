@@ -158,7 +158,7 @@ forceFrameRate = function(fps) {
 const performWorkUntilDeadline = () => {
   if (scheduledHostCallback !== null) {
     const currentTime = getCurrentTime(); // 1. 获取当前时间
-    deadline = currentTime + yieldInterval; // 2. 设置deadeline
+    deadline = currentTime + yieldInterval; // 2. 设置deadline
     const hasTimeRemaining = true;
     try {
       // 3. 执行回调, 返回是否有还有剩余任务
