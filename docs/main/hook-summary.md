@@ -500,7 +500,7 @@ function updateWorkInProgressHook(): Hook {
 
 `updateWorkInProgressHook`函数逻辑简单: 目的是为了让`currentHook`和`workInProgressHook`两个指针同时向后移动.
 
-1. 由于`renderWithHooks函数`设置了`workInProgress.memoizedState=null`, 所以`workInProgress`初始值必然为`null`, 只能从`currentHook`克隆.
+1. 由于`renderWithHooks函数`设置了`workInProgress.memoizedState=null`, 所以`workInProgressHook`初始值必然为`null`, 只能从`currentHook`克隆.
 2. 而从`currentHook`克隆而来的`newHook.next=null`, 进而导致`workInProgressHook`链表需要完全重建.
 
 所以`function`执行完成之后, 有关`Hook`的内存结构如下:

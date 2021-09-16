@@ -27,7 +27,7 @@ title: 两大工作循环
    - `任务调度循环`是以`二叉堆`为数据结构(详见[react 算法之堆排序](../algorithm/heapsort.md)), 循环执行`堆`的顶点, 直到`堆`被清空.
    - `任务调度循环`的逻辑偏向宏观, 它调度的是每一个任务(`task`), 而不关心这个任务具体是干什么的(甚至可以将`Scheduler`包脱离`react`使用), 具体任务其实就是执行回调函数`performSyncWorkOnRoot`或`performConcurrentWorkOnRoot`.
    - `fiber构造循环`是以`树`为数据结构, 从上至下执行深度优先遍历(详见[react 算法之深度优先遍历](../algorithm/dfs.md)).
-   - `fiber构造循环`的逻辑偏向具体实现, 它是只是任务(`task`)的一部分(如`performSyncWorkOnRoot`包括: `fiber`树的构造, `DOM`渲染, 调度检测), 只负责的是`fiber`树的构造.
+   - `fiber构造循环`的逻辑偏向具体实现, 它只是任务(`task`)的一部分(如`performSyncWorkOnRoot`包括: `fiber`树的构造, `DOM`渲染, 调度检测), 只负责`fiber`树的构造.
 
 2. 联系
    - `fiber构造循环`是`任务调度循环`中的任务(`task`)的一部分. 它们是从属关系, 每个任务都会重新构造一个`fiber`树.
