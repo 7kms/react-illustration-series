@@ -307,7 +307,7 @@ export function createHostRootFiber(tag: RootTag): Fiber {
 }
 ```
 
-注意:`fiber`树中所节点的`mode`都会和`HostRootFiber.mode`一致(新建的 fiber 节点, 其 mode 来源于父节点),所以**HostRootFiber.mode**非常重要, 它决定了以后整个 fiber 树构建过程.
+注意:`fiber`树中所有节点的`mode`都会和`HostRootFiber.mode`一致(新建的 fiber 节点, 其 mode 来源于父节点),所以**HostRootFiber.mode**非常重要, 它决定了以后整个 fiber 树构建过程.
 
 运行到这里, 3 个对象创建成功, `react`应用的初始化完毕.
 
