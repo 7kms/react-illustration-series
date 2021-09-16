@@ -75,7 +75,7 @@ function dfs(node) {
 
 `ReactElement`不能算是严格的树结构, 为了方便表述, 后文都称之为树.
 
-在`react-reconciler`包中, `ReactElement`的构造过程实际上是  嵌套在`fiber树构造循环`过程中的, 与`fiber`树的构造是相互交替进行的(在`fiber 树构建`章节中详细解读, 本节只介绍深度优先遍历的使用场景).
+在`react-reconciler`包中, `ReactElement`的构造过程实际上是嵌套在`fiber树构造循环`过程中的, 与`fiber`树的构造是相互交替进行的(在`fiber 树构建`章节中详细解读, 本节只介绍深度优先遍历的使用场景).
 
 `ReactElement`树的构造, 实际上就是各级组件`render`之后的总和. 整个过程体现在`reconciler`工作循环之中.
 
