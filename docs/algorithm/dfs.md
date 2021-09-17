@@ -50,7 +50,7 @@ function dfs(node) {
   const stack = [];
   stack.push(node);
   // 栈顶元素还存在, 就继续循环
-  while ((node = stack[stack.lenth - 1])) {
+  while ((node = stack[stack.length - 1])) {
     if (node.visited) {
       console.log('回溯阶段: ', node.name);
       // 回溯完成, 弹出该元素
