@@ -146,7 +146,7 @@ class App_Content extends react_default.a.Component {
 上述示例演示了`ReactComponent`是诸多`ReactElement`种类中的一种情况, 但是由于`ReactComponent`是 class 类型, 自有它的特殊性(可[对照源码](https://github.com/facebook/react/blob/v17.0.2/packages/react/src/ReactBaseClasses.js), 更容易理解).
 
 1. `ReactComponent`是 class 类型, 继承父类`Component`, 拥有特殊的方法(`setState`,`forceUpdate`)和特殊的属性(`context`,`updater`等).
-2. 在`reconciler`阶段, 会依据`ReactElement`对象的特征, 生成对应的 fiber 节点. 当识别到`ReactElement`对象是 class 类型的时候, 会触发`ReactComponent` 对象的生命周期, 并调用其 `render`方法, 生成`ReactElement`子节点.
+2. 在`reconciler`阶段, 会依据`ReactElement`对象的特征, 生成对应的 fiber 节点. 当识别到`ReactElement`对象是 class 类型的时候, 会触发`ReactComponent`对象的生命周期, 并调用其 `render`方法, 生成`ReactElement`子节点.
 
 ### 其他`ReactElement`
 
@@ -185,7 +185,7 @@ class App_Content extends react_default.a.Component {
 先看数据结构, 其 type 类型的定义在[`ReactInternalTypes.js`](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactInternalTypes.js#L47-L174)中:
 
 ```js
-// 一个Fiber对象代表一个即将渲染或者已经渲染的组件(ReactElement), 一个组件可能对应多个fiber(current和WorkInProgress)
+// 一个Fiber对象代表一个即将渲染或者已经渲染的组件(ReactElement), 一个组件可能对应两个fiber(current和WorkInProgress)
 // 单个属性的解释在后文(在注释中无法添加超链接)
 export type Fiber = {|
   tag: WorkTag,
@@ -371,13 +371,13 @@ type UpdateQueue<S, A> = {|
 
 1. `Hook`
 
-- `memoizedState`: 内存状态, 用于输出给形成最终的`fiber`树
+- `memoizedState`: 内存状态, 用于输出成最终的`fiber`树
 - `baseState`: 基础状态, 当`Hook.queue`更新过后, `baseState`也会更新.
 - `baseQueue`: 基础状态队列, 在`reconciler`阶段会辅助状态合并.
 - `queue`: 指向一个`Update`队列
 - `next`: 指向该`function`组件的下一个`Hook`对象, 使得多个`Hook`之间也构成了一个链表.
 
-2. `UpdateQueue`和`Update`是为了保证`Hook`对象能够顺利更新, 与上文`fiber.updateQueue`中的`UpdateQueue和Update`是不一样的(且它们在不同的文件), 其逻辑会在状态组件(class 与 function)章节中详细解读.
+2. `Hook.queue`和 `Hook.baseQueue`(即`UpdateQueue`和`Update`）是为了保证`Hook`对象能够顺利更新, 与上文`fiber.updateQueue`中的`UpdateQueue和Update`是不一样的(且它们在不同的文件), 其逻辑会在状态组件(class 与 function)章节中详细解读.
 
 `Hook`与`fiber`的关系:
 
