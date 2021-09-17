@@ -573,7 +573,7 @@ function completeWork(
 
 - `beginWork`执行前: `workInProgress`指针指向`fiber(header)`节点, 此时`current = null`
 - `beginWork`执行过程: 调用`updateHostComponent`
-  - 本示例中`header`的子节点是一个[直接文本节点](https://github.com/facebook/react/blob/8e5adfbd7e605bda9c5e96c10e015b3dc0df688e/packages/react-dom/src/client/ReactDOMHostConfig.js#L350-L361),设置[nextChildren = null](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberBeginWork.old.js#L1147)(源码注释的解释是不用在开辟内存去创建一个文本节点, 同时还能减少向下遍历).
+  - 本示例中`header`的子节点是一个[直接文本节点](https://github.com/facebook/react/blob/8e5adfbd7e605bda9c5e96c10e015b3dc0df688e/packages/react-dom/src/client/ReactDOMHostConfig.js#L350-L361),设置[nextChildren = null](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberBeginWork.old.js#L1147)(直接文本节点并不会被当成具体的`fiber`节点进行处理, 而是在宿主环境(父组件)中通过属性进行设置. 所以无需创建`HostText`类型的fiber节点, 同时节省了向下遍历开销.).
   - 由于`nextChildren = null`, 经过`reconcilerChildren`阶段处理后, 返回值也是`null`
 - `beginWork`执行后: 由于下级节点为`null`, 所以进入`completeUnitOfWork(unitOfWork)`函数, 传入的参数`unitOfWork`实际上就是`workInProgress`(此时指向`fiber(header)`节点)
 
