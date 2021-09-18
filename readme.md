@@ -32,7 +32,7 @@
 
 - [`react@17.0.1`](https://github.com/facebook/react/releases/tag/v17.0.1)相较于主版本`v17.0.0`做了一个点的优化, [改动了 1 个文件](https://github.com/facebook/react/compare/v17.0.0...v17.0.1), 修复 ie11 兼容问题, 同时提升 v8 内部的执行性能.
 
-* [`react@17.0.2`](https://github.com/facebook/react/releases/tag/v17.0.2)相较于`v17.0.1`, 改动集中于`Scheduler`包, 主杆逻辑没有变动, 只与调度[性能统计相关](https://github.com/facebook/react/compare/v17.0.0...v17.0.1).
+* [`react@17.0.2`](https://github.com/facebook/react/releases/tag/v17.0.2)相较于`v17.0.1`, 改动集中于`Scheduler`包, 主杆逻辑没有变动, 只与调度[性能统计相关](https://github.com/facebook/react/compare/v17.0.1...v17.0.2).
 
 ## 主要类容
 
