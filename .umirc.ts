@@ -1,6 +1,6 @@
 import { defineConfig } from 'dumi';
-import path from 'path';
-// more config: https://d.umijs.org/config
+
+// More config: https://d.umijs.org/config.
 export default defineConfig({
   title: '图解React',
   mode: 'site',
@@ -9,6 +9,8 @@ export default defineConfig({
     '基于react@17.0.2.尽可能跟随react版本的升级,持续更新. 用大量配图的方式, 致力于将`react原理`表述清楚.',
   locales: [['zh-CN', '中文']],
   logo: '/logo.png',
+  base: '/react-illustration-series/',
+  publicPath: '/react-illustration-series/',
   menus: {
     '/main': [
       {
