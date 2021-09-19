@@ -1,16 +1,17 @@
 import { defineConfig } from 'dumi';
 
 // More config: https://d.umijs.org/config.
+const ghPagePublicPath = '/react-illustration-series/';
 export default defineConfig({
   title: '图解React',
   mode: 'site',
-  favicon: '/km@2x.png',
+  favicon: `${ghPagePublicPath}km@2x.png`,
   description:
     '基于react@17.0.2.尽可能跟随react版本的升级,持续更新. 用大量配图的方式, 致力于将`react原理`表述清楚.',
   locales: [['zh-CN', '中文']],
-  logo: '/logo.png',
-  base: '/react-illustration-series/',
-  publicPath: '/react-illustration-series/',
+  logo: `${ghPagePublicPath}logo.png`,
+  base: ghPagePublicPath,
+  publicPath: ghPagePublicPath,
   menus: {
     '/main': [
       {
