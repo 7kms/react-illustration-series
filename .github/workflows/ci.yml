@@ -29,9 +29,9 @@ jobs:
           node-version: ${{ matrix.node-version }}
           registry-url: https://registry.npmjs.org/
           cache: 'npm'
-      - name: Installation
+      - name: Install dependencies
         run: |
-          npm install
+          npm ci
       - name: Building work
         run: |
           npm run build
