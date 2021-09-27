@@ -34,7 +34,7 @@
 
 * [`react@17.0.2`](https://github.com/facebook/react/releases/tag/v17.0.2)相较于`v17.0.1`, 改动集中于`Scheduler`包, 主杆逻辑没有变动, 只与调度[性能统计相关](https://github.com/facebook/react/compare/v17.0.1...v17.0.2).
 
-## 主要类容
+## 主要内容
 
 ### 基本概念
 
