@@ -29,7 +29,7 @@ title: 调和算法
 单节点的逻辑比较简明, 先直接看[源码](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactChildFiber.old.js#L1135-L1233):
 
 ```js
-// 只保留主杆逻辑
+// 只保留主干逻辑
 function reconcileSingleElement(
   returnFiber: Fiber,
   currentFirstChild: Fiber | null,
@@ -167,7 +167,7 @@ function reconcileChildrenArray(
 }
 ```
 
-`reconcileChildrenArray`函数源码看似很长, 梳理其主杆之后, 其实非常清晰.
+`reconcileChildrenArray`函数源码看似很长, 梳理其主干之后, 其实非常清晰.
 
 通过形参, 首先明确比较对象是`currentFirstChild: Fiber | null`和`newChildren: Array<*>`:
 
@@ -199,7 +199,7 @@ function reconcileChildrenArray(
 
 ![](../../snapshots/diff/traverse2.png)
 
-整个主杆逻辑就介绍完了, 接下来贴上完整源码
+整个主干逻辑就介绍完了, 接下来贴上完整源码
 
 > 第一次循环
 
