@@ -180,7 +180,7 @@ export default App;
 
 当`context`改变之后, 需要找出依赖该`context`的所有子节点(详细分析会在`context原理`章节深入解读), 这里同样也是一个`DFS`, 具体源码在[ReactFiberNewContext.js](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberNewContext.old.js#L182-L295).
 
-将其主杆逻辑剥离出来, 可以清晰的看出采用循环递归的方式进行遍历:
+将其主干逻辑剥离出来, 可以清晰的看出采用循环递归的方式进行遍历:
 
 ```js
 export function propagateContextChange(
