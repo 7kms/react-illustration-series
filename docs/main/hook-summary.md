@@ -275,7 +275,7 @@ const RE_RENDER_LIMIT = 25;
 
 ### renderWithHooks 函数
 
-[renderWithHooks](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberHooks.old.js#L342-L476)源码看似较长, 但是去除 dev 后保留主杆, 逻辑十分清晰. 以调用`function`为分界点, 逻辑被分为 3 个部分:
+[renderWithHooks](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberHooks.old.js#L342-L476)源码看似较长, 但是去除 dev 后保留主干, 逻辑十分清晰. 以调用`function`为分界点, 逻辑被分为 3 个部分:
 
 ```js
 // ...省略无关代码
