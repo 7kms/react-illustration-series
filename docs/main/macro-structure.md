@@ -22,7 +22,7 @@ title: 宏观包结构
    > react 得以运行的核心包(综合协调`react-dom`,`react`,`scheduler`各包之间的调用与配合).
    > 管理 react 应用状态的输入和结果的输出. 将输入信号最终转换成输出信号传递给渲染器.
 
-   - 接受输入(`schedulerUpdateOnFiber`), 将`fiber`树生成逻辑封装到一个回调函数中(涉及`fiber`树形结构, `fiber.updateQueue`队列, 调和算法等),
+   - 接受输入(`scheduleUpdateOnFiber`), 将`fiber`树生成逻辑封装到一个回调函数中(涉及`fiber`树形结构, `fiber.updateQueue`队列, 调和算法等),
    - 把此回调函数(`performSyncWorkOnRoot`或`performConcurrentWorkOnRoot`)送入`scheduler`进行调度
    - `scheduler`会控制回调函数执行的时机, 回调函数执行完成后得到全新的 fiber 树
    - 再调用渲染器(如`react-dom`, `react-native`等)将 fiber 树形结构最终反映到界面上
