@@ -119,7 +119,7 @@ function legacyRenderSubtreeIntoContainer(
     });
   } else {
     // root已经初始化, 二次调用render会进入
-    // 1. 获取ReactDOMRoot对象
+    // 1. 获取FiberRoot对象
     fiberRoot = root._internalRoot;
     if (typeof callback === 'function') {
       const originalCallback = callback;
