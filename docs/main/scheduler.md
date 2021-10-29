@@ -310,7 +310,8 @@ function flushWork(hasTimeRemaining, initialTime) {
 function workLoop(hasTimeRemaining, initialTime) {
   let currentTime = initialTime; // 保存当前时间, 用于判断任务是否过期
   currentTask = peek(taskQueue); // 获取队列中的第一个任务
-  while (currentTask !== null) {
+  // 当前任务不为空,同时没有中断任务
+  while (currentTask !== null && !(enableSchedulerDebugging && isSchedulerPaused)) {
     if (
       currentTask.expirationTime > currentTime &&
       (!hasTimeRemaining || shouldYieldToHost())
