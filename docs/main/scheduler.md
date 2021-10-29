@@ -303,7 +303,7 @@ function flushWork(hasTimeRemaining, initialTime) {
 }
 ```
 
-`flushWork`中调用了`workLoop`. 队列消费的主要逻辑是在`workLoop`函数中, 这就是[React 工作循环](./workloop.md)一文中提到的`任务调度循环`.
+`flushWork`中调用了`workLoop`. 队列消费的主要逻辑是在[workLoop](https://github.com/facebook/react/blob/v17.0.2/packages/scheduler/src/Scheduler.js#L163)函数中, 这就是[React 工作循环](./workloop.md)一文中提到的`任务调度循环`.
 
 ```js
 // 省略部分无关代码
