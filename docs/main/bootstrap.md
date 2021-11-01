@@ -227,7 +227,7 @@ ReactDOMRoot.prototype.unmount = ReactDOMBlockingRoot.prototype.unmount = functi
 `ReactDOMRoot`和`ReactDOMBlockingRoot`有相同的特性
 
 1. 调用`createRootImpl`创建`fiberRoot`对象, 并将其挂载到`this._internalRoot`上.
-2. 原型上有`render`和`umount`方法, 且内部都会调用`updateContainer`进行更新.
+2. 原型上有`render`和`unmount`方法, 且内部都会调用`updateContainer`进行更新.
 
 ### 创建 fiberRoot 对象 {#create-root-impl}
 
