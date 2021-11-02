@@ -429,7 +429,7 @@ function bailoutOnAlreadyFinishedWork(
 
 本节只需要先了解调和函数目的:
 
-1. 给新增,移动,和删除节点设置`fiber.falgs`(新增,移动: `Placement`, 删除: `Deletion`)
+1. 给新增,移动,和删除节点设置`fiber.flags`(新增,移动: `Placement`, 删除: `Deletion`)
 2. 如果是需要删除的`fiber`, [除了自身打上`Deletion`之外, 还要将其添加到父节点的`effects`链表中](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactChildFiber.old.js#L275-L294)(正常副作用队列的处理是在`completeWork`函数, 但是该节点(被删除)会脱离`fiber`树, 不会再进入`completeWork`阶段, 所以在`beginWork`阶段提前加入副作用队列).
 
 ### 回溯阶段 completeWork
