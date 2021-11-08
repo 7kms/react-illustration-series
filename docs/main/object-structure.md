@@ -397,7 +397,7 @@ type UpdateQueue<S, A> = {|
 
 ### Task 对象
 
-`scheduler`包中, 没有为 task 对象定义 type, 其[定义是直接在 js 代码](https://github.com/facebook/react/blob/v17.0.2/packages/scheduler/src/Scheduler.js#L316-L323)中:
+`scheduler`包中, 没有为 task 对象定义 type, 其[定义是直接在 js 代码](https://github.com/facebook/react/blob/v17.0.2/packages/scheduler/src/Scheduler.js#L316-L326)中:
 
 ```js
 var newTask = {
