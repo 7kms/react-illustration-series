@@ -107,7 +107,7 @@ let currentEventPendingLanes: Lanes = NoLanes;
 
 ### 执行上下文
 
-在全局变量中有`executionContext`, 代表`渲染期间`的`执行栈`(或叫做`执行上下文`), 它也是一个二进制表示的变量, 通过位运算进行操作(参考[React 算法之位运算](../algorithm/bitfiled.md)). 在源码中一共定义了 8 种执行执行栈:
+在全局变量中有`executionContext`, 代表`渲染期间`的`执行栈`(或叫做`执行上下文`), 它也是一个二进制表示的变量, 通过位运算进行操作(参考[React 算法之位运算](../algorithm/bitfiled.md)). 在源码中一共定义了 8 种执行栈:
 
 ```js
 type ExecutionContext = number;
