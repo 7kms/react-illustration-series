@@ -408,7 +408,7 @@ function reconcileChildrenArray(
 
     其中, 与 key 相关的重点都在注释中说明了, 需要注意的是`updateFromMap`这是第二次循环中对于非公共序列的解析, 如果`reactElement`没有显示设置 key, 也就是其中`newChild.key === null`, 这时候, 会用`index`进行查找.
 
-所以在多节点情况下, `key`任然是用于是否复用的第一判断条件, 如果`key`不同是肯定不会复用的.
+所以在多节点情况下, `key`仍然是用于是否复用的第一判断条件, 如果`key`不同是肯定不会复用的.
 
 ## 总结
 
