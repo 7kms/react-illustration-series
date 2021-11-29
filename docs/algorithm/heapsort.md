@@ -127,7 +127,7 @@ console.log(arr3); //[ 5, 1 ]
 
 ## React 当中的使用场景
 
-对于二叉堆的应用是在`scheduler`包中, 有 2 个数组[`taskQueue`和`timerQueue`](https://github.com/facebook/react/blob/v17.0.2/packages/scheduler/src/Scheduler.js#L63-L64), 它们都是以`最小堆`的形式进行存储, 这样就能保证以`O(1)`的时间复杂度, 取到数组顶端的对象(优先级最高的 task).
+对于二叉堆的应用是在`scheduler`包中, 有 2 个数组[`taskQueue`和`timerQueue`](https://github.com/facebook/react/blob/v17.0.2/packages/scheduler/src/Scheduler.js#L61-L63), 它们都是以`最小堆`的形式进行存储, 这样就能保证以`O(1)`的时间复杂度, 取到数组顶端的对象(优先级最高的 task).
 
 具体的调用过程被封装到了[`SchedulerMinHeap.js`](https://github.com/facebook/react/blob/v17.0.2/packages/scheduler/src/SchedulerMinHeap.js#L41-L87), 其中有 2 个函数`siftUp`,`siftDown`分别对应向上调整和向下调整.
 
