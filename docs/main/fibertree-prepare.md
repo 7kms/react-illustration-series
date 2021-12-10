@@ -490,7 +490,7 @@ function beginWork(
         workInProgress,
         Component,
         resolvedProps,
-        // 正常情况想渲染优先级会被用于fiber树的构造过程
+        // 正常情况下渲染优先级会被用于fiber树的构造过程
         renderLanes,
       );
     }

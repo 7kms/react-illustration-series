@@ -226,7 +226,7 @@ export type Fiber = {|
   // react-dev-tool会根据这些时间统计来评估性能
   actualDuration?: number, // 本次更新过程, 本节点以及子树所消耗的总时间
   actualStartTime?: number, // 标记本fiber节点开始构建的时间
-  selfBaseDuration?: number, // 用于最近一次生成本fiber节点所消耗的实现
+  selfBaseDuration?: number, // 用于最近一次生成本fiber节点所消耗的时间
   treeBaseDuration?: number, // 生成子树所消耗的时间的总和
 |};
 ```
