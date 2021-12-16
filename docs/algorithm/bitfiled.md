@@ -63,7 +63,7 @@ The production A : A @ B, where @ is one of the bitwise operators in the product
           After:              10100000000000000110000000000001
     ```
 
-另外由于 js 语言的[隐式转换](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Equality_comparisons_and_sameness), 对非`Number`类型使用位运算操作符时会隐式会发生隐式转换, 相当于先使用`Number(xxx)`将其转换为`number`类型, 再进行位运算:
+另外由于 js 语言的[隐式转换](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Equality_comparisons_and_sameness), 对非`Number`类型使用位运算操作符时会发生隐式转换, 相当于先使用`Number(xxx)`将其转换为`number`类型, 再进行位运算:
 
 ```js
 'str' >>> 0; //  ===> Number('str') >>> 0  ===> NaN >>> 0 = 0
