@@ -275,7 +275,7 @@ export type Fiber = {|
 
 ### Update 与 UpdateQueue 对象
 
-在`fiber`对象中有一个属性`fiber.updateQueue`, 是一个链式队列(即使用链表实现的队列存储结构), 后文会根据场景表述成链表或队列.
+在`fiber`对象中有一个属性`fiber.updateQueue`, 是一个链式队列(即是用链表实现的队列存储结构), 后文会根据场景表述成链表或队列.
 
 首先观察`Update`对象的数据结构([对照源码](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactUpdateQueue.old.js#L106-L129)):
 
