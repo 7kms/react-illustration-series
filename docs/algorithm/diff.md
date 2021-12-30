@@ -23,7 +23,7 @@ title: 调和算法
 
 1. 比较对象: `fiber`对象与`ReactElement`对象相比较.
    - 注意: 此处有一个误区, 并不是两棵 fiber 树相比较, 而是`旧fiber`对象与`新ReactElement`对象向比较, 结果生成新的`fiber子节点`.
-   - 可以理解为输入`ReactElement`, 经过`reconcilerChildren()`之后, 输出`fiber`.
+   - 可以理解为输入`ReactElement`, 经过`reconcileChildren()`之后, 输出`fiber`.
 2. 比较方案:
    - 单节点比较
    - 可迭代节点比较
@@ -295,8 +295,8 @@ if (shouldTrackSideEffects) {
 
 ### 结果
 
-无论是单节点还是可迭代节点的比较, 最终的目的都是生成下级子节点. 并在`reconcilerChildren`过程中, 给一些有副作用的节点(新增, 删除, 移动位置等)打上副作用标记, 等待 commit 阶段(参考[fiber 树渲染](../main/commit.md))的处理.
+无论是单节点还是可迭代节点的比较, 最终的目的都是生成下级子节点. 并在`reconcileChildren`过程中, 给一些有副作用的节点(新增, 删除, 移动位置等)打上副作用标记, 等待 commit 阶段(参考[fiber 树渲染](../main/commit.md))的处理.
 
 ## 总结
 
-本节介绍了 React 源码中, `fiber构造循环`阶段用于生成下级子节点的`reconcilerChildren`函数(函数中的算法被称为调和算法), 并演示了`可迭代节点比较`的图解示例. 该算法十分巧妙, 其核心逻辑把`newChildren序列`分为 2 步遍历, 先遍历公共序列, 再遍历非公共部分, 同时复用`oldFiber`序列中的节点.
+本节介绍了 React 源码中, `fiber构造循环`阶段用于生成下级子节点的`reconcileChildren`函数(函数中的算法被称为调和算法), 并演示了`可迭代节点比较`的图解示例. 该算法十分巧妙, 其核心逻辑把`newChildren序列`分为 2 步遍历, 先遍历公共序列, 再遍历非公共部分, 同时复用`oldFiber`序列中的节点.

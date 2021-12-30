@@ -149,11 +149,11 @@ function FiberNode(
 1. `fiber.key`是由`react`内核设置, 那他的值是否和`reactElement.key`相同?
 2. 如果`reactElement.key = null`, 那么`fiber.key`就一定是`null`吗?
 
-要继续跟进这些问题, 还得从`fiber`的创建说起. 上文提到了, `fiber`对象的创建发生在`fiber树构造循环`阶段中, 具体来讲, 是在`reconcilerChildren`调和函数中进行创建.
+要继续跟进这些问题, 还得从`fiber`的创建说起. 上文提到了, `fiber`对象的创建发生在`fiber树构造循环`阶段中, 具体来讲, 是在`reconcileChildren`调和函数中进行创建.
 
-## reconcilerChildren 调和函数
+## reconcileChildren 调和函数
 
-`reconcilerChildren`是`react`中的一个`明星`函数, 最热点的问题就是`diff算法原理`, 事实上, `key`的作用完全就是为了`diff算法`服务的.
+`reconcileChildren`是`react`中的一个`明星`函数, 最热点的问题就是`diff算法原理`, 事实上, `key`的作用完全就是为了`diff算法`服务的.
 
 > 注意: 本节只分析 key 相关的逻辑, 对于调和函数的算法原理, 请回顾算法章节[React 算法之调和算法](../algorithm/diff.md)
 
@@ -412,4 +412,4 @@ function reconcileChildrenArray(
 
 ## 总结
 
-本节从源码的角度, 分别从`reactElement对象`和`fiber对象`2 个视角进行展开, 分析`key`在 react 内核中的使用情况. 最终在调和函数`reconcilerChildren`中, `key`得到了最终的应用, 作为`节点复用`的第一判断条件.
+本节从源码的角度, 分别从`reactElement对象`和`fiber对象`2 个视角进行展开, 分析`key`在 react 内核中的使用情况. 最终在调和函数`reconcileChildren`中, `key`得到了最终的应用, 作为`节点复用`的第一判断条件.

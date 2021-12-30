@@ -315,7 +315,7 @@ function beginWork(
       - 如果下级节点是文本节点,则设置下级节点为 null. 准备进入`completeUnitOfWork`阶段
       - 根据实际情况, 设置`fiber.flags`
    4. 其他类型...
-3. 根据`ReactElement`对象, 调用`reconcilerChildren`生成`Fiber`子节点(只生成`次级子节点`)
+3. 根据`ReactElement`对象, 调用`reconcileChildren`生成`Fiber`子节点(只生成`次级子节点`)
    - 根据实际情况, 设置`fiber.flags`
 
 不同的`updateXXX`函数处理的`fiber`节点类型不同, 总的目的是为了向下生成子节点. 在这个过程中把一些需要持久化的数据挂载到`fiber`节点上(如`fiber.stateNode`,`fiber.memoizedState`等); 把`fiber`节点的特殊操作设置到`fiber.flags`(如:`节点ref`,`class组件的生命周期`,`function组件的hook`,`节点删除`等).
@@ -342,7 +342,7 @@ function updateHostRoot(current, workInProgress, renderLanes) {
   if (root.hydrate && enterHydrationState(workInProgress)) {
     // ...服务端渲染相关, 此处省略
   } else {
-    // 3. 根据`ReactElement`对象, 调用`reconcilerChildren`生成`Fiber`子节点(只生成`次级子节点`)
+    // 3. 根据`ReactElement`对象, 调用`reconcileChildren`生成`Fiber`子节点(只生成`次级子节点`)
     reconcileChildren(current, workInProgress, nextChildren, renderLanes);
   }
   return workInProgress.child;
@@ -375,7 +375,7 @@ function updateHostComponent(
   }
   // 特殊操作需要设置fiber.flags
   markRef(current, workInProgress);
-  // 3. 根据`ReactElement`对象, 调用`reconcilerChildren`生成`Fiber`子节点(只生成`次级子节点`)
+  // 3. 根据`ReactElement`对象, 调用`reconcileChildren`生成`Fiber`子节点(只生成`次级子节点`)
   reconcileChildren(current, workInProgress, nextChildren, renderLanes);
   return workInProgress.child;
 }
@@ -543,7 +543,7 @@ function completeWork(
 
 - 执行前: `workInProgress`指针指向`HostRootFiber.alternate`对象, 此时`current = workInProgress.alternate`指向`fiberRoot.current`是非空的(初次构造, 只在根节点时, `current`非空).
 - 执行过程: 调用`updateHostRoot`
-  - 在`reconcilerChildren`阶段, 向下构造`次级子节点fiber(<App/>)`, 同时设置子节点(`fiber(<App/>)`)[fiber.flags |= Placement](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactChildFiber.old.js#L376-L378)
+  - 在`reconcileChildren`阶段, 向下构造`次级子节点fiber(<App/>)`, 同时设置子节点(`fiber(<App/>)`)[fiber.flags |= Placement](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactChildFiber.old.js#L376-L378)
 - 执行后: 返回下级节点`fiber(<App/>)`, 移动`workInProgress`指针指向子节点`fiber(<App/>)`
 
 ![](../../snapshots/fibertree-create/unitofwork1.png)
@@ -554,8 +554,8 @@ function completeWork(
 - 执行过程: 调用`updateClassComponent`
   - 本示例中, class 实例存在生命周期函数`componentDidMount`, 所以会设置`fiber(<App/>)`节点[workInProgress.flags |= Update](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberClassComponent.old.js#L892-L894)
   - 另外也会为了`React DevTools`能够识别状态组件的执行进度, 会设置[workInProgress.flags |= PerformedWork](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberBeginWork.old.js#L379)(在`commit`阶段会排除这个`flag`, 此处只是列出`workInProgress.flags`的设置场景, 不讨论`React DevTools`)
-  - 需要注意`classInstance.render()`在本步骤执行后, 虽然返回了`render`方法中所有的`ReactElement`对象, 但是随后`reconcilerChildren`只构造`次级子节点`
-  - 在`reconcilerChildren`阶段, 向下构造`次级子节点div`
+  - 需要注意`classInstance.render()`在本步骤执行后, 虽然返回了`render`方法中所有的`ReactElement`对象, 但是随后`reconcileChildren`只构造`次级子节点`
+  - 在`reconcileChildren`阶段, 向下构造`次级子节点div`
 - 执行后: 返回下级节点`fiber(div)`, 移动`workInProgress`指针指向子节点`fiber(div)`
 
 ![](../../snapshots/fibertree-create/unitofwork2.png)
@@ -564,7 +564,7 @@ function completeWork(
 
 - 执行前: `workInProgress`指针指向`fiber(div)`节点, 此时`current = null`
 - 执行过程: 调用`updateHostComponent`
-  - 在`reconcilerChildren`阶段, 向下构造`次级子节点`(本示例中, `div`有 2 个次级子节点)
+  - 在`reconcileChildren`阶段, 向下构造`次级子节点`(本示例中, `div`有 2 个次级子节点)
 - 执行后: 返回下级节点`fiber(header)`, 移动`workInProgress`指针指向子节点`fiber(header)`
 
 ![](../../snapshots/fibertree-create/unitofwork3.png)
@@ -574,7 +574,7 @@ function completeWork(
 - `beginWork`执行前: `workInProgress`指针指向`fiber(header)`节点, 此时`current = null`
 - `beginWork`执行过程: 调用`updateHostComponent`
   - 本示例中`header`的子节点是一个[直接文本节点](https://github.com/facebook/react/blob/8e5adfbd7e605bda9c5e96c10e015b3dc0df688e/packages/react-dom/src/client/ReactDOMHostConfig.js#L350-L361),设置[nextChildren = null](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberBeginWork.old.js#L1147)(直接文本节点并不会被当成具体的`fiber`节点进行处理, 而是在宿主环境(父组件)中通过属性进行设置. 所以无需创建`HostText`类型的fiber节点, 同时节省了向下遍历开销.).
-  - 由于`nextChildren = null`, 经过`reconcilerChildren`阶段处理后, 返回值也是`null`
+  - 由于`nextChildren = null`, 经过`reconcileChildren`阶段处理后, 返回值也是`null`
 - `beginWork`执行后: 由于下级节点为`null`, 所以进入`completeUnitOfWork(unitOfWork)`函数, 传入的参数`unitOfWork`实际上就是`workInProgress`(此时指向`fiber(header)`节点)
 
 ![](../../snapshots/fibertree-create/unitofwork4.1.png)

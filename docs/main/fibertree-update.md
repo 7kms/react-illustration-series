@@ -554,7 +554,7 @@ updateHostText = function(
 - 执行前: `workInProgress`指向`fiber(<App/>)`节点, 且`current = workInProgress.alternate`有值
 - 执行过程:
   - 当前节点`fiber.lanes`处于`渲染优先级`范围内, 会进入`updateClassComponent()`函数
-  - 在`updateClassComponent()`函数中, 调用`reconcilerChildren()`生成下级子节点.
+  - 在`updateClassComponent()`函数中, 调用`reconcileChildren()`生成下级子节点.
 - 执行后: 返回下级节点`fiber(<Header/>)`, 移动`workInProgress`指向子节点`fiber(<Header/>)`
 
 ![](../../snapshots/fibertree-update/unitofwork2.png)
@@ -585,7 +585,7 @@ updateHostText = function(
 
 - `beginWork`执行过程: 调用`updateHostComponent`
   - 本示例中`button`的子节点是一个[直接文本节点](https://github.com/facebook/react/blob/8e5adfbd7e605bda9c5e96c10e015b3dc0df688e/packages/react-dom/src/client/ReactDOMHostConfig.js#L350-L361),设置[nextChildren = null](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberBeginWork.old.js#L1147)(源码注释的解释是不用在开辟内存去创建一个文本节点, 同时还能减少向下遍历).
-  - 由于`nextChildren = null`, 经过`reconcilerChildren`阶段处理后, 返回值也是`null`
+  - 由于`nextChildren = null`, 经过`reconcileChildren`阶段处理后, 返回值也是`null`
 - `beginWork`执行后: 由于下级节点为`null`, 所以进入`completeUnitOfWork(unitOfWork)`函数, 传入的参数`unitOfWork`实际上就是`workInProgress`(此时指向`fiber(button)`节点)
 
 - `completeUnitOfWork`执行过程: 以`fiber(button)`为起点, 向上回溯
@@ -604,7 +604,7 @@ updateHostText = function(
 
 - 执行前: `workInProgress`指向`fiber(div)`节点, 且`current = workInProgress.alternate`有值
 - 执行过程:
-  - 在`updateHostComponent()`函数中, 调用`reconcilerChildren()`生成下级子节点.
+  - 在`updateHostComponent()`函数中, 调用`reconcileChildren()`生成下级子节点.
   - 需要注意的是, 下级子节点是一个可迭代数组, 会把`fiber.child.sbling`一起构造出来, 同时根据需要设置`fiber.flags`. 在本例中, 下级节点有被删除的情况, 被删除的节点会被添加到父节点的副作用队列中(具体实现方式请参考[React 算法之调和算法](../algorithm/diff.md)).
 - 执行后: 返回下级节点`fiber(p)`, 移动`workInProgress`指向子节点`fiber(p)`
 
@@ -612,7 +612,7 @@ updateHostText = function(
 
 `performUnitOfWork`第 6 次调用(执行`beginWork`和`completeUnitOfWork`):
 
-- `beginWork`执行过程: 与第 4 次调用中构建`fiber(button)`的逻辑完全一致, 因为都是直接文本节点, `reconcilerChildren()`返回的下级子节点为 null.
+- `beginWork`执行过程: 与第 4 次调用中构建`fiber(button)`的逻辑完全一致, 因为都是直接文本节点, `reconcileChildren()`返回的下级子节点为 null.
 - `beginWork`执行后: 由于下级节点为`null`, 所以进入`completeUnitOfWork(unitOfWork)`函数
 
 - `completeUnitOfWork`执行过程: 以`fiber(p)`为起点, 向上回溯
@@ -628,7 +628,7 @@ updateHostText = function(
 
 `performUnitOfWork`第 7 次调用(执行`beginWork`和`completeUnitOfWork`):
 
-- `beginWork`执行过程: 与第 4 次调用中构建`fiber(button)`的逻辑完全一致, 因为都是直接文本节点, `reconcilerChildren()`返回的下级子节点为 null.
+- `beginWork`执行过程: 与第 4 次调用中构建`fiber(button)`的逻辑完全一致, 因为都是直接文本节点, `reconcileChildren()`返回的下级子节点为 null.
 - `beginWork`执行后: 由于下级节点为`null`, 所以进入`completeUnitOfWork(unitOfWork)`函数
 
 - `completeUnitOfWork`执行过程: 以`fiber(p)`为起点, 向上回溯
@@ -646,7 +646,7 @@ updateHostText = function(
 
 `performUnitOfWork`第 8 次调用(执行`beginWork`和`completeUnitOfWork`):
 
-- `beginWork`执行过程: 本节点`fiber(p)`是一个新增节点, 其`current === null`, 会进入`updateHostComponent()`函数. 因为是直接文本节点, `reconcilerChildren()`返回的下级子节点为 null.
+- `beginWork`执行过程: 本节点`fiber(p)`是一个新增节点, 其`current === null`, 会进入`updateHostComponent()`函数. 因为是直接文本节点, `reconcileChildren()`返回的下级子节点为 null.
 - `beginWork`执行后: 由于下级节点为`null`, 所以进入`completeUnitOfWork(unitOfWork)`函数
 
 - `completeUnitOfWork`执行过程: 以`fiber(p)`为起点, 向上回溯
