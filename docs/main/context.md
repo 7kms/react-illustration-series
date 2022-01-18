@@ -150,7 +150,7 @@ export function pushProvider<T>(providerFiber: Fiber, nextValue: T): void {
 2. 使用`useContext`: 用于`function`中. 如, `const value = useContext(MyContext)`
 
    - 进入`updateFunctionComponent`后, 会调用`prepareToReadContext`
-   - 无论是初次[创建阶段](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberHooks.old.js#L1780), 还是[更新阶段](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberHooks.old.js#L1801), `useContext`都直接调用了`readeContext`
+   - 无论是初次[创建阶段](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberHooks.old.js#L1780), 还是[更新阶段](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberHooks.old.js#L1801), `useContext`都直接调用了`readContext`
 
 3. `class`组件中, 使用一个静态属性`contextType`: 用于`class`组件中获取`context`. 如, `MyClass.contextType = MyContext;`
    - 进入`updateClassComponent`后, 会调用`prepareToReadContext`
