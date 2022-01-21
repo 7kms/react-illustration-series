@@ -50,7 +50,7 @@ function LinkedList() {
 
   // 删除节点
   this.remove = function(node) {
-    const previousNode = this.findPrevious();
+    const previousNode = this.findPrevious(node);
     if (previousNode) {
       previousNode.next = node.next;
     }
