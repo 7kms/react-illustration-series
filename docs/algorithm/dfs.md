@@ -165,7 +165,7 @@ export default App;
 注意:
 
 - `ReactElement`树是在大循环中的`beginWork`阶段"逐级"生成的.
-- "逐级"中的每一级是值一个`class`或`function`类型的组件, 每调用一次`render`或执行一次`function`调用, 就会生成一批`ReactElement`节点.
+- "逐级"中的每一级是指一个`class`或`function`类型的组件, 每调用一次`render`或执行一次`function`调用, 就会生成一批`ReactElement`节点.
 - `ReactElement`树的构造, 实际上就是各级组件`render`之后的总和.
 
 ### fiber 树的构造
