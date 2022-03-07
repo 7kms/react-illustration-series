@@ -120,7 +120,7 @@ const RenderContext = /*                */ 0b0010000;
 const CommitContext = /*                */ 0b0100000;
 ```
 
-上文回顾了`reconciler 运作流程`的 4 个阶段, 这 4 个阶段只是一个整体划分. 如果具体到每一次更新, 是有差异的. 比如说: `Legacy`模式下的所有更新, 不会经过`调度中心`(第 2 阶段),而是直接进入`fiber树构造`(第 3 阶段).
+上文回顾了`reconciler 运作流程`的 4 个阶段, 这 4 个阶段只是一个整体划分. 如果具体到每一次更新, 是有差异的. 比如说: `Legacy`模式下的首次更新, 不会经过`调度中心`(第 2 阶段),而是直接进入`fiber树构造`(第 3 阶段).
 
 事实上正是`executionContext`在操控`reconciler 运作流程`(源码体现在[scheduleUpdateOnFiber 函数](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L517-L619)).
 
