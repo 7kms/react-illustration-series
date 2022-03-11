@@ -406,40 +406,6 @@ export function getNextLanes(root: FiberRoot, wipLanes: Lanes): Lanes {
 
 此处返回的`lanes`会作为全局渲染的优先级, 用于`fiber树构造过程`中. 针对`fiber对象`或`update对象`, 只要它们的优先级(如: `fiber.lanes`和`update.lane`)比`渲染优先级`低, 都将会被忽略.
 
-以下源码展示了无论是`renderRootSync`或`renderRootConcurrent`在调用`render`之前, 都会通过`getNextLanes`获取全局渲染优先级, 并且在`fiber树构造`过程中使用.
-
-```js
-function performSyncWorkOnRoot(root) {
-  let lanes;
-  let exitStatus;
-  if (
-    root === workInProgressRoot &&
-    includesSomeLane(root.expiredLanes, workInProgressRootRenderLanes)
-  ) {
-    // 渲染优先级
-    lanes = getNextLanes(root, lanes);
-    exitStatus = renderRootSync(root, lanes);
-  } else {
-    // 渲染优先级
-    lanes = getNextLanes(root, NoLanes);
-    exitStatus = renderRootSync(root, lanes);
-  }
-  // ...
-}
-
-function performConcurrentWorkOnRoot(root) {
-  // ...
-
-  let lanes = getNextLanes(
-    root,
-    root === workInProgressRoot ? workInProgressRootRenderLanes : NoLanes,
-  );
-  // 渲染优先级
-  let exitStatus = renderRootConcurrent(root, lanes);
-
-  // ...
-}
-```
 
 #### `fiber`优先级(fiber.lanes)
 

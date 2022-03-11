@@ -371,7 +371,7 @@ function commitHookEffectListMount(tag: number, finishedWork: Fiber) {
        fiber: Fiber,
        effect: HookEffect,
      ): void {
-       // unmount effects 数组
+       // mount effects 数组
        pendingPassiveHookEffectsMount.push(effect, fiber);
      }
      ```
@@ -398,7 +398,7 @@ export function flushPassiveEffects(): boolean {
         ? NormalSchedulerPriority
         : pendingPassiveEffectsRenderPriority;
     pendingPassiveEffectsRenderPriority = NoSchedulerPriority;
-    // `runWithPriority`也是一个异步调用
+    // `runWithPriority`设置Schedule中的调度优先级, 如果在flushPassiveEffectsImpl中处理effect时又发起了新的更新, 那么新的update.lane将会受到这个priorityLevel影响.
     return runWithPriority(priorityLevel, flushPassiveEffectsImpl);
   }
   return false;
