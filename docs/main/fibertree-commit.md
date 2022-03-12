@@ -223,6 +223,8 @@ function commitBeforeMutationEffects() {
 }
 ```
 
+注意：`commitBeforeMutationEffectOnFiber`实际上对应了`commitBeforeMutationLifeCycles`函数，在导入时进行了重命名
+
 1. 处理`Snapshot`标记
 
 ```js
