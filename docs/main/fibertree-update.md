@@ -605,7 +605,7 @@ updateHostText = function(
 - 执行前: `workInProgress`指向`fiber(div)`节点, 且`current = workInProgress.alternate`有值
 - 执行过程:
   - 在`updateHostComponent()`函数中, 调用`reconcileChildren()`生成下级子节点.
-  - 需要注意的是, 下级子节点是一个可迭代数组, 会把`fiber.child.sbling`一起构造出来, 同时根据需要设置`fiber.flags`. 在本例中, 下级节点有被删除的情况, 被删除的节点会被添加到父节点的副作用队列中(具体实现方式请参考[React 算法之调和算法](../algorithm/diff.md)).
+  - 需要注意的是, 下级子节点是一个可迭代数组, 会把`fiber.child.sibling`一起构造出来, 同时根据需要设置`fiber.flags`. 在本例中, 下级节点有被删除的情况, 被删除的节点会被添加到父节点的副作用队列中(具体实现方式请参考[React 算法之调和算法](../algorithm/diff.md)).
 - 执行后: 返回下级节点`fiber(p)`, 移动`workInProgress`指向子节点`fiber(p)`
 
 ![](../../snapshots/fibertree-update/unitofwork5.png)
