@@ -31,7 +31,7 @@ title: 优先级管理
 
 > 英文单词`lane`翻译成中文表示"车道, 航道"的意思, 所以很多文章都将`Lanes`模型称为`车道模型`
 
-`Lane`模型的源码在[ReactFiberLane.js](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberLane.js), 源码中大量使用了位运算(有关位运算的讲解, 可以参考[React 算法之位运算](../algorithm/bitfiled.md)).
+`Lane`模型的源码在[ReactFiberLane.js](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberLane.js), 源码中大量使用了位运算(有关位运算的讲解, 可以参考[React 算法之位运算](../algorithm/bitfield.md)).
 
 首先引入作者对`Lane`的解释([相应的 pr](https://github.com/facebook/react/pull/18796)), 这里简单概括如下:
 
@@ -105,7 +105,7 @@ title: 优先级管理
 
 分析车道模型的源码([`ReactFiberLane.js`](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberLane.js)中), 可以得到如下结论:
 
-1. 可以使用的比特位一共有 31 位(为什么? 可以参考[React 算法之位运算](../algorithm/bitfiled.md)中的说明).
+1. 可以使用的比特位一共有 31 位(为什么? 可以参考[React 算法之位运算](../algorithm/bitfield.md)中的说明).
 2. 共定义了[18 种车道(`Lane/Lanes`)变量](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberLane.js#L74-L103), 每一个变量占有 1 个或多个比特位, 分别定义为`Lane`和`Lanes`类型.
 3. 每一种车道(`Lane/Lanes`)都有对应的优先级, 所以源码中定义了 18 种优先级([LanePriority](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberLane.js#L12-L30)).
 4. 占有低位比特位的`Lane`变量对应的优先级越高

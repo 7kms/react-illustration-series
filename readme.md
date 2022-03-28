@@ -68,7 +68,7 @@
 
 ### 高频算法
 
-- [位运算](./docs/algorithm/bitfiled.md)
+- [位运算](./docs/algorithm/bitfield.md)
 - [堆排序](./docs/algorithm/heapsort.md)
 - [深度优先遍历](./docs/algorithm/dfs.md)
 - [链表操作](./docs/algorithm/linkedlist.md)
