@@ -120,7 +120,7 @@ export type HookType =
 
 狭义上讲, `useState, useReducer`可以在`function组件`添加内部的`state`, 且`useState`实际上是`useReducer`的简易封装, 是一个最特殊(简单)的`useReducer`. 所以将`useState, useReducer`称为`状态Hook`.
 
-广义上讲, 只要能实现数据持久化`且没有副作用`的`Hook`, 均可以视为`状态Hook`, 所以还包括`useContext, useRef, useCallback, useMemo`等. 这类`Hook`内部没有使用`useState/useReduer`, 但是它们也能实现多次`render`时, 保持其初始值不变(即数据持久化)且没有任何`副作用`.
+广义上讲, 只要能实现数据持久化`且没有副作用`的`Hook`, 均可以视为`状态Hook`, 所以还包括`useContext, useRef, useCallback, useMemo`等. 这类`Hook`内部没有使用`useState/useReducer`, 但是它们也能实现多次`render`时, 保持其初始值不变(即数据持久化)且没有任何`副作用`.
 
 得益于[双缓冲技术(double buffering)](./fibertree-prepare.md#双缓冲技术), 在多次`render`时, 以`fiber`为载体, 保证复用同一个`Hook`对象, 进而实现数据持久化. 具体实现细节, 在`Hook原理(状态)`章节中讨论.
 

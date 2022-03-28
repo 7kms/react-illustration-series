@@ -416,17 +416,17 @@ function reconcileChildrenArray(
 1. 第一次循环: 比较公共序列
    - 从左到右逐一遍历, 遇到一个无法复用的节点则退出循环.
 2. 第二次循环: 比较非公共序列
-   - 在第一次循环的基础上, 如果`oldFilber`队列遍历完了, 证明`newChildren`队列中剩余的对象全部都是新增. 
+   - 在第一次循环的基础上, 如果`oldFiber`队列遍历完了, 证明`newChildren`队列中剩余的对象全部都是新增. 
     - 此时继续遍历剩余的`newChildren`队列即可, 没有额外的`diff`比较.
-   - 在第一次循环的基础上, 如果`oldFilber`队列没有遍历完, 需要将`oldFilber`队列中剩余的对象都添加到一个`map`集合中, 以`oldFiber.key`作为键.
+   - 在第一次循环的基础上, 如果`oldFiber`队列没有遍历完, 需要将`oldFiber`队列中剩余的对象都添加到一个`map`集合中, 以`oldFiber.key`作为键.
     - 此时则在遍历剩余的`newChildren`队列时, 需要用`newChild.key`到`map`集合中进行查找, 如果匹配上了, 就将`oldFiber`从`map`中取出来, 同`newChild`进行`diff`比较.
 3. 清理工作
    - 在第二次循环结束后, 如果`map`集合中还有剩余的`oldFiber`,则可以证明这些`oldFiber`都是被删除的节点, 需要打上删除标记.
 
 通过回顾`diff算法`的原理, 可以得到`key`在多节点情况下的特性:
-1. 新队列`newChilder`中的每一个对象(即`reactElement`对象)都需要同旧队列`oldFiber`中有相同`key`值的对象(即`oldFiber`对象)进行是否可复用的比较. `key`就是新旧对象能够对应起来的唯一标识.
+1. 新队列`newChildren`中的每一个对象(即`reactElement`对象)都需要同旧队列`oldFiber`中有相同`key`值的对象(即`oldFiber`对象)进行是否可复用的比较. `key`就是新旧对象能够对应起来的唯一标识.
 2. 如果省略`key`或者直接使用列表`index`作为`key`, 表现是一样的(`key=null`时, 会采用`index`代替`key`进行比较). 在新旧对象比较时, 只能按照`index`顺序进行比较, 复用的成功率大大降低, 大列表会出现性能问题.
-   - 例如一个排序的场景: `oldFilber`队列有100个, `newChildren`队列有100个(但是打乱了顺序). 由于没有设置`key`, 就会导致`newChildren`中的第n个必然要和`oldFilber`队列中的第n个进行比较, 这时它们的`key`完全一致(都是`null`), 由于顺序变了导致`props`不同, 所以新的`fiber`完全要走更新逻辑(理论上比新创建一个的性能还要耗).
+   - 例如一个排序的场景: `oldFiber`队列有100个, `newChildren`队列有100个(但是打乱了顺序). 由于没有设置`key`, 就会导致`newChildren`中的第n个必然要和`oldFiber`队列中的第n个进行比较, 这时它们的`key`完全一致(都是`null`), 由于顺序变了导致`props`不同, 所以新的`fiber`完全要走更新逻辑(理论上比新创建一个的性能还要耗).
    - 同样是排序场景可以出现的bug: 上面的场景只是性能差(又不是不能用), `key`使用不当还会造成`bug`
     - 还是上述排序场景, 只是列表中的每一个`item`内部又是一个组件, 且其中某一个`item`使用了局部状态(比如`class组件`里面的`state`). 当第二次`render`时, `fiber`对象不会`delete`只会`update`导致新组件的`state`还沿用了上一次相同位置的旧组件的`state`, 造成了状态混乱.
 

@@ -439,7 +439,7 @@ function processDispatchQueueItemsInOrder(
 
 在[processDispatchQueueItemsInOrder](https://github.com/facebook/react/blob/v17.0.2/packages/react-dom/src/events/DOMPluginEventSystem.js#L233-L258)遍历`dispatchListeners`数组, 执行[executeDispatch](https://github.com/facebook/react/blob/v17.0.2/packages/react-dom/src/events/DOMPluginEventSystem.js#L222-L231)派发事件, 在`fiber`节点上绑定的`listener`函数被执行.
 
-在`processDispatchQueueItemsInOrder`函数中, 根据`捕获(captuer)`或`冒泡(bubble)`的不同, 采取了不同的遍历方式:
+在`processDispatchQueueItemsInOrder`函数中, 根据`捕获(capture)`或`冒泡(bubble)`的不同, 采取了不同的遍历方式:
 
 1. `capture`事件: `从上至下`调用`fiber树`中绑定的回调函数, 所以`倒序`遍历`dispatchListeners`.
 2. `bubble`事件: `从下至上`调用`fiber树`中绑定的回调函数, 所以`顺序`遍历`dispatchListeners`.

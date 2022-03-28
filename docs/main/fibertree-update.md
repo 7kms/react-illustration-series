@@ -97,7 +97,7 @@ const classComponentUpdater = {
     }
     // 3. 将update对象添加到当前Fiber节点的updateQueue队列当中
     enqueueUpdate(fiber, update);
-    // 4. 进入reconcier运作流程中的`输入`环节
+    // 4. 进入reconciler运作流程中的`输入`环节
     scheduleUpdateOnFiber(fiber, lane, eventTime); // 传入的lane是update优先级
   },
 };
@@ -134,7 +134,7 @@ function dispatchAction<S, A>(
     pending.next = update;
   }
   queue.pending = update;
-  // 3. 请求调度, 进入reconcier运作流程中的`输入`环节.
+  // 3. 请求调度, 进入reconciler运作流程中的`输入`环节.
   scheduleUpdateOnFiber(fiber, lane, eventTime); // 传入的lane是update优先级
 }
 ```
@@ -389,7 +389,7 @@ function beginWork(
 
 1. `!includesSomeLane(renderLanes, updateLanes)`这个判断分支, 包含了`渲染优先级`和`update优先级`的比较(详情可以回顾[fiber 树构造(基础准备)](./fibertree-prepare.md#优先级)中`优先级`相关解读), 如果当前节点无需更新, 则会进入`bailout`逻辑.
 2. 最后会调用`bailoutOnAlreadyFinishedWork`:
-   - 如果同时满足`!includesSomeLane(renderLanes, workInProgress.childLanes)`, 表明该 fiber 节点及其子树都无需更新, 可直接进入回溯阶段(`completeUnitofWork`)
+   - 如果同时满足`!includesSomeLane(renderLanes, workInProgress.childLanes)`, 表明该 fiber 节点及其子树都无需更新, 可直接进入回溯阶段(`completeUnitOfWork`)
    - 如果不满足`!includesSomeLane(renderLanes, workInProgress.childLanes)`, 意味着子节点需要更新, `clone`并返回子节点.
 
 ```js

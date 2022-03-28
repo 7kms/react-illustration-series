@@ -344,7 +344,7 @@ function workLoop(hasTimeRemaining, initialTime) {
     currentTask = peek(taskQueue);
   }
   if (currentTask !== null) {
-    return true; // 如果task队列没有清空, 返回ture. 等待调度中心下一次回调
+    return true; // 如果task队列没有清空, 返回true. 等待调度中心下一次回调
   } else {
     return false; // task队列已经清空, 返回false.
   }
