@@ -22,7 +22,7 @@
     ]
   },
   "devDependencies": {
-    "dumi": "^1.1.28",
+    "dumi": "^1.1.40",
     "lint-staged": "^10.0.7",
     "pangu": "^4.0.7",
     "prettier": "^1.19.1",

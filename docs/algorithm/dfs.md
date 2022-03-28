@@ -130,7 +130,7 @@ function completeUnitOfWork(unitOfWork: Fiber): void {
 
 以上源码本质上是采用递归的方式进行 dfs, 假设有以下组件结构:
 
-```jsx
+```js
 class App extends React.Component {
   render() {
     return (
