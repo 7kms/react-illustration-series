@@ -21,14 +21,14 @@ function Example() {
   useEffect(() => {
     console.log('第1个effect.create dps: []');
     return () => {
-      console.log('第1个effect.destory');
+      console.log('第1个effect.destroy');
     };
   }, []);
   // 第3个hook(useEffect)
   useEffect(() => {
     console.log('effect.create dps: [count]', count);
     return () => {
-      console.log('第2个effect.destory dps: [count]', count);
+      console.log('第2个effect.destroy dps: [count]', count);
     };
   }, [count]);
   return (
@@ -551,7 +551,7 @@ function updateReducer<S, I, A>(
 
         // Mark the event time of this update as relevant to this render pass.
         // TODO: This should ideally use the true event time of this update rather than
-        // its priority which is a derived and not reverseable value.
+        // its priority which is a derived and not reversible value.
         // TODO: We should skip this update if it was already committed but currently
         // we have no way of detecting the difference between a committed and suspended
         // update here.
@@ -614,7 +614,7 @@ function updateReducer<S, I, A>(
 
    - deps 依赖改变.
 
-     - 设置`fier.effectTag = UpdateEffect | PassiveEffect`
+     - 设置`fiber.effectTag = UpdateEffect | PassiveEffect`
      - 生成新的`effect(HookHasEffect | HookPassive)`,添加到`fiber.updateQueue`
 
      ![](../../snapshots/hook/useEffect-update-WorkInProgressHook-2.png)
@@ -638,7 +638,7 @@ function updateEffectImpl(fiberEffectTag, hookEffectTag, create, deps): void {
     }
   }
   // 新增hook, 或者deps依赖改变
-  // 1. 设置fier.effectTag = UpdateEffect | PassiveEffect
+  // 1. 设置fiber.effectTag = UpdateEffect | PassiveEffect
   currentlyRenderingFiber.effectTag |= fiberEffectTag;
   // 2. 设置hook.memoizedState
   hook.memoizedState = pushEffect(

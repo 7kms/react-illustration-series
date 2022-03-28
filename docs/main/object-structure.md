@@ -61,7 +61,7 @@ export type ReactElement = {|
 
 2. `type`属性决定了节点的种类:
 
-- 它的值可以是字符串(代表`div,span`等 dom 节点), 函数(代表`fuction, class`等节点), 或者 react 内部定义的节点类型(`portal,context,fragment`等)
+- 它的值可以是字符串(代表`div,span`等 dom 节点), 函数(代表`function, class`等节点), 或者 react 内部定义的节点类型(`portal,context,fragment`等)
 - 在`reconciler`阶段, 会根据 type 执行不同的逻辑(在 fiber 构建阶段详细解读).
   - 如 type 是一个字符串类型, 则直接使用.
   - 如 type 是一个`ReactComponent`类型, 则会调用其 render 方法获取子节点.
@@ -106,7 +106,7 @@ class Content extends React.Component {
 export default App;
 ```
 
-编译之后的代码(此处只编译了 jsx 语法, 并没有将 class 语法编译成 es5 中的 fuction), 可以更直观的看出调用逻辑.
+编译之后的代码(此处只编译了 jsx 语法, 并没有将 class 语法编译成 es5 中的 function), 可以更直观的看出调用逻辑.
 
 `createElement`函数的第一个参数将作为创建`ReactElement`的`type`. 可以看到`Content`这个变量被编译器命名为`App_Content`, 并作为第一个参数(引用传递), 传入了`createElement`.
 

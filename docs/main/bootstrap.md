@@ -26,13 +26,13 @@ order: 1
 2. [Blocking 模式](https://zh-hans.reactjs.org/docs/concurrent-mode-adoption.html#migration-step-blocking-mode): `ReactDOM.createBlockingRoot(rootNode).render(<App />)`. 目前正在实验中, 它仅提供了 `concurrent` 模式的小部分功能, 作为迁移到 `concurrent` 模式的第一个步骤.
 
    ```js
-   // BolckingRoot
+   // BlockingRoot
    // 1. 创建ReactDOMRoot对象
-   const reactDOMBolckingRoot = ReactDOM.createBlockingRoot(
+   const reactDOMBlockingRoot = ReactDOM.createBlockingRoot(
      document.getElementById('root'),
    );
    // 2. 调用render
-   reactDOMBolckingRoot.render(<App />); // 不支持回调
+   reactDOMBlockingRoot.render(<App />); // 不支持回调
    ```
 
 3. [Concurrent 模式](https://zh-hans.reactjs.org/docs/concurrent-mode-adoption.html#enabling-concurrent-mode): `ReactDOM.createRoot(rootNode).render(<App />)`. 目前在实验中, 未来稳定之后，打算作为 React 的默认开发模式. 这个模式开启了所有的新功能.
@@ -389,7 +389,7 @@ export function updateContainer(
   }
   enqueueUpdate(current, update);
 
-  // 3. 进入reconcier运作流程中的`输入`环节
+  // 3. 进入reconciler运作流程中的`输入`环节
   scheduleUpdateOnFiber(current, lane, eventTime);
   return lane;
 }

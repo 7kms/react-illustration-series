@@ -147,7 +147,7 @@ const [state, dispatch] = useReducer(
 dispatch({ type: 'decrement' });
 ```
 
-可见, `useState`就是对`useReducer`的基本封装, 内置了一个特殊的`reducer`(后文不再区分`useState, useReducer`, 都以`useState`为例).`创建hook`之后返回值`[hook.memoizedState, dispatch]`中的`dispath`实际上会调用`reducer`函数.
+可见, `useState`就是对`useReducer`的基本封装, 内置了一个特殊的`reducer`(后文不再区分`useState, useReducer`, 都以`useState`为例).`创建hook`之后返回值`[hook.memoizedState, dispatch]`中的`dispatch`实际上会调用`reducer`函数.
 
 ## 状态初始化
 

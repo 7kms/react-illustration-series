@@ -83,7 +83,7 @@ export function updateContainer(
   }
   enqueueUpdate(current, update);
 
-  // 3. 进入reconcier运作流程中的`输入`环节
+  // 3. 进入reconciler运作流程中的`输入`环节
   scheduleUpdateOnFiber(current, lane, eventTime);
   return lane;
 }

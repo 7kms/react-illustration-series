@@ -130,7 +130,7 @@ function push<T>(cursor: StackCursor<T>, value: T, fiber: Fiber): void {
 }
 ```
 
-在`ReactFiberStack.js`源码中, 定义的`valueStack`作为全局变量, 用来存储所有的`StackCursor.current`(不仅仅存储`context api`相关的`StackCursor`, 在`context 原理`章节中详细解读, 本节只讨论与`contex api`相关的栈操作).
+在`ReactFiberStack.js`源码中, 定义的`valueStack`作为全局变量, 用来存储所有的`StackCursor.current`(不仅仅存储`context api`相关的`StackCursor`, 在`context 原理`章节中详细解读, 本节只讨论与`context api`相关的栈操作).
 
 注意`StackCursor`是一个泛型对象, 与`context api`相关的`StackCursor`定义在[`ReactFiberNewContext.js`](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberNewContext.old.js#L38):
 
