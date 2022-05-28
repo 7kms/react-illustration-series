@@ -392,11 +392,11 @@ function reconcileChildrenArray(
 3.  `updateFromMap`
     ```js
     function updateFromMap(
-    existingChildren: Map<string | number, Fiber>,
-    returnFiber: Fiber,
-    newIdx: number,
-    newChild: any,
-    lanes: Lanes,
+      existingChildren: Map<string | number, Fiber>,
+      returnFiber: Fiber,
+      newIdx: number,
+      newChild: any,
+      lanes: Lanes,
     ): Fiber | null {
         if (typeof newChild === 'object' && newChild !== null) {
           switch (newChild.$$typeof) {
@@ -410,8 +410,9 @@ function reconcileChildrenArray(
             }
         }
         return null;
-     }
-     ```
+      }
+    }
+    ```
 针对多节点的`diff算法`可以分为3步骤(请回顾算法章节[React 算法之调和算法](../algorithm/diff.md)):
 1. 第一次循环: 比较公共序列
    - 从左到右逐一遍历, 遇到一个无法复用的节点则退出循环.
