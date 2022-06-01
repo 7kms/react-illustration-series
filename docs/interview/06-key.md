@@ -141,7 +141,7 @@ function FiberNode(
 
 可以看到, `key`也是`fiber`对象的一个属性. 这里和`reactElement`的情况有所不同:
 
-1. `reactElement`中的`key`是由`jsx`编译而来, `key`是由程序员直接控制的(及时是动态生成, 那也是直接控制)
+1. `reactElement`中的`key`是由`jsx`编译而来, `key`是由程序员直接控制的(即使是动态生成, 那也是直接控制)
 2. `fiber`对象是由`react`内核在运行时创建的, 所以`fiber.key`也是`react`内核进行设置的, 程序员没有直接控制.
 
 注意: `fiber.key`是`reactElement.key`的拷贝, 他们是完全相等的(包括`null`默认值).
