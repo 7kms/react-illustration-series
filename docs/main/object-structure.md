@@ -166,7 +166,7 @@ class App_Content extends react_default.a.Component {
 
 - `class`和`function`类型的组件,其子节点是在 render 之后(`reconciler`阶段)才生成的. 此处只是单独表示`ReactElement`的数据结构.
 - 父级对象和子级对象之间是通过`props.children`属性进行关联的(与 fiber 树不同).
-- `ReactElement`虽然不能算是一个严格的树, 也不能算是一个严格的链表. 它的生成过程是至顶向下的, 是所有组件节点的总和.
+- `ReactElement`虽然不能算是一个严格的树, 也不能算是一个严格的链表. 它的生成过程是自顶向下的, 是所有组件节点的总和.
 - `ReactElement`树(暂且用树来表述)和`fiber`树是以`props.children`为单位`先后交替`生成的(在 fiber 树构建章节详细解读), 当`ReactElement`树构造完毕, fiber 树也随后构造完毕.
 - `reconciler`阶段会根据`ReactElement`的类型生成对应的`fiber`节点(不是一一对应, 比如`Fragment`类型的组件在生成`fiber`节点的时候会略过).
 

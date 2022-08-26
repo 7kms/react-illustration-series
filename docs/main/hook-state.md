@@ -126,7 +126,7 @@ dispatch({ count: 1 }); // 1.直接设置
 dispatch(state => ({ count: state.count + 1 })); // 2.通过回调函数设置
 ```
 
-`userReducer`的[官网示例](https://zh-hans.reactjs.org/docs/hooks-reference.html#usereducer):
+`useReducer`的[官网示例](https://zh-hans.reactjs.org/docs/hooks-reference.html#usereducer):
 
 ```js
 const [state, dispatch] = useReducer(
