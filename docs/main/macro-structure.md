@@ -15,7 +15,7 @@ title: 宏观包结构
 
 2. react-dom
 
-   > react 渲染器之一, 是 react 与 web 平台连接的桥梁(可以在浏览器和 nodejs 环境中使用), 将`react-reconciler`中的运行结果输出到 web 界面上. 在编写`react`应用的代码时,大多数场景下, 能用到此包的就是一个入口函数`ReactDOM.render(<App/>, document.getElementByID('root'))`, 其余使用的 api, 基本是`react`包提供的.
+   > react 渲染器之一, 是 react 与 web 平台连接的桥梁(可以在浏览器和 nodejs 环境中使用), 将`react-reconciler`中的运行结果输出到 web 界面上. 在编写`react`应用的代码时,大多数场景下, 能用到此包的就是一个入口函数`ReactDOM.render(<App/>, document.getElementById('root'))`, 其余使用的 api, 基本是`react`包提供的.
 
 3. react-reconciler
 
