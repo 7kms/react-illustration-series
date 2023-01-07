@@ -126,7 +126,7 @@ export type Effect = {|
 |};
 ```
 
-- `effect.tag`: 二进制属性, 代表`effect`的类型([源码](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactHookEffectTags.js#L12-L19)).
+- `effect.tag`: 使用位掩码形式, 代表`effect`的类型([源码](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactHookEffectTags.js#L12-L19)).
 
   ```js
   export const NoFlags = /*  */ 0b000;
@@ -264,8 +264,8 @@ function commitHookEffectListUnmount(tag: number, finishedWork: Fiber) {
 
 调用关系: `commitMutationEffects->commitWork->commitHookEffectListUnmount`.
 
-- 注意在调用`commitMutationEffects(HookLayout | HookHasEffect, finishedWork)`时, 参数是`HookLayout | HookHasEffect`, 所以只处理由`useLayoutEffect()`创建的`effect`.
-- 根据上文的分析`HookLayout | HookHasEffect`是通过`useLayoutEffect`创建的`effect`. 所以`commitMutationEffects`函数只能处理由`useLayoutEffect()`创建的`effect`.
+- 注意在调用`commitMutationEffects(HookLayout | HookHasEffect, finishedWork)`时, 参数是`HookLayout | HookHasEffect`.
+- 而`HookLayout | HookHasEffect`是通过`useLayoutEffect`创建的`effect`. 所以`commitMutationEffects`函数只能处理由`useLayoutEffect()`创建的`effect`.
 - 同步调用`effect.destroy()`.
 
 ### commitLayoutEffects
@@ -326,8 +326,8 @@ function commitHookEffectListMount(tag: number, finishedWork: Fiber) {
 
 1. 调用关系: `commitLayoutEffects->commitLayoutEffectOnFiber(commitLifeCycles)->commitHookEffectListMount`.
 
-- 注意在调用`commitHookEffectListMount(HookLayout | HookHasEffect, finishedWork)`时, 参数是`HookLayout | HookHasEffect`,所以只处理由`useLayoutEffect()`创建的`effect`.
-- 调用`effect.create()`之后, 将返回值赋值到`effect.destroy`.
+    - 注意在调用`commitHookEffectListMount(HookLayout | HookHasEffect, finishedWork)`时, 参数是`HookLayout | HookHasEffect`,所以只处理由`useLayoutEffect()`创建的`effect`.
+    - 调用`effect.create()`之后, 将返回值赋值到`effect.destroy`.
 
 2. 为`flushPassiveEffects`做准备
 
@@ -379,7 +379,7 @@ function commitHookEffectListMount(tag: number, finishedWork: Fiber) {
 综上`commitMutationEffects`和`commitLayoutEffects`2 个函数, 带有`Layout`标记的`effect`(由`useLayoutEffect`创建), 已经得到了完整的回调处理(`destroy`和`create`已经被调用).
 
 如下图:
-其中第一个`effect`拥有`Layout`标记, 所以有`effect.destroy(); effect.destroy = effect.create()`
+其中第一个`effect`拥有`Layout`标记,会执行`effect.destroy(); effect.destroy = effect.create()`
 
 ![](../../snapshots/hook-effect/hook-commit-layout.png)
 
@@ -452,7 +452,7 @@ function flushPassiveEffectsImpl() {
 
 ## 更新 Hook
 
-假设在初次调用之后, 发起更新, 会再次执行`function`, 这时`function`只使用的`useEffect`, `useLayoutEffect`等`api`也会再次执行.
+假设在初次调用之后, 发起更新, 会再次执行`function`, 这时`function`中使用的`useEffect`, `useLayoutEffect`等`api`也会再次执行.
 
 在更新过程中`useEffect`对应源码[updateEffect](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberHooks.old.js#L1250-L1266), `useLayoutEffect`对应源码[updateLayoutEffect](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberHooks.old.js#L1275-L1280).它们内部都会调用`updateEffectImpl`, 与初次创建时一样, 只是参数不同.
 
