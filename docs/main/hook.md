@@ -5,30 +5,30 @@
 1. `hook`只能用于`function`中
 2. 可以使用`state`以及其他的`React`特性
 
-演示代码:
+演示代码：
 
 ```jsx
 import React, { useState, useEffect } from 'react';
 function Example() {
   Promise.resolve().then(() => {
     console.log(
-      '所有的effect.create都是通过调度器(scheduler)异步(MessageChannel)执行的, 故effect.create函数必然在此之后执行',
+      '所有的 effect.create 都是通过调度器 (scheduler) 异步 (MessageChannel) 执行的，故 effect.create 函数必然在此之后执行',
     );
   });
-  // 第1个hook(useState)
+  // 第 1 个 hook(useState)
   const [count, setCount] = useState(0);
-  // 第2个hook(useEffect)
+  // 第 2 个 hook(useEffect)
   useEffect(() => {
-    console.log('第1个effect.create dps: []');
+    console.log('第 1 个 effect.create dps: []');
     return () => {
-      console.log('第1个effect.destroy');
+      console.log('第 1 个 effect.destroy');
     };
   }, []);
-  // 第3个hook(useEffect)
+  // 第 3 个 hook(useEffect)
   useEffect(() => {
     console.log('effect.create dps: [count]', count);
     return () => {
-      console.log('第2个effect.destroy dps: [count]', count);
+      console.log('第 2 个 effect.destroy dps: [count]', count);
     };
   }, [count]);
   return (
@@ -45,12 +45,12 @@ export default Example;
 
 ### 创建 fiber
 
-通过[fiber 构建(新增节点)](./render.md#beginWork)中的介绍, 创建节点都是在`beginWork`阶段.
+通过[fiber 构建 (新增节点)](./render.md#beginWork)中的介绍，创建节点都是在`beginWork`阶段。
 
 `function`类型节点在新增时调用`mountIndeterminateComponent`
 
 ```js
-// 省略了与创建fiber无关的逻辑
+// 省略了与创建 fiber 无关的逻辑
 function mountIndeterminateComponent(
   _current,
   workInProgress,
@@ -76,12 +76,12 @@ function mountIndeterminateComponent(
 }
 ```
 
-核心步骤:
+核心步骤：
 
 1. 调用`renderWithHooks`(目的和调用`classInstance.render`一样),返回代表子节点的`reactElement`
 2. 将步骤 1 中得到的`reactElement`传入`reconcileChildren`中去构建`fiber`次级子节点
 
-逻辑进入`ReactFiberHooks`中, 这是一个独立的工作空间, 管理所有的`hook`对象.
+逻辑进入`ReactFiberHooks`中，这是一个独立的工作空间，管理所有的`hook`对象。
 
 ```js
 export function renderWithHooks<Props, SecondArg>(
@@ -99,7 +99,7 @@ export function renderWithHooks<Props, SecondArg>(
   workInProgress.updateQueue = null;
   workInProgress.expirationTime = NoWork;
 
-  // 1.设置全局HooksDispatcher
+  // 1.设置全局 HooksDispatcher
   ReactCurrentDispatcher.current =
     current === null || current.memoizedState === null
       ? HooksDispatcherOnMount
@@ -116,42 +116,42 @@ export function renderWithHooks<Props, SecondArg>(
 }
 ```
 
-核心步骤:
+核心步骤：
 
 1. 设置当前`hook`操作代理`ReactCurrentDispatcher`
-   - 新增节点, 设置为`HooksDispatcherOnMount`
-   - 更新节点, 设置为`HooksDispatcherOnUpdate`
+   - 新增节点，设置为`HooksDispatcherOnMount`
+   - 更新节点，设置为`HooksDispatcherOnUpdate`
 2. 执行`Component()`
 
 ### 创建 hook
 
-在执行`Example()`的时候, 调用`useState(0)`
+在执行`Example()`的时候，调用`useState(0)`
 
-跟进`useState`逻辑, 最终执行`ReactCurrentDispatcher.current.useState(initialState)`.
+跟进`useState`逻辑，最终执行`ReactCurrentDispatcher.current.useState(initialState)`.
 
-新增节点, `useState`对应`mountState`
+新增节点，`useState`对应`mountState`
 
 ```js
 function mountState<S>(
   initialState: (() => S) | S,
 ): [S, Dispatch<BasicStateAction<S>>] {
-  //1. 创建hook对象, 并且挂载到当前`fiber.memoizedState`上,workInProgressHook指向当前hook
+  //1. 创建 hook 对象，并且挂载到当前`fiber.memoizedState`上，workInProgressHook 指向当前 hook
   const hook = mountWorkInProgressHook();
   if (typeof initialState === 'function') {
     // $FlowFixMe: Flow doesn't like mixed types
     initialState = initialState();
   }
-  //2. 把initialState设置到`hook`对象中
+  //2. 把 initialState 设置到`hook`对象中
   hook.memoizedState = hook.baseState = initialState;
-  //3. 设置hook.queue
-  // 设置lastRenderedReducer,lastRenderedState,dispatch
+  //3. 设置 hook.queue
+  // 设置 lastRenderedReducer,lastRenderedState,dispatch
   const queue = (hook.queue = {
     pending: null,
     dispatch: null,
     lastRenderedReducer: basicStateReducer,
     lastRenderedState: (initialState: any),
   });
-  // 设置queue.dispatch, 当前fiber被关联到queue.dispatch中
+  // 设置 queue.dispatch, 当前 fiber 被关联到 queue.dispatch 中
   const dispatch: Dispatch<
     BasicStateAction<S>,
   > = (queue.dispatch = (dispatchAction.bind(
@@ -159,27 +159,27 @@ function mountState<S>(
     currentlyRenderingFiber,
     queue,
   ): any));
-  //4. 返回dispatchAction操作接口
+  //4. 返回 dispatchAction 操作接口
   return [hook.memoizedState, dispatch];
 }
 ```
 
-核心步骤:
+核心步骤：
 
-1. 创建`hook`对象, 挂载到当前`fiber.memoizedState`,`workInProgressHook`指向此`hook`
+1. 创建`hook`对象，挂载到当前`fiber.memoizedState`,`workInProgressHook`指向此`hook`
 2. 设置`hook.queue`, 和当前`fiber`进行关联
 
-新增节点, `useEffect`对应`mountEffect`
+新增节点，`useEffect`对应`mountEffect`
 
 ```js
 function mountEffect(
   create: () => (() => void) | void,
   deps: Array<mixed> | void | null,
 ): void {
-  // 注意这里指定了两种tag
+  // 注意这里指定了两种 tag
   return mountEffectImpl(
-    UpdateEffect | PassiveEffect, // fiber.effectTag 适用于fiber对象
-    HookPassive, // effect.tag 适用于effect对象
+    UpdateEffect | PassiveEffect, // fiber.effectTag 适用于 fiber 对象
+    HookPassive, // effect.tag 适用于 effect 对象
     create,
     deps,
   );
@@ -198,7 +198,7 @@ function mountEffectImpl(fiberEffectTag, hookEffectTag, create, deps): void {
 }
 
 function pushEffect(tag, create, destroy, deps) {
-  // 创建新的effect对象
+  // 创建新的 effect 对象
   const effect: Effect = {
     tag,
     create,
@@ -207,7 +207,7 @@ function pushEffect(tag, create, destroy, deps) {
     // Circular
     next: (null: any),
   };
-  // 将effect对象添加到fiber.updateQueue队列中
+  // 将 effect 对象添加到 fiber.updateQueue 队列中
   let componentUpdateQueue: null | FunctionComponentUpdateQueue = (currentlyRenderingFiber.updateQueue: any);
   if (componentUpdateQueue === null) {
     componentUpdateQueue = createFunctionComponentUpdateQueue();
@@ -228,21 +228,21 @@ function pushEffect(tag, create, destroy, deps) {
 }
 ```
 
-核心步骤:
+核心步骤：
 
-1. 创建`hook`对象, 并且添加到`hook`队列中,`workInProgressHook`指向此`hook`
+1. 创建`hook`对象，并且添加到`hook`队列中，`workInProgressHook`指向此`hook`
 2. 设置`fiber.effectTag = UpdateEffect | PassiveEffect`
-3. 创建`effect`对象(设置`effect.tag = HookHasEffect | HookPassive`), 并将`effect`添加到`fiber.UpdateQueue`队列中
+3. 创建`effect`对象 (设置`effect.tag = HookHasEffect | HookPassive`), 并将`effect`添加到`fiber.UpdateQueue`队列中
 
-在整个创建`hook`阶段, 主要流程表示如下:
+在整个创建`hook`阶段，主要流程表示如下：
 
 ![](../../snapshots/hook/beginWork.png)
 
 ### 执行 hook
 
-从以上流程图可以看到, 执行`function`的时候, 只是创建了`hook`, 但是并没有执行`hook.create`.在 fiber 构建(新增节点) 中有介绍, `commitRoot`分为[3 个阶段](./render.md#commit阶段)
+从以上流程图可以看到，执行`function`的时候，只是创建了`hook`, 但是并没有执行`hook.create`.在 fiber 构建 (新增节点) 中有介绍，`commitRoot`分为[3 个阶段](./render.md#commit阶段)
 
-第一个阶段`commitBeforeMutationEffects`对`Passive`类型的 tag 做了特殊处理.如果`function`类型的`fiber`使用了`hook`api,会设置`fiber.effectTag |= Passive`
+第一个阶段`commitBeforeMutationEffects`对`Passive`类型的 tag 做了特殊处理。如果`function`类型的`fiber`使用了`hook`api，会设置`fiber.effectTag |= Passive`
 
 ```js
 function commitBeforeMutationEffects() {
@@ -256,16 +256,16 @@ function commitBeforeMutationEffects() {
       beforeActiveInstanceBlur();
     }
     const effectTag = nextEffect.effectTag;
-    // `Passive`类型的tag做了特殊处理.
+    // `Passive`类型的 tag 做了特殊处理。
     if ((effectTag & Passive) !== NoEffect) {
       // If there are passive effects, schedule a callback to flush at
       // the earliest opportunity.
       if (!rootDoesHavePassiveEffects) {
         rootDoesHavePassiveEffects = true;
-        // 需要注意, 此处的回调函数是通过调度器执行的, 所以是一个异步回调
+        // 需要注意，此处的回调函数是通过调度器执行的，所以是一个异步回调
 
         scheduleCallback(NormalPriority, () => {
-          flushPassiveEffects(); // 执行hook的入口
+          flushPassiveEffects(); // 执行 hook 的入口
           return null;
         });
       }
@@ -275,7 +275,7 @@ function commitBeforeMutationEffects() {
 }
 ```
 
-异步回调:
+异步回调：
 
 `flushPassiveEffectsImpl -> commitPassiveHookEffects`
 
@@ -299,7 +299,7 @@ export function commitPassiveHookEffects(finishedWork: Fiber): void {
     }
   }
 }
-// 执行destroy方法
+// 执行 destroy 方法
 function commitHookEffectListUnmount(tag: number, finishedWork: Fiber) {
   const updateQueue: FunctionComponentUpdateQueue | null = (finishedWork.updateQueue: any);
   const lastEffect = updateQueue !== null ? updateQueue.lastEffect : null;
@@ -319,7 +319,7 @@ function commitHookEffectListUnmount(tag: number, finishedWork: Fiber) {
     } while (effect !== firstEffect);
   }
 }
-// 执行create方法
+// 执行 create 方法
 function commitHookEffectListMount(tag: number, finishedWork: Fiber) {
   const updateQueue: FunctionComponentUpdateQueue | null = (finishedWork.updateQueue: any);
   const lastEffect = updateQueue !== null ? updateQueue.lastEffect : null;
@@ -348,7 +348,7 @@ function dispatchAction<S, A>(
   queue: UpdateQueue<S, A>,
   action: A,
 ) {
-  // 1. 获取expirationTime
+  // 1. 获取 expirationTime
   const currentTime = requestCurrentTimeForUpdate();
   const suspenseConfig = requestCurrentSuspenseConfig();
   const expirationTime = computeExpirationForFiber(
@@ -357,7 +357,7 @@ function dispatchAction<S, A>(
     suspenseConfig,
   );
 
-  // 2. 创建update对象
+  // 2. 创建 update 对象
   const update: Update<S, A> = {
     expirationTime,
     suspenseConfig,
@@ -366,7 +366,7 @@ function dispatchAction<S, A>(
     eagerState: null,
     next: (null: any),
   };
-  //3. 将update对象设置到hook.queue队列当中
+  //3. 将 update 对象设置到 hook.queue 队列当中
   // Append the update to the end of the list.
   const pending = queue.pending;
   if (pending === null) {
@@ -386,28 +386,28 @@ function dispatchAction<S, A>(
 }
 ```
 
-`dispatchAction`创建了一个新的`update`对象, 添加到`hook.queue.pending`队列之后.
+`dispatchAction`创建了一个新的`update`对象，添加到`hook.queue.pending`队列之后。
 
 ![](../../snapshots/hook/dispatchAction.png)
 
 ### 更新 fiber
 
-`scheduleUpdateOnFiber`请求调度, 随后再次构建`fiber`树, `renderWithHooks`作为构建`fiber`树过程中的一环, 也会再次执行.
+`scheduleUpdateOnFiber`请求调度，随后再次构建`fiber`树，`renderWithHooks`作为构建`fiber`树过程中的一环，也会再次执行。
 
 #### 更新 hook
 
-`renderWithHooks`调用栈中, 执行`Example`函数体, 调用`useState`,`useEffect`等函数重新构造`hook`对象.
+`renderWithHooks`调用栈中，执行`Example`函数体，调用`useState`,`useEffect`等函数重新构造`hook`对象。
 
-> `currentHook`和`workInProgressHook`是两个指针, 分别指向老`hook`和新`hook`
+> `currentHook`和`workInProgressHook`是两个指针，分别指向老`hook`和新`hook`
 
-`updateWorkInProgressHook`维护了当前`fiber`节点`新旧hook`指针的移动, 保证`currentHook`和`workInProgressHook`有正确的指向
+`updateWorkInProgressHook`维护了当前`fiber`节点`新旧hook`指针的移动，保证`currentHook`和`workInProgressHook`有正确的指向
 
 ```js
 function updateWorkInProgressHook(): Hook {
   let nextCurrentHook: null | Hook;
-  // 刚进入该fiber节点, currentHook为null
+  // 刚进入该 fiber 节点，currentHook 为 null
   if (currentHook === null) {
-    // 拿到当前fiber节点的副本(对应老节点)
+    // 拿到当前 fiber 节点的副本 (对应老节点)
     const current = currentlyRenderingFiber.alternate;
     if (current !== null) {
       nextCurrentHook = current.memoizedState;
@@ -434,7 +434,7 @@ function updateWorkInProgressHook(): Hook {
   } else {
     // Clone from the current hook.
     currentHook = nextCurrentHook;
-    // 创建新的hook节点, 最后添加到队列
+    // 创建新的 hook 节点，最后添加到队列
     const newHook: Hook = {
       memoizedState: currentHook.memoizedState,
 
@@ -465,7 +465,7 @@ function updateWorkInProgressHook(): Hook {
 ![](../../snapshots/hook/useState-create-WorkInProgressHook.png)
 
 2. 如果`hook.queue.pending !=== null`
-   - 遍历`hook.queue.pending`队列, 提取足够优先级的`update`对象, 生成`newState`
+   - 遍历`hook.queue.pending`队列，提取足够优先级的`update`对象，生成`newState`
    - 更新`hook`和`queue`对象的相关属性
 
 ![](../../snapshots/hook/useState-update-WorkInProgressHook.png)
@@ -600,19 +600,19 @@ function updateReducer<S, I, A>(
 对于`useEffect`, 调用`updateEffectImpl`:
 
 1. 调用`updateWorkInProgressHook`创建新的`hook`对象
-   - 和`useState`中是一致的(不同的是, 通过`useEffect`创建的`hook`对象,`hook.queue = null`)
+   - 和`useState`中是一致的 (不同的是，通过`useEffect`创建的`hook`对象，`hook.queue = null`)
 
 ![](../../snapshots/hook/useEffect-create-WorkInProgressHook.png)
 
 2. 生成新的`effect`对象
 
-   - hook 更新,并且 deps 依赖不变.
+   - hook 更新，并且 deps 依赖不变。
 
      - 生成新的`effect(HookPassive)`,添加到`fiber.updateQueue`
 
      ![](../../snapshots/hook/useEffect-update-WorkInProgressHook-1.png)
 
-   - deps 依赖改变.
+   - deps 依赖改变。
 
      - 设置`fiber.effectTag = UpdateEffect | PassiveEffect`
      - 生成新的`effect(HookHasEffect | HookPassive)`,添加到`fiber.updateQueue`
@@ -625,22 +625,22 @@ function updateEffectImpl(fiberEffectTag, hookEffectTag, create, deps): void {
   const nextDeps = deps === undefined ? null : deps;
   let destroy = undefined;
   if (currentHook !== null) {
-    // hook更新
+    // hook 更新
     const prevEffect = currentHook.memoizedState;
     destroy = prevEffect.destroy;
     if (nextDeps !== null) {
       const prevDeps = prevEffect.deps;
       if (areHookInputsEqual(nextDeps, prevDeps)) {
-        // deps依赖一致
+        // deps 依赖一致
         pushEffect(hookEffectTag, create, destroy, nextDeps);
         return;
       }
     }
   }
-  // 新增hook, 或者deps依赖改变
-  // 1. 设置fiber.effectTag = UpdateEffect | PassiveEffect
+  // 新增 hook, 或者 deps 依赖改变
+  // 1. 设置 fiber.effectTag = UpdateEffect | PassiveEffect
   currentlyRenderingFiber.effectTag |= fiberEffectTag;
-  // 2. 设置hook.memoizedState
+  // 2. 设置 hook.memoizedState
   hook.memoizedState = pushEffect(
     HookHasEffect | hookEffectTag,
     create,
@@ -650,10 +650,10 @@ function updateEffectImpl(fiberEffectTag, hookEffectTag, create, deps): void {
 }
 ```
 
-整个`hook`的更新过程可以如下表示:
+整个`hook`的更新过程可以如下表示：
 
 左边是`current`右边是`workInProgress`
 
 ![](../../snapshots/hook/hook-update.png)
 
-注意浅蓝色背景的`updateQueue`队列中, 新`effect`会引用旧`effect`对象的`destroy`方法.
+注意浅蓝色背景的`updateQueue`队列中，新`effect`会引用旧`effect`对象的`destroy`方法。

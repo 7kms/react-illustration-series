@@ -4,23 +4,23 @@
 
 ## 使用指南
 
-1. 本系列以 react 核心包结构和运行机制为主线索进行展开. 包括`react 宏观结构`, `react 工作循环`, `react 启动模式`, `react fiber原理`, `react hook原理`, `react 合成事件`等核心内容.
-2. 开源作品需要社区的净化和参与, 如有表述不清晰或表述错误, 欢迎[issue 勘误](https://github.com/7kms/react-illustration-series/issues). 如果对你有帮助, 请不吝 star.
-3. 本系列最初写作于 2020 年 6 月(当时稳定版本是 v16.13.1), 随着 react 官方的升级, 本 repo 会将主要版本的文章保存在以版本号命名的分支中.
-4. 当下前端技术圈总体比较浮躁, 各技术平台充斥着不少"标题党". 真正对于技术本身, 不能急于求成, 需要静下心来修炼.
-5. 本系列不是面经, 但会列举一些面试题来加深对 react 理解.
-6. 本系列所有内容皆为原创, 如需转载, 请注明出处.
+1. 本系列以 React 核心包结构和运行机制为主线索进行展开。包括`react 宏观结构`, `react 工作循环`, `react 启动模式`, `react fiber原理`, `react hook原理`, `react 合成事件`等核心内容。
+2. 开源作品需要社区的净化和参与，如有表述不清晰或表述错误，欢迎[issue 勘误](https://github.com/7kms/react-illustration-series/issues). 如果对你有帮助，请不吝 star.
+3. 本系列最初写作于 2020 年 6 月 (当时稳定版本是 v16.13.1), 随着 React 官方的升级，本 repo 会将主要版本的文章保存在以版本号命名的分支中。
+4. 当下前端技术圈总体比较浮躁，各技术平台充斥着不少"标题党". 真正对于技术本身，不能急于求成，需要静下心来修炼。
+5. 本系列不是面经，但会列举一些面试题来加深对 React 理解。
+6. 本系列所有内容皆为原创，如需转载，请注明出处。
 
 ## 适用读者
 
-1. 对`react`,`react-dom`开发 web 应用有实践经验.
-2. 期望深入理解`react`内在作用原理.
+1. 对`react`,`react-dom`开发 Web 应用有实践经验。
+2. 期望深入理解`react`内在作用原理。
 
 ---
 
 ## 版本跟踪
 
-> 本系列暂时只跟踪稳定版本的变动. `react`仓库代码改动比较频繁, 在写作过程中, 如果伴随小版本的发布, 文章中的源码链接会以写作当天的`最新小版本`为基准.
+> 本系列暂时只跟踪稳定版本的变动。`react`仓库代码改动比较频繁，在写作过程中，如果伴随小版本的发布，文章中的源码链接会以写作当天的`最新小版本`为基准。
 
 - [`react@17.0.0`](https://github.com/facebook/react/releases/tag/v17.0.0)作为主版本升级, 相较于 16.x 版本, 在使用层面基本维持不变, 在源码层面需要关注的重大的变动如下
 
@@ -48,18 +48,18 @@
 - [启动过程](./docs/main/bootstrap.md)
 - [优先级管理](./docs/main/priority.md)
 - [scheduler 调度原理](./docs/main/scheduler.md)
-- [fiber 树构造(基础准备)](./docs/main/fibertree-prepare.md)
-- [fiber 树构造(初次创建)](./docs/main/fibertree-create.md)
-- [fiber 树构造(对比更新)](./docs/main/fibertree-update.md)
+- [fiber 树构造 (基础准备)](./docs/main/fibertree-prepare.md)
+- [fiber 树构造 (初次创建)](./docs/main/fibertree-create.md)
+- [fiber 树构造 (对比更新)](./docs/main/fibertree-update.md)
 - [fiber 树渲染](./docs/main/fibertree-commit.md)
 - 异常处理
 
 ### 数据管理
 
 - [状态与副作用](./docs/main/state-effects.md)
-- [hook 原理(概览)](./docs/main/hook-summary.md)
-- [hook 原理(状态 Hook)](./docs/main/hook-state.md)
-- [hook 原理(副作用 Hook)](./docs/main/hook-effect.md)
+- [hook 原理 (概览)](./docs/main/hook-summary.md)
+- [hook 原理 (状态 Hook)](./docs/main/hook-state.md)
+- [hook 原理 (副作用 Hook)](./docs/main/hook-effect.md)
 - [context 原理](./docs/main/context.md)
 
 ### 交互

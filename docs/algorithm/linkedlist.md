@@ -16,13 +16,13 @@ title: 链表操作
 
 ## 基本使用
 
-1. 节点插入, 时间复杂度`O(1)`
-2. 节点查找, 时间复杂度`O(n)`
-3. 节点删除, 时间复杂度`O(1)`
-4. 反转链表, 时间复杂度`O(n)`
+1. 节点插入，时间复杂度`O(1)`
+2. 节点查找，时间复杂度`O(n)`
+3. 节点删除，时间复杂度`O(1)`
+4. 反转链表，时间复杂度`O(n)`
 
 ```js
-// 定义Node节点类型
+// 定义 Node 节点类型
 function Node(name) {
   this.name = name;
   this.next = null;
@@ -32,7 +32,7 @@ function Node(name) {
 function LinkedList() {
   this.head = new Node('head');
 
-  // 查找node节点的前一个节点
+  // 查找 node 节点的前一个节点
   this.findPrevious = function(node) {
     let currentNode = this.head;
     while (currentNode && currentNode.next !== node) {
@@ -41,7 +41,7 @@ function LinkedList() {
     return currentNode;
   };
 
-  // 在node后插入新节点newElement
+  // 在 node 后插入新节点 newElement
   this.insert = function(name, node) {
     const newNode = new Node(name);
     newNode.next = node.next;
@@ -62,13 +62,13 @@ function LinkedList() {
     let current = this.head;
     while (current) {
       const tempNode = current.next;
-      // 重新设置next指针, 使其指向前一个节点
+      // 重新设置 next 指针，使其指向前一个节点
       current.next = prev;
       // 游标后移
       prev = current;
       current = tempNode;
     }
-    // 重新设置head节点
+    // 重新设置 head 节点
     this.head = prev;
   };
 }
@@ -76,17 +76,17 @@ function LinkedList() {
 
 ## React 当中的使用场景
 
-在 react 中, 链表的使用非常高频, 主要集中在`fiber`和`hook`对象的属性中.
+在 React 中，链表的使用非常高频，主要集中在`fiber`和`hook`对象的属性中。
 
 ### fiber 对象
 
-在[react 高频对象](../main/object-structure.md#Fiber)中对`fiber`对象的属性做了说明, 这里列举出 4 个链表属性.
+在[react 高频对象](../main/object-structure.md#Fiber)中对`fiber`对象的属性做了说明，这里列举出 4 个链表属性。
 
 1. `effect`链表(链式队列): 存储有副作用的子节点, 构成该队列的元素是`fiber`对象
 
    - `fiber.nextEffect`: 单向链表, 指向下一个有副作用的 fiber 节点.
-   - `fiber.firstEffect`: 指向副作用链表中的第一个 fiber 节点.
-   - `fiber.lastEffect`: 指向副作用链表中的最后一个 fiber 节点.
+   - `fiber.firstEffect`: 指向副作用链表中的第一个 fiber 节点。
+   - `fiber.lastEffect`: 指向副作用链表中的最后一个 fiber 节点。
 
    <img src="../../snapshots/linkedlist/effects.png" width="600">
 
@@ -102,9 +102,9 @@ function LinkedList() {
 
 ### Hook 对象
 
-在[react 高频对象](../main/object-structure.md#Hook)中对`Hook`对象的属性做了说明, `Hook`对象具备`.next`属性, 所以`Hook`对象本身就是链表中的一个节点.
+在[react 高频对象](../main/object-structure.md#Hook)中对`Hook`对象的属性做了说明，`Hook`对象具备`.next`属性，所以`Hook`对象本身就是链表中的一个节点。
 
-此外`hook.queue.pending`也构成了一个链表, 将`hook`链表与`hook.queue.pending`链表同时表示在图中, 得到的结构如下:
+此外`hook.queue.pending`也构成了一个链表，将`hook`链表与`hook.queue.pending`链表同时表示在图中，得到的结构如下：
 
 ![](../../snapshots/data-structure/fiber-hook.png)
 
@@ -114,18 +114,18 @@ function LinkedList() {
 
 在`react`中, 发起更新之后, 会通过`链表合并`的方式把等待(`pending`状态)更新的队列(`updateQueue`)合并到基础队列(`class`组件:`fiber.updateQueue.firstBaseUpdate`;`function`组件: `hook.baseQueue`), 最后通过遍历`baseQueue`筛选出优先级足够的`update`对象, 组合成最终的组件状态(`state`). 这个过程发生在`reconciler`阶段, 分别涉及到`class`组件和`function`组件.
 
-具体场景:
+具体场景：
 
 1. `class`组件中
 
-   - 在`class`组件中调用`setState`, 会创建`update`对象并添加到`fiber.updateQueue.shared.pending`链式队列([源码地址](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactUpdateQueue.old.js#L198-L230)).
+   - 在`class`组件中调用`setState`, 会创建`update`对象并添加到`fiber.updateQueue.shared.pending`链式队列 ([源码地址](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactUpdateQueue.old.js#L198-L230)).
 
      ```js
      export function enqueueUpdate<State>(fiber: Fiber, update: Update<State>) {
        const updateQueue = fiber.updateQueue;
        // ...
        const sharedQueue: SharedQueue<State> = (updateQueue: any).shared;
-       // 将新的update对象添加到fiber.updateQueue.shared.pending链表上
+       // 将新的 update 对象添加到 fiber.updateQueue.shared.pending 链表上
        const pending = sharedQueue.pending;
        if (pending === null) {
          update.next = update;
@@ -137,11 +137,11 @@ function LinkedList() {
      }
      ```
 
-     由于`fiber.updateQueue.shared.pending`是一个环形链表, 所以`fiber.updateQueue.shared.pending`永远指向末尾元素(保证快速添加新元素)
+     由于`fiber.updateQueue.shared.pending`是一个环形链表，所以`fiber.updateQueue.shared.pending`永远指向末尾元素 (保证快速添加新元素)
 
      ![](../../snapshots/linkedlist/fiber.updatequeue.png)
 
-   - 在`fiber`树构建阶段(或`reconciler`阶段), 会把`fiber.updateQueue.shared.pending`合并到`fiber.updateQueue.firstBaseUpdate`队列上([源码地址](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactUpdateQueue.old.js#L394-L572)).
+   - 在`fiber`树构建阶段 (或`reconciler`阶段), 会把`fiber.updateQueue.shared.pending`合并到`fiber.updateQueue.firstBaseUpdate`队列上 ([源码地址](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactUpdateQueue.old.js#L394-L572)).
 
      ```js
      export function processUpdateQueue<State>(
@@ -179,8 +179,9 @@ function LinkedList() {
      ![](../../snapshots/linkedlist/fiber.updatequeue-merge-after.png)
 
 2. `function`组件中
-   - 在`function`组件中使用`Hook`对象(`useState`), 并改变`Hook`对象的值(内部会调用`dispatchAction`), 此时也会创建`update(hook)`对象并添加到`hook.queue.pending`链式队列([源码地址](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberHooks.old.js#L1645-L1682)).
-   - `hook.queue.pending`也是一个环形链表(与`fiber.updateQueue.shared.pending`的结构很相似)
+
+   - 在`function`组件中使用`Hook`对象 (`useState`), 并改变`Hook`对象的值 (内部会调用`dispatchAction`), 此时也会创建`update(hook)`对象并添加到`hook.queue.pending`链式队列 ([源码地址](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberHooks.old.js#L1645-L1682)).
+   - `hook.queue.pending`也是一个环形链表 (与`fiber.updateQueue.shared.pending`的结构很相似)
 
      ```js
      function dispatchAction<S, A>(
@@ -201,36 +202,36 @@ function LinkedList() {
      }
      ```
 
-   - 在`fiber`树构建阶段(或`reconciler`阶段), 会将`hook.queue.pending`合并到`hook.baseQueue`队列上([源码地址](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberHooks.old.js#L672-L694)).
+   - 在`fiber`树构建阶段 (或`reconciler`阶段), 会将`hook.queue.pending`合并到`hook.baseQueue`队列上 ([源码地址](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberHooks.old.js#L672-L694)).
 
-        ```js
-          function updateReducer<S, I, A>(
-            reducer: (S, A) => S,
-            initialArg: I,
-            init?: I => S,
-          ): [S, Dispatch<A>] {
-            // ... 省略部分代码
-            if (pendingQueue !== null) {
-              if (baseQueue !== null) {
-                // 在这里进行队列的合并
-                const baseFirst = baseQueue.next;
-                const pendingFirst = pendingQueue.next;
-                baseQueue.next = pendingFirst;
-                pendingQueue.next = baseFirst;
-              }
-              current.baseQueue = baseQueue = pendingQueue;
-              queue.pending = null;
-            }
-          }
-        ```
+     ```js
+     function updateReducer<S, I, A>(
+       reducer: (S, A) => S,
+       initialArg: I,
+       init?: I => S,
+     ): [S, Dispatch<A>] {
+       // ... 省略部分代码
+       if (pendingQueue !== null) {
+         if (baseQueue !== null) {
+           // 在这里进行队列的合并
+           const baseFirst = baseQueue.next;
+           const pendingFirst = pendingQueue.next;
+           baseQueue.next = pendingFirst;
+           pendingQueue.next = baseFirst;
+         }
+         current.baseQueue = baseQueue = pendingQueue;
+         queue.pending = null;
+       }
+     }
+     ```
 
-        ![](../../snapshots/linkedlist/hook.baseQueue-merge-before.png)
+     ![](../../snapshots/linkedlist/hook.baseQueue-merge-before.png)
 
-        ![](../../snapshots/linkedlist/hook.baseQueue-merge-after.png)
+     ![](../../snapshots/linkedlist/hook.baseQueue-merge-after.png)
 
 ## 总结
 
-本节主要介绍了`链表`的概念和它在`react`源码中的使用情况. `react`中主要的数据结构都和链表有关, 使用非常高频. 源码中`链表合并`, `环形链表拆解`, `链表遍历`的代码篇幅很多, 所以深入理解链表的使用, 对理解`react原理`大有益处.
+本节主要介绍了`链表`的概念和它在`react`源码中的使用情况。`react`中主要的数据结构都和链表有关，使用非常高频。源码中`链表合并`, `环形链表拆解`, `链表遍历`的代码篇幅很多，所以深入理解链表的使用，对理解`react原理`大有益处。
 
 ## 参考资料
 
