@@ -1,6 +1,6 @@
 import { defineConfig } from 'dumi';
 
-const isProd = process.env.NODE_ENV === 'production';
+const isProd = process.env.NODE_ENV !== 'development';
 const ghPagePublicPath = isProd ? '/react-illustration-series/' : '/';
 
 
