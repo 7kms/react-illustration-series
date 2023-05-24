@@ -8,7 +8,7 @@ export default defineConfig({
   publicPath: ghPagePublicPath,
   base: ghPagePublicPath,
   scripts: [
-    {src: "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4941429999466589",defer: true ,crossorigin:"anonymous"},
+    {src: "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4941429999466589" ,crossorigin:"anonymous", async: true},
 
   ],
   themeConfig: {
