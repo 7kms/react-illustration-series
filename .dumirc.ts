@@ -7,6 +7,10 @@ const ghPagePublicPath = isProd ? '/react-illustration-series/' : '/';
 export default defineConfig({
   publicPath: ghPagePublicPath,
   base: ghPagePublicPath,
+  scripts: [
+    {src: "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4941429999466589",defer: true ,crossorigin:"anonymous"},
+
+  ],
   themeConfig: {
     name: '图解React',
     favicons: [`${ghPagePublicPath}km@2x.png`],
