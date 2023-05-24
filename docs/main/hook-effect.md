@@ -264,8 +264,8 @@ function commitHookEffectListUnmount(tag: number, finishedWork: Fiber) {
 
 调用关系: `commitMutationEffects->commitWork->commitHookEffectListUnmount`.
 
-- 注意在调用`commitMutationEffects(HookLayout | HookHasEffect, finishedWork)`时, 参数是`HookLayout | HookHasEffect`.
-- 而`HookLayout | HookHasEffect`是通过`useLayoutEffect`创建的`effect`. 所以`commitMutationEffects`函数只能处理由`useLayoutEffect()`创建的`effect`.
+- 注意在调用`commitHookEffectListUnmount(HookLayout | HookHasEffect, finishedWork)`时, 参数是`HookLayout | HookHasEffect`.
+- 而`HookLayout | HookHasEffect`是通过`useLayoutEffect`创建的`effect`. 所以`commitHookEffectListUnmount`函数只能处理由`useLayoutEffect()`创建的`effect`.
 - 同步调用`effect.destroy()`.
 
 ### commitLayoutEffects
