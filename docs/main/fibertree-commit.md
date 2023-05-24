@@ -1,5 +1,7 @@
 ---
 title: fiber 树渲染
+group: 运行核心
+order: 7
 ---
 
 # fiber 树渲染
@@ -23,8 +25,8 @@ title: fiber 树渲染
 
 - 无论是`首次构造`或者是`对比更新`, 最终都会在内存中生成一棵用于渲染页面的`fiber树`(即`fiberRoot.finishedWork`).
 - 这棵将要被渲染的`fiber树`有 2 个特点:
-  1.  副作用队列挂载在根节点上(具体来讲是`finishedWork.firstEffect`)
-  2.  代表最新页面的`DOM`对象挂载在`fiber树`中首个`HostComponent`类型的节点上(具体来讲`DOM`对象是挂载在`fiber.stateNode`属性上)
+  1. 副作用队列挂载在根节点上(具体来讲是`finishedWork.firstEffect`)
+  2. 代表最新页面的`DOM`对象挂载在`fiber树`中首个`HostComponent`类型的节点上(具体来讲`DOM`对象是挂载在`fiber.stateNode`属性上)
 
 这里再次回顾前文使用过的 2 棵 fiber 树, 可以验证上述特点:
 
@@ -424,9 +426,8 @@ function commitLifeCycles(
           );
         }
       }
-      const updateQueue: UpdateQueue<
-        *,
-      > | null = (finishedWork.updateQueue: any);
+      const updateQueue: UpdateQueue<*> | null =
+        (finishedWork.updateQueue: any);
       if (updateQueue !== null) {
         // 处理update回调函数 如: this.setState({}, callback)
         commitUpdateQueue(finishedWork, updateQueue, instance);

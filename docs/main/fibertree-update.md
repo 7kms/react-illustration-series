@@ -1,5 +1,7 @@
 ---
 title: fiber 树构造(对比更新)
+group: 运行核心
+order: 6
 ---
 
 # fiber 树构造(对比更新)
@@ -29,7 +31,7 @@ class App extends React.Component {
         <Header />
         <button onClick={this.onChange}>change</button>
         <div className="content">
-          {this.state.list.map(item => (
+          {this.state.list.map((item) => (
             <p key={item}>{item}</p>
           ))}
         </div>
@@ -74,7 +76,7 @@ export default App;
 在`Component`对象的原型上挂载有`setState`([源码链接](https://github.com/facebook/react/blob/v17.0.2/packages/react/src/ReactBaseClasses.js#L57-L66)):
 
 ```js
-Component.prototype.setState = function(partialState, callback) {
+Component.prototype.setState = function (partialState, callback) {
   this.updater.enqueueSetState(this, partialState, callback, 'setState');
 };
 ```
@@ -486,7 +488,7 @@ function completeWork(
 ```
 
 ```js
-updateHostComponent = function(
+updateHostComponent = function (
   current: Fiber,
   workInProgress: Fiber,
   type: Type,
@@ -513,7 +515,7 @@ updateHostComponent = function(
     markUpdate(workInProgress);
   }
 };
-updateHostText = function(
+updateHostText = function (
   current: Fiber,
   workInProgress: Fiber,
   oldText: string,
@@ -575,9 +577,9 @@ updateHostText = function(
 
 `completeUnitOfWork`第 1 次循环:
 
-1.  执行`completeWork`函数: `class`类型的组件无需处理.
-2.  上移副作用队列: 由于本节点`fiber(header)`没有副作用(`fiber.flags = 0`), 所以执行之后副作用队列没有实质变化(目前为空).
-3.  向上回溯: 由于还有兄弟节点, 把`workInProgress`指向下一个兄弟节点`fiber(button)`, 退出`completeUnitOfWork`.
+1. 执行`completeWork`函数: `class`类型的组件无需处理.
+2. 上移副作用队列: 由于本节点`fiber(header)`没有副作用(`fiber.flags = 0`), 所以执行之后副作用队列没有实质变化(目前为空).
+3. 向上回溯: 由于还有兄弟节点, 把`workInProgress`指向下一个兄弟节点`fiber(button)`, 退出`completeUnitOfWork`.
 
 ![](../../snapshots/fibertree-update/unitofwork3.1.png)
 
@@ -592,11 +594,11 @@ updateHostText = function(
 
 `completeUnitOfWork`第 1 次循环:
 
-1.  执行`completeWork`函数
-    - 因为`fiber(button).stateNode != null`, 所以无需再次创建 DOM 对象. 只需要进一步调用`updateHostComponent()`记录 DOM 属性改动情况
-    - 在`updateHostComponent()`函数中, 又因为`oldProps === newProps`, 所以无需记录改动情况, 直接返回
-2.  上移副作用队列: 由于本节点`fiber(button)`没有副作用(`fiber.flags = 0`), 所以执行之后副作用队列没有实质变化(目前为空).
-3.  向上回溯: 由于还有兄弟节点, 把`workInProgress`指向下一个兄弟节点`fiber(div)`, 退出`completeUnitOfWork`.
+1. 执行`completeWork`函数
+   - 因为`fiber(button).stateNode != null`, 所以无需再次创建 DOM 对象. 只需要进一步调用`updateHostComponent()`记录 DOM 属性改动情况
+   - 在`updateHostComponent()`函数中, 又因为`oldProps === newProps`, 所以无需记录改动情况, 直接返回
+2. 上移副作用队列: 由于本节点`fiber(button)`没有副作用(`fiber.flags = 0`), 所以执行之后副作用队列没有实质变化(目前为空).
+3. 向上回溯: 由于还有兄弟节点, 把`workInProgress`指向下一个兄弟节点`fiber(div)`, 退出`completeUnitOfWork`.
 
 ![](../../snapshots/fibertree-update/unitofwork4.png)
 
@@ -619,10 +621,10 @@ updateHostText = function(
 
 `completeUnitOfWork`第 1 次循环:
 
-1.  执行`completeWork`函数
-    - 因为`fiber(p).stateNode != null`, 所以无需再次创建 DOM 对象. 在`updateHostComponent()`函数中, 又因为节点属性没有变动, 所以无需打标记
-2.  上移副作用队列: 本节点`fiber(p)`没有副作用(`fiber.flags = 0`).
-3.  向上回溯: 由于还有兄弟节点, 把`workInProgress`指向下一个兄弟节点`fiber(p)`, 退出`completeUnitOfWork`.
+1. 执行`completeWork`函数
+   - 因为`fiber(p).stateNode != null`, 所以无需再次创建 DOM 对象. 在`updateHostComponent()`函数中, 又因为节点属性没有变动, 所以无需打标记
+2. 上移副作用队列: 本节点`fiber(p)`没有副作用(`fiber.flags = 0`).
+3. 向上回溯: 由于还有兄弟节点, 把`workInProgress`指向下一个兄弟节点`fiber(p)`, 退出`completeUnitOfWork`.
 
 ![](../../snapshots/fibertree-update/unitofwork6.png)
 
@@ -635,12 +637,12 @@ updateHostText = function(
 
 `completeUnitOfWork`第 1 次循环:
 
-1.  执行`completeWork`函数:
+1. 执行`completeWork`函数:
 
-    - 因为`fiber(p).stateNode != null`, 所以无需再次创建 DOM 对象. 在`updateHostComponent()`函数中, 又因为节点属性没有变动, 所以无需打标记
+   - 因为`fiber(p).stateNode != null`, 所以无需再次创建 DOM 对象. 在`updateHostComponent()`函数中, 又因为节点属性没有变动, 所以无需打标记
 
-2.  上移副作用队列: 本节点`fiber(p)`有副作用(`fiber.flags = Placement`), 需要将其添加到父节点的副作用队列之后.
-3.  向上回溯: 由于还有兄弟节点, 把`workInProgress`指向下一个兄弟节点`fiber(p)`, 退出`completeUnitOfWork`.
+2. 上移副作用队列: 本节点`fiber(p)`有副作用(`fiber.flags = Placement`), 需要将其添加到父节点的副作用队列之后.
+3. 向上回溯: 由于还有兄弟节点, 把`workInProgress`指向下一个兄弟节点`fiber(p)`, 退出`completeUnitOfWork`.
 
 ![](../../snapshots/fibertree-update/unitofwork7.png)
 
@@ -653,23 +655,23 @@ updateHostText = function(
 
 `completeUnitOfWork`第 1 次循环:
 
-1.  执行`completeWork`函数: 由于本节点是一个新增节点,且`fiber(p).stateNode === null`, 所以创建`fiber(p)`节点对应的`DOM`实例, 挂载到`fiber.stateNode`之上.
-2.  上移副作用队列: 本节点`fiber(p)`有副作用(`fiber.flags = Placement`), 需要将其添加到父节点的副作用队列之后.
-3.  向上回溯: 由于没有兄弟节点, 把`workInProgress`指针指向父节点`fiber(div)`.
+1. 执行`completeWork`函数: 由于本节点是一个新增节点,且`fiber(p).stateNode === null`, 所以创建`fiber(p)`节点对应的`DOM`实例, 挂载到`fiber.stateNode`之上.
+2. 上移副作用队列: 本节点`fiber(p)`有副作用(`fiber.flags = Placement`), 需要将其添加到父节点的副作用队列之后.
+3. 向上回溯: 由于没有兄弟节点, 把`workInProgress`指针指向父节点`fiber(div)`.
 
 ![](../../snapshots/fibertree-update/unitofwork8.png)
 
 `completeUnitOfWork`第 2 次循环:
 
-1.  执行`completeWork`函数: 由于`div`组件没有属性变动, 故`updateHostComponent()`没有设置副作用标记
-2.  上移副作用队列: 本节点`fiber(div)`的副作用队列添加到父节点的副作用队列之后.
-3.  向上回溯: 由于没有兄弟节点, 把`workInProgress`指针指向父节点`fiber(<App/>)`
+1. 执行`completeWork`函数: 由于`div`组件没有属性变动, 故`updateHostComponent()`没有设置副作用标记
+2. 上移副作用队列: 本节点`fiber(div)`的副作用队列添加到父节点的副作用队列之后.
+3. 向上回溯: 由于没有兄弟节点, 把`workInProgress`指针指向父节点`fiber(<App/>)`
 
 `completeUnitOfWork`第 3 次循环:
 
-1.  执行`completeWork`函数: class 类型的节点无需处理
-2.  上移副作用队列: 本节点`fiber(<App/>)`的副作用队列添加到父节点的副作用队列之后.
-3.  向上回溯: 由于没有兄弟节点, 把`workInProgress`指针指向父节点`fiber(HostRootFiber)`
+1. 执行`completeWork`函数: class 类型的节点无需处理
+2. 上移副作用队列: 本节点`fiber(<App/>)`的副作用队列添加到父节点的副作用队列之后.
+3. 向上回溯: 由于没有兄弟节点, 把`workInProgress`指针指向父节点`fiber(HostRootFiber)`
 
 `completeUnitOfWork`第 4 次循环:
 

@@ -1,5 +1,7 @@
 ---
 title: fiber 树构造(基础准备)
+group: 运行核心
+order: 4
 ---
 
 # fiber 树构造(基础准备)
@@ -209,6 +211,7 @@ export function createUpdate(eventTime: number, lane: Lane): Update<*> {
 在`React`体系中, 有 2 种情况会创建`update`对象:
 
 1. 应用初始化: 在`react-reconciler`包中的`updateContainer`函数中([源码](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberReconciler.old.js#L250-L321))
+
    ```js
    export function updateContainer(
      element: ReactNodeList,
@@ -226,6 +229,7 @@ export function createUpdate(eventTime: number, lane: Lane): Update<*> {
      return lane;
    }
    ```
+
 2. 发起组件更新: 假设在 class 组件中调用`setState`([源码](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberClassComponent.old.js#L193-L288))
 
 ```js
@@ -286,9 +290,8 @@ export function requestUpdateLane(fiber: Fiber): Lane {
     lane = findUpdateLane(InputDiscreteLanePriority, currentEventWipLanes);
   } else {
     // 调度优先级转换为车道模型
-    const schedulerLanePriority = schedulerPriorityToLanePriority(
-      schedulerPriority,
-    );
+    const schedulerLanePriority =
+      schedulerPriorityToLanePriority(schedulerPriority);
     lane = findUpdateLane(schedulerLanePriority, currentEventWipLanes);
   }
   return lane;
@@ -406,7 +409,6 @@ export function getNextLanes(root: FiberRoot, wipLanes: Lanes): Lanes {
 
 此处返回的`lanes`会作为全局渲染的优先级, 用于`fiber树构造过程`中. 针对`fiber对象`或`update对象`, 只要它们的优先级(如: `fiber.lanes`和`update.lane`)比`渲染优先级`低, 都将会被忽略.
 
-
 #### `fiber`优先级(fiber.lanes)
 
 在[React 应用中的高频对象](./object-structure.md)一文中, 介绍过`fiber`对象的数据结构. 其中有 2 个属性与优先级相关:
@@ -508,7 +510,10 @@ function prepareFreshStack(root: FiberRoot, lanes: Lanes) {
   // 重置全局变量
   workInProgressRoot = root;
   workInProgress = createWorkInProgress(root.current, null); // 给HostRootFiber对象创建一个alternate, 并将其设置成全局 workInProgress
-  workInProgressRootRenderLanes = subtreeRenderLanes = workInProgressRootIncludedLanes = lanes;
+  workInProgressRootRenderLanes =
+    subtreeRenderLanes =
+    workInProgressRootIncludedLanes =
+      lanes;
   workInProgressRootExitStatus = RootIncomplete;
   workInProgressRootFatalError = null;
   workInProgressRootSkippedLanes = NoLanes;

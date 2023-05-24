@@ -1,6 +1,3 @@
-**/*.svg
-**/*.ejs
-**/*.html
-package.json
-.umi
-.umi-production
+.dumi/tmp
+.dumi/tmp-production
+*.yaml

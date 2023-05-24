@@ -1,5 +1,7 @@
 ---
 title: 优先级管理
+group: 运行核心
+order: 2
 ---
 
 # React 中的优先级管理
@@ -38,6 +40,7 @@ title: 优先级管理
 1. `Lane`类型被定义为二进制变量, 利用了位掩码的特性, 在频繁运算的时候占用内存少, 计算速度快.
    - `Lane`和`Lanes`就是单数和复数的关系, 代表单个任务的定义为`Lane`, 代表多个任务的定义为`Lanes`
 2. `Lane`是对于`expirationTime`的重构, 以前使用`expirationTime`表示的字段, 都改为了`lane`
+
    ```js
      renderExpirationtime -> renderLanes
      update.expirationTime -> update.lane
@@ -45,6 +48,7 @@ title: 优先级管理
      fiber.childExpirationTime -> fiber.childLanes
      root.firstPendingTime and root.lastPendingTime -> fiber.pendingLanes
    ```
+
 3. 使用`Lanes`模型相比`expirationTime`模型的优势:
 
    1. `Lanes`把任务优先级从批量任务中分离出来, 可以更方便的判断单个任务与批量任务的优先级是否重叠.

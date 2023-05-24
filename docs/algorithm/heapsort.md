@@ -1,5 +1,6 @@
 ---
 title: 堆排序
+order: 3
 ---
 
 # React 算法之堆排序
@@ -55,7 +56,7 @@ title: 堆排序
 2. 循环提取根节点, 直到全部提取完
 
 ```js
-const minHeapSort = arr => {
+const minHeapSort = (arr) => {
   // 1. 构造最小堆
   buildMinHeap(arr);
   // 2. 循环提取根节点arr[0], 直到全部提取完
@@ -68,8 +69,8 @@ const minHeapSort = arr => {
 };
 
 // 把整个数组构造成最小堆
-const buildMinHeap = arr => {
-  if(arr.length < 2) {
+const buildMinHeap = (arr) => {
+  if (arr.length < 2) {
     return arr;
   }
   const startIndex = Math.floor(arr.length / 2 - 1);

@@ -1,5 +1,6 @@
 ---
 title: 深度优先遍历
+order: 2
 ---
 
 # React 算法之深度优先遍历
@@ -27,7 +28,7 @@ function Node() {
 
 function dfs(node) {
   console.log('探寻阶段: ', node.name);
-  node.children.forEach(child => {
+  node.children.forEach((child) => {
     dfs(child);
   });
   console.log('回溯阶段: ', node.name);
