@@ -1,8 +1,8 @@
 ---
 nav:
   title: 面试题
+  order: 2
 title: 使用说明
-order: 0
 group: interview
 ---
 

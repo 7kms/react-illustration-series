@@ -1,5 +1,7 @@
 ---
 title: context 原理
+group: 状态管理
+order: 4
 ---
 
 # React Context 原理
@@ -334,7 +336,9 @@ export function propagateContextChange(
 
 1. 向下遍历: 从`ContextProvider`类型的节点开始, 向下查找所有`fiber.dependencies`依赖该`context`的节点(假设叫做`consumer`).
 2. 向上遍历: 从`consumer`节点开始, 向上遍历, 修改父路径上所有节点的`fiber.childLanes`属性, 表明其子节点有改动, 子节点会进入更新逻辑.
+
    - 这一步通过调用[scheduleWorkOnParentPath(fiber.return, renderLanes)](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberNewContext.old.js#L155-L180)实现.
+
      ```js
      export function scheduleWorkOnParentPath(
        parent: Fiber | null,
@@ -366,6 +370,7 @@ export function propagateContextChange(
        }
      }
      ```
+
    - `scheduleWorkOnParentPath`与[markUpdateLaneFromFiberToRoot](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L625-L667)的作用相似, 具体可以回顾[fiber 树构造(对比更新)](./fibertree-update.md#markUpdateLaneFromFiberToRoot)
 
 通过以上 2 个步骤, 保证了所有消费该`context`的子节点都会被重新构造, 进而保证了状态的一致性, 实现了`context`更新.

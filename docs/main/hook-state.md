@@ -1,5 +1,7 @@
 ---
 title: Hook 原理(状态Hook)
+group: 状态管理
+order: 2
 ---
 
 # Hook 原理(状态 Hook)
@@ -42,13 +44,8 @@ function mountState<S>(
     lastRenderedState: (initialState: any),
   });
   // 2.3 设置 hook.dispatch
-  const dispatch: Dispatch<
-    BasicStateAction<S>,
-  > = (queue.dispatch = (dispatchAction.bind(
-    null,
-    currentlyRenderingFiber,
-    queue,
-  ): any));
+  const dispatch: Dispatch<BasicStateAction<S>> = (queue.dispatch =
+    (dispatchAction.bind(null, currentlyRenderingFiber, queue): any));
 
   // 3. 返回[当前状态, dispatch函数]
   return [hook.memoizedState, dispatch];
@@ -61,7 +58,7 @@ function mountState<S>(
 function mountReducer<S, I, A>(
   reducer: (S, A) => S,
   initialArg: I,
-  init?: I => S,
+  init?: (I) => S,
 ): [S, Dispatch<A>] {
   // 1. 创建hook
   const hook = mountWorkInProgressHook();
@@ -99,11 +96,13 @@ function mountReducer<S, I, A>(
 唯一的不同点是`hook.queue.lastRenderedReducer`:
 
 - `mountState`使用的是内置的[basicStateReducer](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberHooks.old.js#L619-L622)
+
   ```js
   function basicStateReducer<S>(state: S, action: BasicStateAction<S>): S {
     return typeof action === 'function' ? action(state) : action;
   }
   ```
+
 - `mountReducer`使用的是外部传入自定义`reducer`
 
 可见`mountState`是`mountReducer`的一种特殊情况, 即`useState`也是`useReducer`的一种特殊情况, 也是最简单的情况.
@@ -123,7 +122,7 @@ const [state, dispatch] = useReducer(
 
 // 当需要更新state时, 有2种方式
 dispatch({ count: 1 }); // 1.直接设置
-dispatch(state => ({ count: state.count + 1 })); // 2.通过回调函数设置
+dispatch((state) => ({ count: state.count + 1 })); // 2.通过回调函数设置
 ```
 
 `useReducer`的[官网示例](https://zh-hans.reactjs.org/docs/hooks-reference.html#usereducer):
@@ -220,7 +219,8 @@ function dispatchAction<S, A>(
     (alternate !== null && alternate === currentlyRenderingFiber)
   ) {
     // 渲染时更新, 做好全局标记
-    didScheduleRenderPhaseUpdateDuringThisPass = didScheduleRenderPhaseUpdate = true;
+    didScheduleRenderPhaseUpdateDuringThisPass =
+      didScheduleRenderPhaseUpdate = true;
   } else {
     // ...省略性能优化部分, 下文介绍
 
@@ -262,7 +262,7 @@ function updateState<S>(
 function updateReducer<S, I, A>(
   reducer: (S, A) => S,
   initialArg: I,
-  init?: I => S,
+  init?: (I) => S,
 ): [S, Dispatch<A>] {
   // 1. 获取workInProgressHook对象
   const hook = updateWorkInProgressHook();

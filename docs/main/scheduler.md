@@ -1,5 +1,7 @@
 ---
 title: 调度原理
+group: 运行核心
+order: 3
 ---
 
 # React 调度原理(scheduler)
@@ -64,7 +66,7 @@ const port = channel.port2;
 channel.port1.onmessage = performWorkUntilDeadline;
 
 // 请求回调
-requestHostCallback = function(callback) {
+requestHostCallback = function (callback) {
   // 1. 保存callback
   scheduledHostCallback = callback;
   if (!isMessageLoopRunning) {
@@ -74,7 +76,7 @@ requestHostCallback = function(callback) {
   }
 };
 // 取消回调
-cancelHostCallback = function() {
+cancelHostCallback = function () {
   scheduledHostCallback = null;
 };
 ```
@@ -103,7 +105,7 @@ const maxYieldInterval = 300;
 let needsPaint = false;
 const scheduling = navigator.scheduling;
 // 是否让出主线程
-shouldYieldToHost = function() {
+shouldYieldToHost = function () {
   const currentTime = getCurrentTime();
   if (currentTime >= deadline) {
     if (needsPaint || scheduling.isInputPending()) {
@@ -120,12 +122,12 @@ shouldYieldToHost = function() {
 };
 
 // 请求绘制
-requestPaint = function() {
+requestPaint = function () {
   needsPaint = true;
 };
 
 // 设置时间切片的周期
-forceFrameRate = function(fps) {
+forceFrameRate = function (fps) {
   if (fps < 0 || fps > 125) {
     // Using console['error'] to evade Babel and ESLint
     console['error'](

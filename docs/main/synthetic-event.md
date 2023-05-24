@@ -1,5 +1,9 @@
 ---
 title: 合成事件
+group:
+  title: 交互
+  order: 3
+order: 0
 ---
 
 # React 合成事件
@@ -52,7 +56,7 @@ export function listenToAllSupportedEvents(rootContainerElement: EventTarget) {
     }
     (rootContainerElement: any)[listeningMarker] = true;
     // 2. 遍历allNativeEvents 监听冒泡和捕获阶段的事件
-    allNativeEvents.forEach(domEventName => {
+    allNativeEvents.forEach((domEventName) => {
       if (!nonDelegatedEvents.has(domEventName)) {
         listenToNativeEvent(
           domEventName,

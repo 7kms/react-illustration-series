@@ -1,5 +1,7 @@
 ---
 title: Hook 原理(副作用Hook)
+group: 状态管理
+order: 3
 ---
 
 # Hook 原理(副作用 Hook)
@@ -85,7 +87,8 @@ function pushEffect(tag, create, destroy, deps) {
     next: (null: any),
   };
   // 2. 把effect对象添加到环形链表末尾
-  let componentUpdateQueue: null | FunctionComponentUpdateQueue = (currentlyRenderingFiber.updateQueue: any);
+  let componentUpdateQueue: null | FunctionComponentUpdateQueue =
+    (currentlyRenderingFiber.updateQueue: any);
   if (componentUpdateQueue === null) {
     // 新建 workInProgress.updateQueue 用于挂载effect对象
     componentUpdateQueue = createFunctionComponentUpdateQueue();
@@ -242,7 +245,8 @@ function commitWork(current: Fiber | null, finishedWork: Fiber): void {
 
 // 依次执行: effect.destroy
 function commitHookEffectListUnmount(tag: number, finishedWork: Fiber) {
-  const updateQueue: FunctionComponentUpdateQueue | null = (finishedWork.updateQueue: any);
+  const updateQueue: FunctionComponentUpdateQueue | null =
+    (finishedWork.updateQueue: any);
   const lastEffect = updateQueue !== null ? updateQueue.lastEffect : null;
   if (lastEffect !== null) {
     const firstEffect = lastEffect.next;
@@ -308,7 +312,8 @@ function commitLifeCycles(
 }
 
 function commitHookEffectListMount(tag: number, finishedWork: Fiber) {
-  const updateQueue: FunctionComponentUpdateQueue | null = (finishedWork.updateQueue: any);
+  const updateQueue: FunctionComponentUpdateQueue | null =
+    (finishedWork.updateQueue: any);
   const lastEffect = updateQueue !== null ? updateQueue.lastEffect : null;
   if (lastEffect !== null) {
     const firstEffect = lastEffect.next;
@@ -326,8 +331,8 @@ function commitHookEffectListMount(tag: number, finishedWork: Fiber) {
 
 1. 调用关系: `commitLayoutEffects->commitLayoutEffectOnFiber(commitLifeCycles)->commitHookEffectListMount`.
 
-    - 注意在调用`commitHookEffectListMount(HookLayout | HookHasEffect, finishedWork)`时, 参数是`HookLayout | HookHasEffect`,所以只处理由`useLayoutEffect()`创建的`effect`.
-    - 调用`effect.create()`之后, 将返回值赋值到`effect.destroy`.
+   - 注意在调用`commitHookEffectListMount(HookLayout | HookHasEffect, finishedWork)`时, 参数是`HookLayout | HookHasEffect`,所以只处理由`useLayoutEffect()`创建的`effect`.
+   - 调用`effect.create()`之后, 将返回值赋值到`effect.destroy`.
 
 2. 为`flushPassiveEffects`做准备
 
@@ -337,7 +342,8 @@ function commitHookEffectListMount(tag: number, finishedWork: Fiber) {
      ```js
      function schedulePassiveEffects(finishedWork: Fiber) {
        // 1. 获取 fiber.updateQueue
-       const updateQueue: FunctionComponentUpdateQueue | null = (finishedWork.updateQueue: any);
+       const updateQueue: FunctionComponentUpdateQueue | null =
+         (finishedWork.updateQueue: any);
        // 2. 获取 effect环形队列
        const lastEffect = updateQueue !== null ? updateQueue.lastEffect : null;
        if (lastEffect !== null) {

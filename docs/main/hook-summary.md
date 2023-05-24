@@ -1,5 +1,7 @@
 ---
 title: Hook 原理(概览)
+group: 状态管理
+order: 1
 ---
 
 # Hook 原理(概览)
@@ -62,7 +64,7 @@ type Update<S, A> = {|
 
 type UpdateQueue<S, A> = {|
   pending: Update<S, A> | null,
-  dispatch: (A => mixed) | null,
+  dispatch: ((A) => mixed) | null,
   lastRenderedReducer: ((S, A) => S) | null,
   lastRenderedState: S | null,
 |};
@@ -435,7 +437,7 @@ function mountWorkInProgressHook(): Hook {
 function updateReducer<S, I, A>(
   reducer: (S, A) => S,
   initialArg: I,
-  init?: I => S,
+  init?: (I) => S,
 ): [S, Dispatch<A>] {
   const hook = updateWorkInProgressHook();
   // ...省略部分本节不讨论

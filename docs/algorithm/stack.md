@@ -1,5 +1,6 @@
 ---
 title: 栈操作
+order: 5
 ---
 
 # React 算法之栈操作
@@ -168,15 +169,15 @@ export default function App() {
     // 第一级
     <MyContext.Provider value={1}>
       <MyContext.Consumer>
-        {value1 => (
+        {(value1) => (
           //第二级嵌套
           <MyContext.Provider value={2}>
             <MyContext.Consumer>
-              {value2 => (
+              {(value2) => (
                 // 第三级嵌套
                 <MyContext.Provider value={3}>
                   <MyContext.Consumer>
-                    {value3 => (
+                    {(value3) => (
                       <span>
                         {value1}-{value2}-{value3}
                       </span>
@@ -224,7 +225,7 @@ export default function App() {
 本节主要是体现`executionContext`和`函数调用栈`之间的配合运用([具体源码](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L1117-L1207)), 这里以`batchedUpdates`和`unbatchedUpdates`为例进行分析.
 
 ```js
-export function batchedUpdates<A, R>(fn: A => R, a: A): R {
+export function batchedUpdates<A, R>(fn: (A) => R, a: A): R {
   // 在执行回调之前, 先改变 executionContext
   const prevExecutionContext = executionContext;
   executionContext |= BatchedContext;

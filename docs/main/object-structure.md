@@ -1,5 +1,7 @@
 ---
 title: 高频对象
+group: 基本概念
+order: 2
 ---
 
 # React 应用中的高频对象
@@ -361,7 +363,7 @@ type Update<S, A> = {|
 
 type UpdateQueue<S, A> = {|
   pending: Update<S, A> | null,
-  dispatch: (A => mixed) | null,
+  dispatch: ((A) => mixed) | null,
   lastRenderedReducer: ((S, A) => S) | null,
   lastRenderedState: S | null,
 |};

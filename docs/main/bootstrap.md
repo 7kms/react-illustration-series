@@ -1,8 +1,6 @@
 ---
-nav:
-  title: 原理解析
-
 title: 启动过程
+group: 运行核心
 order: 1
 ---
 
@@ -20,7 +18,7 @@ order: 1
 
    ```js
    // LegacyRoot
-   ReactDOM.render(<App />, document.getElementById('root'), dom => {}); // 支持callback回调, 参数是一个dom对象
+   ReactDOM.render(<App />, document.getElementById('root'), (dom) => {}); // 支持callback回调, 参数是一个dom对象
    ```
 
 2. [Blocking 模式](https://zh-hans.reactjs.org/docs/concurrent-mode-adoption.html#migration-step-blocking-mode): `ReactDOM.createBlockingRoot(rootNode).render(<App />)`. 目前正在实验中, 它仅提供了 `concurrent` 模式的小部分功能, 作为迁移到 `concurrent` 模式的第一个步骤.
@@ -107,7 +105,7 @@ function legacyRenderSubtreeIntoContainer(
     fiberRoot = root._internalRoot;
     if (typeof callback === 'function') {
       const originalCallback = callback;
-      callback = function() {
+      callback = function () {
         // instance最终指向 children(入参: 如<App/>)生成的dom节点
         const instance = getPublicRootInstance(fiberRoot);
         originalCallback.call(instance);
@@ -123,7 +121,7 @@ function legacyRenderSubtreeIntoContainer(
     fiberRoot = root._internalRoot;
     if (typeof callback === 'function') {
       const originalCallback = callback;
-      callback = function() {
+      callback = function () {
         const instance = getPublicRootInstance(fiberRoot);
         originalCallback.call(instance);
       };
@@ -206,22 +204,22 @@ function ReactDOMBlockingRoot(
   this._internalRoot = createRootImpl(container, tag, options);
 }
 
-ReactDOMRoot.prototype.render = ReactDOMBlockingRoot.prototype.render = function(
-  children: ReactNodeList,
-): void {
-  const root = this._internalRoot;
-  // 执行更新
-  updateContainer(children, root, null, null);
-};
+ReactDOMRoot.prototype.render = ReactDOMBlockingRoot.prototype.render =
+  function (children: ReactNodeList): void {
+    const root = this._internalRoot;
+    // 执行更新
+    updateContainer(children, root, null, null);
+  };
 
-ReactDOMRoot.prototype.unmount = ReactDOMBlockingRoot.prototype.unmount = function(): void {
-  const root = this._internalRoot;
-  const container = root.containerInfo;
-  // 执行更新
-  updateContainer(null, root, null, () => {
-    unmarkContainerAsRoot(container);
-  });
-};
+ReactDOMRoot.prototype.unmount = ReactDOMBlockingRoot.prototype.unmount =
+  function (): void {
+    const root = this._internalRoot;
+    const container = root.containerInfo;
+    // 执行更新
+    updateContainer(null, root, null, () => {
+      unmarkContainerAsRoot(container);
+    });
+  };
 ```
 
 `ReactDOMRoot`和`ReactDOMBlockingRoot`有相同的特性
@@ -347,13 +345,12 @@ unbatchedUpdates(() => {
    在`ReactDOM(Blocking)Root`原型上有`render`方法
 
 ```js
-ReactDOMRoot.prototype.render = ReactDOMBlockingRoot.prototype.render = function(
-  children: ReactNodeList,
-): void {
-  const root = this._internalRoot;
-  // 执行更新
-  updateContainer(children, root, null, null);
-};
+ReactDOMRoot.prototype.render = ReactDOMBlockingRoot.prototype.render =
+  function (children: ReactNodeList): void {
+    const root = this._internalRoot;
+    // 执行更新
+    updateContainer(children, root, null, null);
+  };
 ```
 
 相同点:

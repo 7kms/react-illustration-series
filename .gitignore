@@ -1,19 +1,6 @@
-# dependencies
-/node_modules
-/npm-debug.log*
-/yarn-error.log
-/yarn.lock
-
-# production
+node_modules
 /dist
-
-# misc
+.dumi/tmp
+.dumi/tmp-production
 .DS_Store
-
-# umi
-.umi
-.umi-production
-.env.local
-
-#custom
-/.tmp
+/server

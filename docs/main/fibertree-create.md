@@ -1,5 +1,7 @@
 ---
 title: fiber 树构造(初次创建)
+group: 运行核心
+order: 5
 ---
 
 # fiber 树构造(初次创建)
@@ -385,12 +387,12 @@ function updateHostComponent(
 
 `completeUnitOfWork(unitOfWork)`([源码地址](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L1670-L1802)), 处理 `beginWork` 阶段已经创建出来的 `fiber` 节点, 核心逻辑:
 
-1.  调用`completeWork`
-    - 给`fiber`节点(tag=HostComponent, HostText)创建 DOM 实例, 设置`fiber.stateNode`局部状态(如`tag=HostComponent, HostText`节点: fiber.stateNode 指向这个 DOM 实例).
-    - 为 DOM 节点设置属性, 绑定事件(这里先说明有这个步骤, 详细的事件处理流程, 在`合成事件原理`中详细说明).
-    - 设置`fiber.flags`标记
-2.  把当前 `fiber` 对象的副作用队列(`firstEffect`和`lastEffect`)添加到父节点的副作用队列之后, 更新父节点的`firstEffect`和`lastEffect`指针.
-3.  识别`beginWork`阶段设置的`fiber.flags`, 判断当前 `fiber` 是否有副作用(增,删,改), 如果有, 需要将当前 `fiber` 加入到父节点的`effects`队列, 等待`commit`阶段处理.
+1. 调用`completeWork`
+   - 给`fiber`节点(tag=HostComponent, HostText)创建 DOM 实例, 设置`fiber.stateNode`局部状态(如`tag=HostComponent, HostText`节点: fiber.stateNode 指向这个 DOM 实例).
+   - 为 DOM 节点设置属性, 绑定事件(这里先说明有这个步骤, 详细的事件处理流程, 在`合成事件原理`中详细说明).
+   - 设置`fiber.flags`标记
+2. 把当前 `fiber` 对象的副作用队列(`firstEffect`和`lastEffect`)添加到父节点的副作用队列之后, 更新父节点的`firstEffect`和`lastEffect`指针.
+3. 识别`beginWork`阶段设置的`fiber.flags`, 判断当前 `fiber` 是否有副作用(增,删,改), 如果有, 需要将当前 `fiber` 加入到父节点的`effects`队列, 等待`commit`阶段处理.
 
 ```js
 function completeUnitOfWork(unitOfWork: Fiber): void {
@@ -573,7 +575,7 @@ function completeWork(
 
 - `beginWork`执行前: `workInProgress`指针指向`fiber(header)`节点, 此时`current = null`
 - `beginWork`执行过程: 调用`updateHostComponent`
-  - 本示例中`header`的子节点是一个[直接文本节点](https://github.com/facebook/react/blob/8e5adfbd7e605bda9c5e96c10e015b3dc0df688e/packages/react-dom/src/client/ReactDOMHostConfig.js#L350-L361),设置[nextChildren = null](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberBeginWork.old.js#L1147)(直接文本节点并不会被当成具体的`fiber`节点进行处理, 而是在宿主环境(父组件)中通过属性进行设置. 所以无需创建`HostText`类型的fiber节点, 同时节省了向下遍历开销.).
+  - 本示例中`header`的子节点是一个[直接文本节点](https://github.com/facebook/react/blob/8e5adfbd7e605bda9c5e96c10e015b3dc0df688e/packages/react-dom/src/client/ReactDOMHostConfig.js#L350-L361),设置[nextChildren = null](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberBeginWork.old.js#L1147)(直接文本节点并不会被当成具体的`fiber`节点进行处理, 而是在宿主环境(父组件)中通过属性进行设置. 所以无需创建`HostText`类型的 fiber 节点, 同时节省了向下遍历开销.).
   - 由于`nextChildren = null`, 经过`reconcileChildren`阶段处理后, 返回值也是`null`
 - `beginWork`执行后: 由于下级节点为`null`, 所以进入`completeUnitOfWork(unitOfWork)`函数, 传入的参数`unitOfWork`实际上就是`workInProgress`(此时指向`fiber(header)`节点)
 
@@ -584,11 +586,11 @@ function completeWork(
 
 第 1 次循环:
 
-1.  执行`completeWork`函数
-    - 创建`fiber(header)`节点对应的`DOM`实例, 并`append`子节点的`DOM`实例
-    - 设置`DOM`属性, 绑定事件等(本示例中, 节点`fiber(header)`没有事件绑定)
-2.  上移副作用队列: 由于本节点`fiber(header)`没有副作用(`fiber.flags = 0`), 所以执行之后副作用队列没有实质变化(目前为空).
-3.  向上回溯: 由于还有兄弟节点, 把`workInProgress`指针指向下一个兄弟节点`fiber(<Content/>)`, 退出`completeUnitOfWork`.
+1. 执行`completeWork`函数
+   - 创建`fiber(header)`节点对应的`DOM`实例, 并`append`子节点的`DOM`实例
+   - 设置`DOM`属性, 绑定事件等(本示例中, 节点`fiber(header)`没有事件绑定)
+2. 上移副作用队列: 由于本节点`fiber(header)`没有副作用(`fiber.flags = 0`), 所以执行之后副作用队列没有实质变化(目前为空).
+3. 向上回溯: 由于还有兄弟节点, 把`workInProgress`指针指向下一个兄弟节点`fiber(<Content/>)`, 退出`completeUnitOfWork`.
 
 ![](../../snapshots/fibertree-create/unitofwork4.2.png)
 
@@ -611,9 +613,9 @@ function completeWork(
 
 第 1 次循环:
 
-1.  执行`completeWork`函数: 创建`fiber(p)`节点对应的`DOM`实例, 并`append`子树节点的`DOM`实例
-2.  上移副作用队列: 由于本节点`fiber(p)`没有副作用, 所以执行之后副作用队列没有实质变化(目前为空).
-3.  向上回溯: 由于没有兄弟节点, 把`workInProgress`指针指向父节点`fiber(<Content/>)`
+1. 执行`completeWork`函数: 创建`fiber(p)`节点对应的`DOM`实例, 并`append`子树节点的`DOM`实例
+2. 上移副作用队列: 由于本节点`fiber(p)`没有副作用, 所以执行之后副作用队列没有实质变化(目前为空).
+3. 向上回溯: 由于没有兄弟节点, 把`workInProgress`指针指向父节点`fiber(<Content/>)`
 
 ![](../../snapshots/fibertree-create/unitofwork7.png)
 

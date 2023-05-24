@@ -1,5 +1,9 @@
 ---
+nav:
+  title: 高频算法
+  order: 1
 title: 调和算法
+order: 0
 ---
 
 # React 算法之调和算法
@@ -8,7 +12,7 @@ title: 调和算法
 
 调和函数([源码](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactChildFiber.old.js#L1274-L1410))是在`fiber树构(对比更新)`过程中对`旧fiber节点`与`新reactElement`进行比较, 判定`旧fiber节点`是否可以复用的一个比较函数.
 
-调和函数仅是`fiber树构造`过程中的一个环节, 所以在深入理解这个函数之前, 建议对`fiber树构造`有一个宏观的理解(可以参考前文[fiber 树构造(初次创建)](../main/fibertree-create.md), [fiber 树构造(对比更新)](../main/fibertree-update.md)), 本节重点探讨其算法的实现细节. 
+调和函数仅是`fiber树构造`过程中的一个环节, 所以在深入理解这个函数之前, 建议对`fiber树构造`有一个宏观的理解(可以参考前文[fiber 树构造(初次创建)](../main/fibertree-create.md), [fiber 树构造(对比更新)](../main/fibertree-update.md)), 本节重点探讨其算法的实现细节.
 
 它的主要作用:
 
@@ -164,7 +168,7 @@ function reconcileChildrenArray(
 
   if (shouldTrackSideEffects) {
     // newChildren已经遍历完, 那么oldFiber序列中剩余节点都视为删除(打上Deletion标记)
-    existingChildren.forEach(child => deleteChild(returnFiber, child));
+    existingChildren.forEach((child) => deleteChild(returnFiber, child));
   }
 
   return resultingFirstChild;
@@ -186,7 +190,7 @@ function reconcileChildrenArray(
    - 如果`newChildren序列`被遍历完, 那么`oldFiber序列`中剩余节点都视为删除(打上`Deletion`标记)
    - 如果`oldFiber序列`被遍历完, 那么`newChildren序列`中剩余节点都视为新增(打上`Placement`标记)
 2. 第二次循环: 遍历剩余`非公共`序列, 优先复用 oldFiber 序列中的节点
-   - 在对比更新阶段(非初次创建`fiber`, 此时`shouldTrackSideEffects`被设置为true). 第二次循环遍历完成之后, `oldFiber序列中`没有匹配上的节点都视为删除(打上`Deletion`标记)
+   - 在对比更新阶段(非初次创建`fiber`, 此时`shouldTrackSideEffects`被设置为 true). 第二次循环遍历完成之后, `oldFiber序列中`没有匹配上的节点都视为删除(打上`Deletion`标记)
 
 假设有如下图所示 2 个初始化序列:
 
@@ -289,7 +293,7 @@ for (; newIdx < newChildren.length; newIdx++) {
 }
 // 3. 善后工作, 第二次循环完成之后, existingChildren中剩余的fiber节点就是将要被删除的节点, 打上Deletion标记
 if (shouldTrackSideEffects) {
-  existingChildren.forEach(child => deleteChild(returnFiber, child));
+  existingChildren.forEach((child) => deleteChild(returnFiber, child));
 }
 ```
 

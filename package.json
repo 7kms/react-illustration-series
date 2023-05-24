@@ -1,34 +1,33 @@
 {
-  "private": true,
   "name": "react-illustration-series",
-  "version": "1.0.0",
+  "version": "0.0.1",
+  "description": "A static site based on dumi",
+  "license": "GPL-3.0",
   "scripts": {
-    "start": "dumi dev",
     "build": "dumi build",
-    "prettier": "prettier --write '**/*.{js,jsx,tsx,ts,less,md,json}'"
+    "dev": "dumi dev",
+    "prepare": "husky install && dumi setup",
+    "start": "npm run dev"
   },
-  "main": "dist/index.js",
-  "module": "dist/index.esm.js",
-  "typings": "dist/index.d.ts",
-  "gitHooks": {
-    "pre-commit": "lint-staged"
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
   },
   "lint-staged": {
-    "*.{js,jsx,less,md,json}": [
-      "prettier --write"
-    ],
-    "*.ts?(x)": [
-      "prettier --parser=typescript --write"
+    "*.{md,json}": [
+      "prettier --write --no-error-on-unmatched-pattern"
     ]
   },
   "devDependencies": {
-    "dumi": "^1.1.40",
-    "lint-staged": "^10.0.7",
-    "pangu": "^4.0.7",
-    "prettier": "^1.19.1",
-    "yorkie": "^2.0.0"
+    "@commitlint/cli": "^17.1.2",
+    "@commitlint/config-conventional": "^17.1.0",
+    "dumi": "^2.2.0",
+    "husky": "^8.0.1",
+    "lint-staged": "^13.0.3",
+    "prettier": "^2.7.1"
   },
-  "repository": "git@github.com:7kms/react-illustration-series.git",
-  "author": "km7 <tlyspa@gmail.com>",
-  "license": "MIT"
+  "authors": [
+    "tlyspa@gmail.com"
+  ]
 }

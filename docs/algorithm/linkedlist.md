@@ -1,5 +1,6 @@
 ---
 title: 链表操作
+order: 4
 ---
 
 # React 算法之链表操作
@@ -33,7 +34,7 @@ function LinkedList() {
   this.head = new Node('head');
 
   // 查找node节点的前一个节点
-  this.findPrevious = function(node) {
+  this.findPrevious = function (node) {
     let currentNode = this.head;
     while (currentNode && currentNode.next !== node) {
       currentNode = currentNode.next;
@@ -42,14 +43,14 @@ function LinkedList() {
   };
 
   // 在node后插入新节点newElement
-  this.insert = function(name, node) {
+  this.insert = function (name, node) {
     const newNode = new Node(name);
     newNode.next = node.next;
     node.next = newNode;
   };
 
   // 删除节点
-  this.remove = function(node) {
+  this.remove = function (node) {
     const previousNode = this.findPrevious(node);
     if (previousNode) {
       previousNode.next = node.next;
@@ -57,7 +58,7 @@ function LinkedList() {
   };
 
   // 反转链表
-  this.reverse = function() {
+  this.reverse = function () {
     let prev = null;
     let current = this.head;
     while (current) {
@@ -179,6 +180,7 @@ function LinkedList() {
      ![](../../snapshots/linkedlist/fiber.updatequeue-merge-after.png)
 
 2. `function`组件中
+
    - 在`function`组件中使用`Hook`对象(`useState`), 并改变`Hook`对象的值(内部会调用`dispatchAction`), 此时也会创建`update(hook)`对象并添加到`hook.queue.pending`链式队列([源码地址](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberHooks.old.js#L1645-L1682)).
    - `hook.queue.pending`也是一个环形链表(与`fiber.updateQueue.shared.pending`的结构很相似)
 
@@ -203,30 +205,30 @@ function LinkedList() {
 
    - 在`fiber`树构建阶段(或`reconciler`阶段), 会将`hook.queue.pending`合并到`hook.baseQueue`队列上([源码地址](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberHooks.old.js#L672-L694)).
 
-        ```js
-          function updateReducer<S, I, A>(
-            reducer: (S, A) => S,
-            initialArg: I,
-            init?: I => S,
-          ): [S, Dispatch<A>] {
-            // ... 省略部分代码
-            if (pendingQueue !== null) {
-              if (baseQueue !== null) {
-                // 在这里进行队列的合并
-                const baseFirst = baseQueue.next;
-                const pendingFirst = pendingQueue.next;
-                baseQueue.next = pendingFirst;
-                pendingQueue.next = baseFirst;
-              }
-              current.baseQueue = baseQueue = pendingQueue;
-              queue.pending = null;
-            }
-          }
-        ```
+     ```js
+     function updateReducer<S, I, A>(
+       reducer: (S, A) => S,
+       initialArg: I,
+       init?: (I) => S,
+     ): [S, Dispatch<A>] {
+       // ... 省略部分代码
+       if (pendingQueue !== null) {
+         if (baseQueue !== null) {
+           // 在这里进行队列的合并
+           const baseFirst = baseQueue.next;
+           const pendingFirst = pendingQueue.next;
+           baseQueue.next = pendingFirst;
+           pendingQueue.next = baseFirst;
+         }
+         current.baseQueue = baseQueue = pendingQueue;
+         queue.pending = null;
+       }
+     }
+     ```
 
-        ![](../../snapshots/linkedlist/hook.baseQueue-merge-before.png)
+     ![](../../snapshots/linkedlist/hook.baseQueue-merge-before.png)
 
-        ![](../../snapshots/linkedlist/hook.baseQueue-merge-after.png)
+     ![](../../snapshots/linkedlist/hook.baseQueue-merge-after.png)
 
 ## 总结
 

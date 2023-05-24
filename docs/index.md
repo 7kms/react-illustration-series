@@ -1,12 +1,24 @@
 ---
 title: 图解React原理系列
+description: 图解React原理系列, 以react核心包结构和运行机制为主线索进行展开. 包括react 基本包结构, react 工作循环, react 启动模式, react fiber原理, react hook原理, react 合成事件等核心内容
+keywords:
+  [
+    react,
+    react原理,
+    react fiber,
+    react hook,
+    react 合成事件,
+    react 工作循环,
+    react 启动模式,
+    react 基本包结构,
+  ]
 hero:
-  title: 图解React原理系列
-  desc: 基于[`react@17.0.2`](https://github.com/facebook/react/tree/v17.0.2)(尽可能跟随 react 版本的升级, 持续更新). 用大量配图的方式, 致力于将`react原理`表述清楚.
+  title: 图解React原理
+  description: 基于[`react@17.0.2`](https://github.com/facebook/react/tree/v17.0.2)(尽可能跟随 react 版本的升级, 持续更新). 用大量配图的方式, 致力于将`react原理`表述清楚.
   actions:
     - text: 开始学习
-      link: /main
-footer: Open-source MIT Licensed | Copyright © [公里柒(KM.Seven)](https://github.com/7kms)<br />Powered by [dumi](https://d.umijs.org/)
+      link: /main/macro-structure
+footer: Open-source GPL-3 Licensed | Copyright © [公里柒(KM.Seven)](https://github.com/7kms)<br />Powered by [dumi](https://d.umijs.org/)
 ---
 
 ## 使用指南

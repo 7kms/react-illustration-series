@@ -1,5 +1,9 @@
 ---
 title: reconciler 运作流程
+group:
+  title: 运行核心
+  order: 1
+order: 1
 ---
 
 # reconciler 运作流程
@@ -98,9 +102,8 @@ function ensureRootIsScheduled(root: FiberRoot, currentTime: number) {
       performSyncWorkOnRoot.bind(null, root),
     );
   } else {
-    const schedulerPriorityLevel = lanePriorityToSchedulerPriority(
-      newCallbackPriority,
-    );
+    const schedulerPriorityLevel =
+      lanePriorityToSchedulerPriority(newCallbackPriority);
     newCallbackNode = scheduleCallback(
       schedulerPriorityLevel,
       performConcurrentWorkOnRoot.bind(null, root),
@@ -113,10 +116,10 @@ function ensureRootIsScheduled(root: FiberRoot, currentTime: number) {
 
 `ensureRootIsScheduled`的逻辑很清晰, 分为 2 部分:
 
-1.  前半部分: 判断是否需要注册新的调度(如果无需新的调度, 会退出函数)
-2.  后半部分: 注册调度任务
-    - `performSyncWorkOnRoot`或`performConcurrentWorkOnRoot`被封装到了任务回调(`scheduleCallback`)中
-    - 等待调度中心执行任务, 任务运行其实就是执行`performSyncWorkOnRoot`或`performConcurrentWorkOnRoot`
+1. 前半部分: 判断是否需要注册新的调度(如果无需新的调度, 会退出函数)
+2. 后半部分: 注册调度任务
+   - `performSyncWorkOnRoot`或`performConcurrentWorkOnRoot`被封装到了任务回调(`scheduleCallback`)中
+   - 等待调度中心执行任务, 任务运行其实就是执行`performSyncWorkOnRoot`或`performConcurrentWorkOnRoot`
 
 ### 执行任务回调
 

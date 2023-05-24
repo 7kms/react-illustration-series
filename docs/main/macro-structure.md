@@ -1,5 +1,12 @@
 ---
 title: 宏观包结构
+nav:
+  title: 原理解析
+  order: 0
+group:
+  title: 基本概念
+  order: 0
+order: 0
 ---
 
 # React 应用的宏观包结构(web 开发)
