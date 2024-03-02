@@ -221,7 +221,7 @@ export function createUpdate(eventTime: number, lane: Lane): Update<*> {
    ): Lane {
      const current = container.current;
      const eventTime = requestEventTime();
-     const lane = requestUpdateLane(current); // 根据当前时间, 创建一个update优先级
+     const lane = requestUpdateLane(current); // 根据当前fiber对象, 创建一个update优先级
      const update = createUpdate(eventTime, lane); // lane被用于创建update对象
      update.payload = { element };
      enqueueUpdate(current, update);
@@ -237,9 +237,9 @@ const classComponentUpdater = {
   isMounted,
   enqueueSetState(inst, payload, callback) {
     const fiber = getInstance(inst);
-    const eventTime = requestEventTime(); // 根据当前时间, 创建一个update优先级
-    const lane = requestUpdateLane(fiber); // lane被用于创建update对象
-    const update = createUpdate(eventTime, lane);
+    const eventTime = requestEventTime(); 
+    const lane = requestUpdateLane(fiber); // 根据当前fiber对象, 创建一个update优先级
+    const update = createUpdate(eventTime, lane);// lane被用于创建update对象
     update.payload = payload;
     enqueueUpdate(fiber, update);
     scheduleUpdateOnFiber(fiber, lane, eventTime);
@@ -247,7 +247,7 @@ const classComponentUpdater = {
 };
 ```
 
-可以看到, 无论是`应用初始化`或者`发起组件更新`, 创建`update.lane`的逻辑都是一样的, 都是根据当前时间, 创建一个 update 优先级.
+可以看到, 无论是`应用初始化`或者`发起组件更新`, 创建`update.lane`的逻辑都是一样的, 都是根据当前 fiber 对象, 创建一个 update 优先级.
 
 [requestUpdateLane](https://github.com/facebook/react/blob/v17.0.2/packages/react-reconciler/src/ReactFiberWorkLoop.old.js#L392-L493):
 
